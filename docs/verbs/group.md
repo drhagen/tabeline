@@ -1,0 +1,66 @@
+# Grouping
+
+`group` is not so much a verb as it is a preposition. `group` does not change the contents or orders of any rows or columns, but it changes the context of subsequent verbs. All rows which have the same values in all group columns are members of the same subtable. Subsequent verbs act as if they are applied each subtable individually. So in `filter` or `mutate`, an expression containing `max` or `mean` will apply only to the rows in each subtable. 
+
+Tabeline is different from all popular data grammar libraries in how it handles groups. An instance of `DataTable` has group levels. Each invocation of `group` adds one group level, which can contain any number of columns names by which to group. The flattened list of group names from all levels can be accessed via the `group_names` property.
+
+## `group`
+
+Add a set of column names as a new group level. The column names must exist, and they must not be previously grouped.
+
+```python
+from tabeline import DataTable
+
+table = DataTable(
+    id = ["a", "a", "b", "b"],
+    x = [1, 2, 3, 4],
+)
+
+table.group("id").mutate(mean="mean(x)")
+# group levels: [id]
+# shape: (4, 3)
+# ┌─────┬─────┬──────┐
+# │ id  ┆ x   ┆ mean │
+# │ --- ┆ --- ┆ ---  │
+# │ str ┆ i64 ┆ f64  │
+# ╞═════╪═════╪══════╡
+# │ a   ┆ 1   ┆ 1.5  │
+# ├╌╌╌╌╌┼╌╌╌╌╌┼╌╌╌╌╌╌┤
+# │ a   ┆ 2   ┆ 1.5  │
+# ├╌╌╌╌╌┼╌╌╌╌╌┼╌╌╌╌╌╌┤
+# │ b   ┆ 3   ┆ 3.5  │
+# ├╌╌╌╌╌┼╌╌╌╌╌┼╌╌╌╌╌╌┤
+# │ b   ┆ 4   ┆ 3.5  │
+# └─────┴─────┴──────┘
+```
+
+## `ungroup`
+
+Drop the last group level.
+
+The existence of group levels causes this to behave differently from dplyr. This does not remove all group names, only those present in the last group level.
+
+```python
+from tabeline import DataTable
+
+table = DataTable(
+    id = ["a", "a", "b", "b"],
+    x = [1, 2, 3, 4],
+)
+
+table.group("id").mutate(mean="mean(x)")
+# shape: (4, 3)
+# ┌─────┬─────┬──────┐
+# │ id  ┆ x   ┆ mean │
+# │ --- ┆ --- ┆ ---  │
+# │ str ┆ i64 ┆ f64  │
+# ╞═════╪═════╪══════╡
+# │ a   ┆ 1   ┆ 2.5  │
+# ├╌╌╌╌╌┼╌╌╌╌╌┼╌╌╌╌╌╌┤
+# │ a   ┆ 2   ┆ 2.5  │
+# ├╌╌╌╌╌┼╌╌╌╌╌┼╌╌╌╌╌╌┤
+# │ b   ┆ 3   ┆ 2.5  │
+# ├╌╌╌╌╌┼╌╌╌╌╌┼╌╌╌╌╌╌┤
+# │ b   ┆ 4   ┆ 2.5  │
+# └─────┴─────┴──────┘
+```

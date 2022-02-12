@@ -1,0 +1,62 @@
+site_name: Tabeline
+site_description: Data table and data grammar library for Python
+site_author: David Hagen
+
+repo_name: drhagen/tabeline
+repo_url: https://github.com/drhagen/tabeline/
+edit_uri: ''
+
+copyright: >
+  &copy; David R Hagen. Content available under an
+  <a href="https://github.com/drhagen/tabeline/blob/master/LICENSE">MIT license</a>.
+theme:
+  name: material
+
+  icon:
+    logo: material/diamond-stone
+    repo: fontawesome/brands/github
+
+  palette:
+    - scheme: default
+      primary: black
+      accent: yellow
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: yellow
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/drhagen
+    - icon: fontawesome/brands/stack-overflow
+      link: https://stackoverflow.com/users/1485877/drhagen
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/drhagen
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/davidrhagen/
+
+nav:
+  - Home: index.md
+  - Index: summary.md
+  - Table creation: creation.md
+  - Verbs:
+    - Reorganizing: verbs/select.md
+    - Filtering: verbs/filter.md
+    - Sorting: verbs/sort.md
+    - Mutation: verbs/mutate.md
+    - Grouping: verbs/group.md
+    - Summarizing: verbs/summarize.md
+    - Reshaping: verbs/spread.md
+    - Joining: verbs/join.md
