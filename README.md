@@ -6,7 +6,7 @@ Tabeline draws inspiration from dplyr, the data grammar of R's tidyverse, especi
 
 Tabeline uses Polars under the hood, but adds a lot of handling of edge cases from Polars, which otherwise result in crashes or behavior that is not type stable.
 
-See the [Documentation](htps://tabeline.drhagen.com) for the full user guide.
+See the [Documentation](https://tabeline.drhagen.com) for the full user guide.
 
 ## Installation
 
