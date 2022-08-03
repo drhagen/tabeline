@@ -3,39 +3,28 @@ name: python
 on: [push]
 
 jobs:
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Install environment
-        run: |
-          pip install poetry==1.2.0b2
-          poetry install
-      - name: Run code quality checks
-        run: poetry run nox -s black isort flake8
   test:
     strategy:
       matrix:
         python-version: ['3.9', '3.10']
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+      - name: Install Poetry
+        run: pipx install poetry==1.2.0b2
       - name: Install Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: poetry
       - name: Install environment
-        run: |
-          pip install poetry==1.2.0b2
-          poetry install
+        run: poetry install
       - name: Test with nox
-        run: poetry run nox -s test-${{ matrix.python-version }}
+        run: >-
+          poetry run nox -s 
+          test-${{ matrix.python-version }}
+          test_pandas-${{ matrix.python-version }}
       - name: Store coverage
         uses: actions/upload-artifact@v3
         with:
@@ -43,18 +32,19 @@ jobs:
           path: .coverage.*
   coverage:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+      - name: Install Poetry
+        run: pipx install poetry==1.2.0b2
       - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+          cache: poetry
       - name: Install environment
-        run: |
-          pip install poetry==1.2.0b2
-          poetry install
+        run: poetry install
       - name: Fetch coverage
         uses: actions/download-artifact@v3
         with:
@@ -65,3 +55,19 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+  quality:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Install Poetry
+        run: pipx install poetry==1.2.0b2
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: poetry
+      - name: Install environment
+        run: poetry install
+      - name: Run code quality checks
+        run: poetry run nox -s black isort flake8
