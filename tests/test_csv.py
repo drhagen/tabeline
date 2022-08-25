@@ -5,17 +5,12 @@ import pytest
 
 from tabeline import DataTable
 
-from ._xfail import xfail_param
-
 
 @pytest.mark.parametrize(
     "table",
     [
         DataTable(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True]),
-        DataTable(escape=["a a", "c,c", r"s\s", 'q"q', "q'q"]),
-        # Combine this with the test above once this is fixed
-        # https://github.com/pola-rs/polars/issues/4130
-        xfail_param(DataTable(escape=["n\nn"])),
+        DataTable(escape=["a a", "c,c", r"s\s", 'q"q', "q'q", "n\nn"]),
     ],
 )
 def test_csv_roundtrip(table):
