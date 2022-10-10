@@ -209,13 +209,13 @@ class DataTable:
             else:
                 return DataTable(self._df.head(1), self.group_levels, 1)
         else:
-            return DataTable(self._df.distinct(subset=all_columns), self.group_levels)
+            return DataTable(self._df.unique(subset=all_columns), self.group_levels)
 
     def unique(self) -> DataTable:
         if self.width == 0:
             return DataTable(pl.DataFrame({}), self.group_levels, min(1, self.height))
 
-        return DataTable(self._df.distinct(), self.group_levels)
+        return DataTable(self._df.unique(), self.group_levels)
 
     def cluster(self, *columns: str) -> DataTable:
         assert_legal_columns(columns, self.column_names, self.group_names)
