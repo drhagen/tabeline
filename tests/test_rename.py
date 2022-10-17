@@ -37,58 +37,58 @@ def test_rename_swap(swappers):
 
 @pytest.mark.parametrize("swappers", swappers)
 def test_rename_swap_into_group(swappers):
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x")
     actual = table.rename(**swappers)
-    expected = DataTable(y=[0, 0, 1], x=[True, False, True], z=["a", "b", "c"]).group("y")
+    expected = DataTable(y=[0, 0, 1], x=[True, False, True], z=["a", "b", "c"]).group_by("y")
     assert actual == expected
 
 
 @pytest.mark.parametrize("swappers", swappers)
 def test_rename_swap_within_group(swappers):
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x", "y")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x", "y")
     actual = table.rename(**swappers)
-    expected = DataTable(y=[0, 0, 1], x=[True, False, True], z=["a", "b", "c"]).group("y", "x")
+    expected = DataTable(y=[0, 0, 1], x=[True, False, True], z=["a", "b", "c"]).group_by("y", "x")
     assert actual == expected
 
 
 @pytest.mark.parametrize("swappers", swappers)
 def test_rename_swap_between_group_levels(swappers):
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x").group("y")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x").group_by("y")
     actual = table.rename(**swappers)
     expected = (
-        DataTable(y=[0, 0, 1], x=[True, False, True], z=["a", "b", "c"]).group("y").group("x")
+        DataTable(y=[0, 0, 1], x=[True, False, True], z=["a", "b", "c"]).group_by("y").group_by("x")
     )
     assert actual == expected
 
 
 def test_rename_earlier_group_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x", "y")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x", "y")
     actual = table.rename(xx="x")
-    expected = DataTable(xx=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("xx", "y")
+    expected = DataTable(xx=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("xx", "y")
     assert actual == expected
 
 
 def test_rename_later_group_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x", "y")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x", "y")
     actual = table.rename(yy="y")
-    expected = DataTable(x=[0, 0, 1], yy=[True, False, True], z=["a", "b", "c"]).group("x", "yy")
+    expected = DataTable(x=[0, 0, 1], yy=[True, False, True], z=["a", "b", "c"]).group_by("x", "yy")
     assert actual == expected
 
 
 def test_rename_earlier_group_level():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x").group("y")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x").group_by("y")
     actual = table.rename(xx="x")
     expected = (
-        DataTable(xx=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("xx").group("y")
+        DataTable(xx=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("xx").group_by("y")
     )
     assert actual == expected
 
 
 def test_rename_later_group_level():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x").group("y")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x").group_by("y")
     actual = table.rename(yy="y")
     expected = (
-        DataTable(x=[0, 0, 1], yy=[True, False, True], z=["a", "b", "c"]).group("x").group("yy")
+        DataTable(x=[0, 0, 1], yy=[True, False, True], z=["a", "b", "c"]).group_by("x").group_by("yy")
     )
     assert actual == expected
 
@@ -99,11 +99,11 @@ def test_rename_later_group_level():
         DataTable(),
         DataTable(x=[0, 0, 1]),
         DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]),
-        DataTable().group(),
-        DataTable(x=[0, 0, 1]).group("x"),
-        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x"),
-        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x", "y"),
-        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x").group("y"),
+        DataTable().group_by(),
+        DataTable(x=[0, 0, 1]).group_by("x"),
+        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x"),
+        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x", "y"),
+        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x").group_by("y"),
     ],
 )
 def test_noop_rename(table: DataTable):
@@ -118,9 +118,9 @@ def test_noop_rename(table: DataTable):
     "table",
     [
         DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]),
-        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x"),
-        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x", "y"),
-        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x").group("y"),
+        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x"),
+        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x", "y"),
+        DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x").group_by("y"),
     ],
 )
 def test_rename_self(columns, table):

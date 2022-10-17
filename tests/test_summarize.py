@@ -5,42 +5,42 @@ from tabeline import DataTable
 
 def test_summarize():
     table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.group("x").summarize(size="n()", max_y="max(y)")
+    actual = table.group_by("x").summarize(size="n()", max_y="max(y)")
     expected = DataTable(x=[0, 1], size=[2, 2], max_y=[2, 4])
     assert actual == expected
 
 
 def test_summarize_back_reference():
     table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.group("x").summarize(max_y="max(y)", inverted="-max_y")
+    actual = table.group_by("x").summarize(max_y="max(y)", inverted="-max_y")
     expected = DataTable(x=[0, 1], max_y=[2, 4], inverted=[-2, -4])
     assert actual == expected
 
 
 def test_summarize_original_and_back_reference():
     table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 5])
-    actual = table.group("x").summarize(max_y="max(y)", range="max_y-min(y)")
+    actual = table.group_by("x").summarize(max_y="max(y)", range="max_y-min(y)")
     expected = DataTable(x=[0, 1], max_y=[2, 5], range=[1, 2])
     assert actual == expected
 
 
 def test_literal_in_summarize():
     table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.group("x").summarize(new="1")
+    actual = table.group_by("x").summarize(new="1")
     expected = DataTable(x=[0, 1], new=[1, 1])
     assert actual == expected
 
 
 def test_empty_summarize():
     table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.group("x").summarize()
+    actual = table.group_by("x").summarize()
     expected = DataTable(x=[0, 1])
     assert actual == expected
 
 
 def test_empty_summarize_on_two_groups():
     table = DataTable(x=[0, 0, 1, 1, 0], y=[1, 2, 2, 2, 2], z=[1, 2, 3, 4, 5])
-    actual = table.group("x", "y").summarize()
+    actual = table.group_by("x", "y").summarize()
     expected = DataTable(x=[0, 0, 1], y=[1, 2, 2])
     assert actual == expected
 
@@ -48,8 +48,8 @@ def test_empty_summarize_on_two_groups():
 @pytest.mark.parametrize(
     "table",
     [
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_summarize_empty(table):
@@ -61,8 +61,8 @@ def test_summarize_empty(table):
 @pytest.mark.parametrize(
     "table",
     [
-        DataTable.columnless(height=6).group(),
-        DataTable.columnless(height=6).group().group(),
+        DataTable.columnless(height=6).group_by(),
+        DataTable.columnless(height=6).group_by().group_by(),
     ],
 )
 def test_summarize_columnless(table):
@@ -81,6 +81,6 @@ def test_summarize_columnless(table):
 )
 def test_summarize_rowless(expressions):
     table = DataTable(w=[], x=[], y=[], z=[])
-    actual = table.group("x", "y").summarize(**expressions)
+    actual = table.group_by("x", "y").summarize(**expressions)
     expected = DataTable(x=[], y=[], a=[], b=[])
     assert actual == expected

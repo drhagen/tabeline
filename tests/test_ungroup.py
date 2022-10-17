@@ -5,21 +5,21 @@ from tabeline.exceptions import NoGroups
 
 
 def test_ungroup():
-    actual = DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group("x").group("y").ungroup()
-    expected = DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group("x")
+    actual = DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup()
+    expected = DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x")
     assert actual == expected
 
 
 @pytest.mark.parametrize(
     "table",
     [
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group().ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group("x").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group("x", "y").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group().group().ungroup().ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by().ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x", "y").ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by().group_by().ungroup().ungroup(),
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
-        .group("x")
-        .group("y")
+        .group_by("x")
+        .group_by("y")
         .ungroup()
         .ungroup(),
     ],
@@ -31,11 +31,11 @@ def test_ungroup_completely(table):
 @pytest.mark.parametrize(
     "table",
     [
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group("x").group("y").ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup(),
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
-        .group("x")
-        .group()
-        .group("y")
+        .group_by("x")
+        .group_by()
+        .group_by("y")
         .ungroup()
         .ungroup(),
     ],
@@ -48,11 +48,11 @@ def test_ungroup_to_one_level(table):
     "table",
     [
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group("x").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group("x", "y").ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x", "y").ungroup(),
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
-        .group("y")
-        .group("x")
+        .group_by("y")
+        .group_by("x")
         .ungroup()
         .ungroup(),
     ],

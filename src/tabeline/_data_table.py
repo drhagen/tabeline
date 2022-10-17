@@ -372,7 +372,7 @@ class DataTable:
         # of group columns followed by explicit columns
         return mutated_table.select(*self.group_names, *mutators.keys())
 
-    def group(
+    def group_by(
         self, *columns: str, order: Literal["original", "cluster", "sort"] = "original"
     ) -> DataTable:
         assert_legal_columns(columns, self.column_names, self.group_names)
@@ -389,6 +389,9 @@ class DataTable:
             )
 
         return DataTable(ordered_table._df, self.group_levels + (columns,), self.height)
+
+    def group(self, *columns: str, order: Literal["original", "cluster", "sort"] = "original") -> DataTable:
+        return self.group_by(*columns, order=order)
 
     def ungroup(self) -> DataTable:
         if len(self.group_levels) == 0:
@@ -447,7 +450,7 @@ class DataTable:
             id_vars=all_columns, value_vars=list(columns), variable_name=key, value_name=value
         )
 
-        return DataTable(df, self.group_levels).group(key)
+        return DataTable(df, self.group_levels).group_by(key)
 
     def _resolve_join_by(
         self,
@@ -588,7 +591,7 @@ class DataTable:
 
     def __repr__(self):
         column_strs = [f"{name} = {list(values)!r}" for name, values in self._df.to_dict().items()]
-        group_strs = [f".group({', '.join(map(repr, level))})" for level in self.group_levels]
+        group_strs = [f".group_by({', '.join(map(repr, level))})" for level in self.group_levels]
         return f"DataTable({', '.join(column_strs)}){''.join(group_strs)}"
 
     def __str__(self):

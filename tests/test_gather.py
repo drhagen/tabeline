@@ -8,5 +8,5 @@ def test_gather():
         sex=["M", "F", "M", "F", "M", "F"],
         grades=["0", "0", "1", "1", "2", "2"],
         count=[8, 9, 9, 10, 6, 9],
-    ).group("grades")
+    ).group_by("grades")
     assert actual == expected

@@ -28,9 +28,9 @@ def test_slice_out_of_bounds():
 
 
 def test_slice_groups():
-    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group("x")
+    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
 
-    expected = DataTable(x=[2, 1, 2, 1], y=[6.7, 8.9, -1.1, 4.5]).group("x")
+    expected = DataTable(x=[2, 1, 2, 1], y=[6.7, 8.9, -1.1, 4.5]).group_by("x")
 
     actual = table.slice0([1, 2])
     assert actual == expected
@@ -52,9 +52,9 @@ def test_slice_one_index():
 
 
 def test_slice_groups_one_index():
-    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group("x")
+    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
 
-    expected = DataTable(x=[2, 1], y=[6.7, 8.9]).group("x")
+    expected = DataTable(x=[2, 1], y=[6.7, 8.9]).group_by("x")
 
     actual = table.slice0([1])
     assert actual == expected
@@ -70,14 +70,14 @@ def test_slice_groups_multiple_columns_one_index():
             y=["a", "a", "a", "a", "b", "b", "b", "b"],
             z=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5, 4.3, 7.7],
         )
-        .group("x")
-        .group("y")
+        .group_by("x")
+        .group_by("y")
     )
 
     expected = (
         DataTable(x=[2, 1, 1, 2], y=["a", "a", "b", "b"], z=[6.7, 8.9, 4.3, 7.7])
-        .group("x")
-        .group("y")
+        .group_by("x")
+        .group_by("y")
     )
 
     actual = table.slice0([1])
@@ -100,9 +100,9 @@ def test_slice_to_nothing():
 
 
 def test_slice_groups_to_nothing():
-    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group("x")
+    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
 
-    expected = DataTable(x=[], y=[]).group("x")
+    expected = DataTable(x=[], y=[]).group_by("x")
 
     actual = table.slice0([])
     assert actual == expected
@@ -118,11 +118,11 @@ def test_slice_multiple_groups_to_nothing():
             y=["a", "a", "a", "a", "b", "b", "b", "b"],
             z=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5, 4.3, 7.7],
         )
-        .group("x")
-        .group("y")
+        .group_by("x")
+        .group_by("y")
     )
 
-    expected = DataTable(x=[], y=[], z=[]).group("x").group("y")
+    expected = DataTable(x=[], y=[], z=[]).group_by("x").group_by("y")
 
     actual = table.slice0([])
     assert actual == expected
@@ -132,7 +132,7 @@ def test_slice_multiple_groups_to_nothing():
 
 
 def test_slice_only_one_out_of_bounds():
-    table = DataTable(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group("x")
+    table = DataTable(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group_by("x")
 
     # General Exception because who know what will come out of Polars
     with pytest.raises(Exception):
@@ -146,8 +146,8 @@ def test_slice_only_one_out_of_bounds():
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_slice_empty(table):
@@ -162,8 +162,8 @@ def test_slice_empty(table):
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_slice_empty_out_of_bounds(table):
@@ -181,10 +181,10 @@ def test_slice_empty_out_of_bounds(table):
     ["table", "expected"],
     [
         [DataTable.columnless(height=6), DataTable.columnless(height=3)],
-        [DataTable.columnless(height=6).group(), DataTable.columnless(height=3).group()],
+        [DataTable.columnless(height=6).group_by(), DataTable.columnless(height=3).group_by()],
         [
-            DataTable.columnless(height=6).group().group(),
-            DataTable.columnless(height=3).group().group(),
+            DataTable.columnless(height=6).group_by().group_by(),
+            DataTable.columnless(height=3).group_by().group_by(),
         ],
     ],
 )
@@ -200,8 +200,8 @@ def test_slice_columnless(table, expected):
     "table",
     [
         DataTable.columnless(height=4),
-        DataTable.columnless(height=4).group(),
-        DataTable.columnless(height=4).group().group(),
+        DataTable.columnless(height=4).group_by(),
+        DataTable.columnless(height=4).group_by().group_by(),
     ],
 )
 def test_slice_columnless_out_of_bounds(table):
@@ -216,8 +216,8 @@ def test_slice_columnless_out_of_bounds(table):
     "table",
     [
         DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group(),
-        DataTable(x=[]).group().group(),
+        DataTable(x=[], y=[]).group_by(),
+        DataTable(x=[]).group_by().group_by(),
     ],
 )
 def test_slice_rowless(table):
@@ -234,8 +234,8 @@ def test_slice_rowless(table):
     "table",
     [
         DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group(),
-        DataTable(x=[]).group().group(),
+        DataTable(x=[], y=[]).group_by(),
+        DataTable(x=[]).group_by().group_by(),
     ],
 )
 def test_slice_rowless_out_of_bounds(table):

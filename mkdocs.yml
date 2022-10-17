@@ -56,7 +56,7 @@ nav:
     - Filtering: verbs/filter.md
     - Sorting: verbs/sort.md
     - Mutation: verbs/mutate.md
-    - Grouping: verbs/group.md
+    - Grouping: verbs/group_by.md
     - Summarizing: verbs/summarize.md
     - Reshaping: verbs/spread.md
     - Joining: verbs/join.md

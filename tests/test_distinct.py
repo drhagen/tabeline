@@ -28,9 +28,9 @@ def test_empty_distinct():
 def test_distinct_with_grouped_column(distinct_columns):
     table = DataTable(
         x=[0, 0, 0, 1, 1, 1, 1], y=["a", "a", "b", "a", "a", "b", "b"], z=[1, 1, 1, 1, 2, 3, 3]
-    ).group("x")
+    ).group_by("x")
     actual = table.distinct(*distinct_columns)
-    expected = DataTable(x=[0, 1, 1, 1], y=["a", "a", "a", "b"], z=[1, 1, 2, 3]).group("x")
+    expected = DataTable(x=[0, 1, 1, 1], y=["a", "a", "a", "b"], z=[1, 1, 2, 3]).group_by("x")
     assert actual == expected
 
 
@@ -38,9 +38,9 @@ def test_distinct_with_grouped_column(distinct_columns):
 def test_distinct_with_two_grouped_columns(distinct_columns):
     table = DataTable(
         x=[0, 0, 0, 1, 1, 1, 1], y=["a", "a", "b", "a", "a", "b", "b"], z=[1, 1, 1, 1, 2, 3, 3]
-    ).group("x", "y")
+    ).group_by("x", "y")
     actual = table.distinct(*distinct_columns)
-    expected = DataTable(x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3]).group(
+    expected = DataTable(x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3]).group_by(
         "x", "y"
     )
     assert actual == expected
@@ -52,14 +52,14 @@ def test_distinct_with_two_separate_grouped_columns(distinct_columns):
         DataTable(
             x=[0, 0, 0, 1, 1, 1, 1], y=["a", "a", "b", "a", "a", "b", "b"], z=[1, 1, 1, 1, 2, 3, 3]
         )
-        .group("x")
-        .group("y")
+        .group_by("x")
+        .group_by("y")
     )
     actual = table.distinct(*distinct_columns)
     expected = (
         DataTable(x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3])
-        .group("x")
-        .group("y")
+        .group_by("x")
+        .group_by("y")
     )
     assert actual == expected
 
@@ -68,8 +68,8 @@ def test_distinct_with_two_separate_grouped_columns(distinct_columns):
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_distinct_on_empty(table):
@@ -82,8 +82,8 @@ def test_distinct_on_empty(table):
     "table",
     [
         DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group(),
-        DataTable(x=[], y=[]).group().group(),
+        DataTable(x=[], y=[]).group_by(),
+        DataTable(x=[], y=[]).group_by().group_by(),
     ],
 )
 def test_distinct_on_rowless(columns, table):
@@ -95,10 +95,10 @@ def test_distinct_on_rowless(columns, table):
     ["table", "expected"],
     [
         [DataTable.columnless(height=6), DataTable.columnless(height=1)],
-        [DataTable.columnless(height=6).group(), DataTable.columnless(height=1).group()],
+        [DataTable.columnless(height=6).group_by(), DataTable.columnless(height=1).group_by()],
         [
-            DataTable.columnless(height=6).group().group(),
-            DataTable.columnless(height=1).group().group(),
+            DataTable.columnless(height=6).group_by().group_by(),
+            DataTable.columnless(height=1).group_by().group_by(),
         ],
     ],
 )

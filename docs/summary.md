@@ -41,8 +41,8 @@ Each verb is a method of `DataTable`.
 
 ### Grouping
 
-* [`group`](verbs/group.md#group): Create a group level containing given columns
-* [`ungroup`](verbs/group.md#ungroup): Drop the last group level
+* [`group_by`](verbs/group_by.md#group_by): Create a group level containing given columns
+* [`ungroup`](verbs/group_by.md#ungroup): Drop the last group level
 
 ### Summarizing
 
