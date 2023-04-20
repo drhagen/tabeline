@@ -10,6 +10,13 @@ def test_distinct():
     assert actual == expected
 
 
+def test_distinct_unsorted():
+    table = DataTable(x=[1, 1, 0, 0], y=[1, 2, 3, 4])
+    actual = table.distinct("x")
+    expected = DataTable(x=[1, 0], y=[1, 3])
+    assert actual == expected
+
+
 def test_empty_distinct():
     table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
     actual = table.distinct()

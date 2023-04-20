@@ -144,12 +144,17 @@ class DataTable:
                     column for column in self.column_names if column not in group_set
                 ] + ["_index"]
 
-                if len(indexes) == 1:
+                if len(indexes) == 0:
+                    # Polars is not type stable when exploding no elements on a
+                    # grouped table, so just drop all rows.
+                    # https://github.com/pola-rs/polars/issues/6723
+                    new_df = self._df.select(pl.all().take(indexes))
+                elif len(indexes) == 1:
                     # Polars is not type stable, so explode must be excluded
                     # when taking only one element
                     new_df = (
                         self._df.lazy()
-                        .with_column(pl.arange(0, pl.count()).alias("_index"))
+                        .with_columns(pl.arange(0, pl.count()).alias("_index"))
                         .groupby(list(group_names), maintain_order=True)
                         .agg(pl.all().take(indexes))
                         .sort("_index")
@@ -159,7 +164,7 @@ class DataTable:
                 else:
                     new_df = (
                         self._df.lazy()
-                        .with_column(pl.arange(0, pl.count()).alias("_index"))
+                        .with_columns(pl.arange(0, pl.count()).alias("_index"))
                         .groupby(list(group_names), maintain_order=True)
                         .agg(pl.all().take(indexes))
                         .explode(non_group_columns)
@@ -209,13 +214,15 @@ class DataTable:
             else:
                 return DataTable(self._df.head(1), self.group_levels, 1)
         else:
-            return DataTable(self._df.unique(subset=all_columns), self.group_levels)
+            return DataTable(
+                self._df.unique(subset=all_columns, maintain_order=True), self.group_levels
+            )
 
     def unique(self) -> DataTable:
         if self.width == 0:
             return DataTable(pl.DataFrame({}), self.group_levels, min(1, self.height))
 
-        return DataTable(self._df.unique(), self.group_levels)
+        return DataTable(self._df.unique(maintain_order=True), self.group_levels)
 
     def cluster(self, *columns: str) -> DataTable:
         assert_legal_columns(columns, self.column_names, self.group_names)
@@ -232,8 +239,8 @@ class DataTable:
             # Polars chokes on empty window columns
             return DataTable(
                 self._df.lazy()
-                .with_column(pl.arange(0, pl.count()).alias("_index"))
-                .with_column(pl.min("_index").over(all_columns))
+                .with_columns(pl.arange(0, pl.count()).alias("_index"))
+                .with_columns(pl.min("_index").over(all_columns))
                 .select(pl.all().sort_by(["_index"]))
                 .drop("_index")
                 .collect(),
@@ -243,8 +250,8 @@ class DataTable:
         else:
             return DataTable(
                 self._df.lazy()
-                .with_column(pl.arange(0, pl.count()).alias("_index"))
-                .with_column(pl.min("_index").over(all_columns))
+                .with_columns(pl.arange(0, pl.count()).alias("_index"))
+                .with_columns(pl.min("_index").over(all_columns))
                 .select(pl.all().sort_by(["_index"]).over(list(self.group_names)))
                 .drop("_index")
                 .collect(),
@@ -342,12 +349,12 @@ class DataTable:
         polars_operation = df.lazy()
         if len(group_set) == 0:
             for name, mutator in mutators.items():
-                polars_operation = polars_operation.with_column(
+                polars_operation = polars_operation.with_columns(
                     to_polars(Expression.parse(mutator).or_die()).alias(name)
                 )
         else:
             for name, mutator in mutators.items():
-                polars_operation = polars_operation.with_column(
+                polars_operation = polars_operation.with_columns(
                     to_polars(Expression.parse(mutator).or_die())
                     .over(list(self.group_names))
                     .alias(name)
@@ -487,9 +494,9 @@ class DataTable:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_column(pl.arange(0, pl.count()).alias("_index1"))
+            .with_columns(pl.arange(0, pl.count()).alias("_index1"))
             .join(
-                other._df.lazy().with_column(pl.arange(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.arange(0, pl.count()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
                 how="inner",
@@ -516,9 +523,9 @@ class DataTable:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_column(pl.arange(0, pl.count()).alias("_index1"))
+            .with_columns(pl.arange(0, pl.count()).alias("_index1"))
             .join(
-                other._df.lazy().with_column(pl.arange(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.arange(0, pl.count()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
                 how="left",
@@ -546,9 +553,9 @@ class DataTable:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_column(pl.arange(0, pl.count()).alias("_index1"))
+            .with_columns(pl.arange(0, pl.count()).alias("_index1"))
             .join(
-                other._df.lazy().with_column(pl.arange(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.arange(0, pl.count()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
                 how="outer",

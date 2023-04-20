@@ -1,15 +1,14 @@
-import nox
 import nox_poetry
 
 
-@nox_poetry.session(python=["3.9", "3.10"])
+@nox_poetry.session(python=["3.9", "3.10", "3.11"])
 def test(session: nox_poetry.Session):
     session.install(".", "pytest", "pytest-cov")
     session.env["COVERAGE_FILE"] = f".coverage.{session.python}"
     session.run("python", "-m", "pytest", "--cov", "tabeline")
 
 
-@nox_poetry.session(python=["3.9", "3.10"])
+@nox_poetry.session(python=["3.9", "3.10", "3.11"])
 def test_pandas(session: nox_poetry.Session):
     session.install(".[pandas]", "pytest", "pytest-cov")
     session.env["COVERAGE_FILE"] = f".coverage.pandas.{session.python}"
