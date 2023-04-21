@@ -1,5 +1,5 @@
 site_name: Tabeline
-site_description: Data table and data grammar library for Python
+site_description: Data frame and data grammar library for Python
 site_author: David Hagen
 
 repo_name: drhagen/tabeline
@@ -50,7 +50,7 @@ extra:
 nav:
   - Home: index.md
   - Index: summary.md
-  - Table creation: creation.md
+  - Data frame creation: creation.md
   - Verbs:
     - Reorganizing: verbs/select.md
     - Filtering: verbs/filter.md

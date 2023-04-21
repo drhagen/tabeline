@@ -1,13 +1,13 @@
 import pytest
 
-from tabeline import DataTable
+from tabeline import DataFrame
 from tabeline.exceptions import NonexistentColumn
 
 
 def test_select():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
-    actual = table.select("x", "z")
-    expected = DataTable(x=[0, 0, 1], z=["a", "b", "c"])
+    df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
+    actual = df.select("x", "z")
+    expected = DataFrame(x=[0, 0, 1], z=["a", "b", "c"])
     assert actual == expected
 
 
@@ -32,9 +32,9 @@ test_columns = {
     ],
 )
 def test_select_columns(input_columns: list[str], selectors: list[str]):
-    table = DataTable(**{name: test_columns[name] for name in input_columns})
-    actual = table.select(*selectors)
-    expected = DataTable(**{name: test_columns[name] for name in selectors})
+    df = DataFrame(**{name: test_columns[name] for name in input_columns})
+    actual = df.select(*selectors)
+    expected = DataFrame(**{name: test_columns[name] for name in selectors})
     assert actual == expected
 
 
@@ -47,9 +47,9 @@ def test_select_columns(input_columns: list[str], selectors: list[str]):
     ],
 )
 def test_select_no_columns(input_columns):
-    table = DataTable(**{name: test_columns[name] for name in input_columns})
-    actual = table.select()
-    expected = DataTable.columnless(height=table.height)
+    df = DataFrame(**{name: test_columns[name] for name in input_columns})
+    actual = df.select()
+    expected = DataFrame.columnless(height=df.height)
     assert actual == expected
 
 
@@ -83,44 +83,44 @@ def test_select_columns_grouped(
     selectors: list[str],
     expected_columns: list[str],
 ):
-    table = DataTable(**{name: test_columns[name] for name in input_columns})
+    df = DataFrame(**{name: test_columns[name] for name in input_columns})
     for level in groups:
-        table = table.group_by(*level)
-    actual = table.select(*selectors)
-    expected = DataTable(**{name: test_columns[name] for name in expected_columns})
+        df = df.group_by(*level)
+    actual = df.select(*selectors)
+    expected = DataFrame(**{name: test_columns[name] for name in expected_columns})
     for level in groups:
         expected = expected.group_by(*level)
     assert actual == expected
 
 
 def test_select_nonexistent_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
+    df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
 
     with pytest.raises(NonexistentColumn):
-        _ = table.select("x", "a")
+        _ = df.select("x", "a")
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(),
-        DataTable().group_by(),
-        DataTable().group_by().group_by(),
+        DataFrame(),
+        DataFrame().group_by(),
+        DataFrame().group_by().group_by(),
     ],
 )
-def test_select_empty(table):
-    actual = table.select()
-    assert actual == table
+def test_select_empty(df):
+    actual = df.select()
+    assert actual == df
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable.columnless(height=6),
-        DataTable.columnless(height=6).group_by(),
-        DataTable.columnless(height=6).group_by().group_by(),
+        DataFrame.columnless(height=6),
+        DataFrame.columnless(height=6).group_by(),
+        DataFrame.columnless(height=6).group_by().group_by(),
     ],
 )
-def test_select_columnless(table):
-    actual = table.select()
-    assert actual == table
+def test_select_columnless(df):
+    actual = df.select()
+    assert actual == df

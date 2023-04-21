@@ -1,44 +1,44 @@
 import pytest
 
-from tabeline import DataTable
+from tabeline import DataFrame
 from tabeline.exceptions import NoGroups
 
 
 def test_ungroup():
     actual = (
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup()
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup()
     )
-    expected = DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x")
+    expected = DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x")
     assert actual == expected
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by().ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x", "y").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by().ungroup(),
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").ungroup(),
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x", "y").ungroup(),
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
         .group_by()
         .group_by()
         .ungroup()
         .ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
         .group_by("x")
         .group_by("y")
         .ungroup()
         .ungroup(),
     ],
 )
-def test_ungroup_completely(table):
-    assert table.group_levels == ()
+def test_ungroup_completely(df):
+    assert df.group_levels == ()
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup(),
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
         .group_by("x")
         .group_by()
         .group_by("y")
@@ -46,23 +46,23 @@ def test_ungroup_completely(table):
         .ungroup(),
     ],
 )
-def test_ungroup_to_one_level(table):
-    assert table.group_levels == (("x",),)
+def test_ungroup_to_one_level(df):
+    assert df.group_levels == (("x",),)
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x", "y").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]),
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").ungroup(),
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x", "y").ungroup(),
+        DataFrame(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
         .group_by("y")
         .group_by("x")
         .ungroup()
         .ungroup(),
     ],
 )
-def test_ungroup_no_groups(table):
+def test_ungroup_no_groups(df):
     with pytest.raises(NoGroups):
-        _ = table.ungroup()
+        _ = df.ungroup()

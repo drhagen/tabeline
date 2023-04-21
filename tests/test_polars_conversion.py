@@ -1,34 +1,34 @@
+import polars as pl
 import pytest
-from polars import DataFrame
 from polars.testing import assert_frame_equal
 
-from tabeline import DataTable
+import tabeline as tb
 
 
 @pytest.mark.parametrize(
-    ["df", "table"],
+    ["polars_df", "df"],
     [
         [
-            DataFrame(dict(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True])),
-            DataTable(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True]),
+            pl.DataFrame(dict(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True])),
+            tb.DataFrame(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True]),
         ],
         [
-            DataFrame(dict(x=[], y=[], z=[])),
-            DataTable(x=[], y=[], z=[]),
+            pl.DataFrame(dict(x=[], y=[], z=[])),
+            tb.DataFrame(x=[], y=[], z=[]),
         ],
         [
-            DataFrame(),
-            DataTable(),
+            pl.DataFrame(),
+            tb.DataFrame(),
         ],
     ],
 )
-def test_polars_conversion(df, table):
-    assert table == DataTable.from_polars(df)
-    assert_frame_equal(df, table.to_polars())
+def test_polars_conversion(polars_df, df):
+    assert df == tb.DataFrame.from_polars(polars_df)
+    assert_frame_equal(polars_df, df.to_polars())
 
 
 def test_to_polars_columnless():
-    table = DataTable.columnless(height=6)
-    actual = table.to_polars()
-    expected = DataFrame()
+    df = tb.DataFrame.columnless(height=6)
+    actual = df.to_polars()
+    expected = pl.DataFrame()
     assert_frame_equal(actual, expected)

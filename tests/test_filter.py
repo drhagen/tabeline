@@ -1,104 +1,104 @@
 import pytest
 
-from tabeline import DataTable
+from tabeline import DataFrame
 
 
 def test_filter():
-    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.filter("x == max(x)")
-    expected = DataTable(x=[1, 1], y=[3, 4])
+    df = DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
+    actual = df.filter("x == max(x)")
+    expected = DataFrame(x=[1, 1], y=[3, 4])
     assert actual == expected
 
 
 def test_grouped_filter():
-    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x")
-    actual = table.filter("y == max(y)")
-    expected = DataTable(x=[0, 1, 1], y=[2, 3, 3]).group_by("x")
+    df = DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x")
+    actual = df.filter("y == max(y)")
+    expected = DataFrame(x=[0, 1, 1], y=[2, 3, 3]).group_by("x")
     assert actual == expected
 
 
 def test_filter_out_all_rows():
-    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.filter("x == 2")
-    expected = DataTable(x=[], y=[])
+    df = DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
+    actual = df.filter("x == 2")
+    expected = DataFrame(x=[], y=[])
     assert actual == expected
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]),
-        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x"),
-        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group_by("x", "y"),
-        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3])
+        DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 3]),
+        DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x"),
+        DataFrame(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group_by("x", "y"),
+        DataFrame(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3])
         .group_by("x")
         .group_by("y"),
     ],
 )
-def test_filter_true(table):
-    actual = table.filter("True")
-    assert actual == table
+def test_filter_true(df):
+    actual = df.filter("True")
+    assert actual == df
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]),
-        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x"),
-        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group_by("x", "y"),
-        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3])
+        DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 3]),
+        DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x"),
+        DataFrame(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group_by("x", "y"),
+        DataFrame(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3])
         .group_by("x")
         .group_by("y"),
     ],
 )
-def test_filter_false(table):
-    actual = table.filter("False")
-    expected = table.slice0([])
+def test_filter_false(df):
+    actual = df.filter("False")
+    expected = df.slice0([])
     assert actual == expected
 
 
 @pytest.mark.parametrize("expression", ["True", "False", "row_index1() == 1"])
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(),
-        DataTable().group_by(),
-        DataTable().group_by().group_by(),
+        DataFrame(),
+        DataFrame().group_by(),
+        DataFrame().group_by().group_by(),
     ],
 )
-def test_filter_empty(expression, table):
-    actual = table.filter(expression)
-    assert actual == table
+def test_filter_empty(expression, df):
+    actual = df.filter(expression)
+    assert actual == df
 
 
 @pytest.mark.parametrize(
-    ["table", "expected"],
+    ["df", "expected"],
     [
-        [DataTable.columnless(height=6), DataTable.columnless(height=3)],
-        [DataTable.columnless(height=6).group_by(), DataTable.columnless(height=3).group_by()],
+        [DataFrame.columnless(height=6), DataFrame.columnless(height=3)],
+        [DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=3).group_by()],
         [
-            DataTable.columnless(height=6).group_by().group_by(),
-            DataTable.columnless(height=3).group_by().group_by(),
+            DataFrame.columnless(height=6).group_by().group_by(),
+            DataFrame.columnless(height=3).group_by().group_by(),
         ],
     ],
 )
-def test_filter_columnless(table, expected):
-    actual = table.filter("row_index0() % 2 == 0")
+def test_filter_columnless(df, expected):
+    actual = df.filter("row_index0() % 2 == 0")
     assert actual == expected
 
 
 @pytest.mark.parametrize("expression", ["True", "False", "row_index1() == 1"])
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group_by(),
-        DataTable(x=[]).group_by().group_by(),
-        DataTable(x=[], y=[], z=[]).group_by("x"),
-        DataTable(x=[], y=[], z=[]).group_by("x", "y"),
-        DataTable(x=[], y=[], z=[]).group_by("x").group_by("y"),
+        DataFrame(x=[], y=[], z=[]),
+        DataFrame(x=[], y=[]).group_by(),
+        DataFrame(x=[]).group_by().group_by(),
+        DataFrame(x=[], y=[], z=[]).group_by("x"),
+        DataFrame(x=[], y=[], z=[]).group_by("x", "y"),
+        DataFrame(x=[], y=[], z=[]).group_by("x").group_by("y"),
     ],
 )
-def test_filter_rowless(expression, table):
-    actual = table.filter(expression)
-    assert actual == table
+def test_filter_rowless(expression, df):
+    actual = df.filter(expression)
+    assert actual == df

@@ -1,43 +1,40 @@
 import pytest
 
-try:
-    from pandas import DataFrame
-except ImportError:
-    pytest.skip("Pandas not available", allow_module_level=True)
+import tabeline as tb
 
-from tabeline import DataTable
+pd = pytest.importorskip("pandas")
 
 
 @pytest.mark.parametrize(
-    ["df", "table"],
+    ["pandas_df", "df"],
     [
         [
-            DataFrame(dict(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True])),
-            DataTable(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True]),
+            pd.DataFrame(dict(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True])),
+            tb.DataFrame(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True]),
         ],
         [
-            DataFrame(),
-            DataTable(),
+            pd.DataFrame(),
+            tb.DataFrame(),
         ],
         [
-            DataFrame(index=range(6)),
-            DataTable.columnless(height=6),
+            pd.DataFrame(index=range(6)),
+            tb.DataFrame.columnless(height=6),
         ],
     ],
 )
-def test_pandas_conversion(df, table):
-    assert table == DataTable.from_pandas(df)
-    assert df.equals(table.to_pandas())
+def test_pandas_conversion(pandas_df, df):
+    assert df == tb.DataFrame.from_pandas(pandas_df)
+    assert pandas_df.equals(df.to_pandas())
 
 
 def test_pandas_conversion_rowless():
     # Polars and Pandas have no concept of List[Nothing]
-    df = DataFrame(dict(x=[], y=[], z=[]))
-    actual = DataTable.from_pandas(df)
+    pandas_df = pd.DataFrame(dict(x=[], y=[], z=[]))
+    actual = tb.DataFrame.from_pandas(pandas_df)
     assert actual.shape == (0, 3)
     assert actual.column_names == ("x", "y", "z")
 
-    table = DataTable(x=[], y=[], z=[])
-    actual = table.to_pandas()
+    df = tb.DataFrame(x=[], y=[], z=[])
+    actual = df.to_pandas()
     assert actual.shape == (0, 3)
     assert tuple(actual.columns) == ("x", "y", "z")

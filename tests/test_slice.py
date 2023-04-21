@@ -1,71 +1,71 @@
 import pytest
 
-from tabeline import DataTable
+from tabeline import DataFrame
 from tabeline.exceptions import IndexOutOfRange
 
 
 def test_slice():
-    table = DataTable(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
+    df = DataFrame(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
 
-    expected = DataTable(x=[1, 3], y=[True, True], z=[3.5, 6.7])
+    expected = DataFrame(x=[1, 3], y=[True, True], z=[3.5, 6.7])
 
-    actual = table.slice0([0, 2])
+    actual = df.slice0([0, 2])
     assert actual == expected
 
-    actual = table.slice1([1, 3])
+    actual = df.slice1([1, 3])
     assert actual == expected
 
 
 def test_slice_out_of_bounds():
-    table = DataTable(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
+    df = DataFrame(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
 
     # General Exception because who know what will come out of Polars
     with pytest.raises(Exception):
-        _ = table.slice0([2, 4])
+        _ = df.slice0([2, 4])
 
     with pytest.raises(Exception):
-        _ = table.slice1([0, 2])
+        _ = df.slice1([0, 2])
 
 
 def test_slice_groups():
-    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
+    df = DataFrame(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
 
-    expected = DataTable(x=[2, 1, 2, 1], y=[6.7, 8.9, -1.1, 4.5]).group_by("x")
+    expected = DataFrame(x=[2, 1, 2, 1], y=[6.7, 8.9, -1.1, 4.5]).group_by("x")
 
-    actual = table.slice0([1, 2])
+    actual = df.slice0([1, 2])
     assert actual == expected
 
-    actual = table.slice1([2, 3])
+    actual = df.slice1([2, 3])
     assert actual == expected
 
 
 def test_slice_one_index():
-    table = DataTable(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
+    df = DataFrame(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
 
-    expected = DataTable(x=[1], y=[True], z=[3.5])
+    expected = DataFrame(x=[1], y=[True], z=[3.5])
 
-    actual = table.slice0([0])
+    actual = df.slice0([0])
     assert actual == expected
 
-    actual = table.slice1([1])
+    actual = df.slice1([1])
     assert actual == expected
 
 
 def test_slice_groups_one_index():
-    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
+    df = DataFrame(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
 
-    expected = DataTable(x=[2, 1], y=[6.7, 8.9]).group_by("x")
+    expected = DataFrame(x=[2, 1], y=[6.7, 8.9]).group_by("x")
 
-    actual = table.slice0([1])
+    actual = df.slice0([1])
     assert actual == expected
 
-    actual = table.slice1([2])
+    actual = df.slice1([2])
     assert actual == expected
 
 
 def test_slice_groups_multiple_columns_one_index():
-    table = (
-        DataTable(
+    df = (
+        DataFrame(
             x=[1, 2, 2, 1, 2, 1, 1, 2],
             y=["a", "a", "a", "a", "b", "b", "b", "b"],
             z=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5, 4.3, 7.7],
@@ -75,45 +75,45 @@ def test_slice_groups_multiple_columns_one_index():
     )
 
     expected = (
-        DataTable(x=[2, 1, 1, 2], y=["a", "a", "b", "b"], z=[6.7, 8.9, 4.3, 7.7])
+        DataFrame(x=[2, 1, 1, 2], y=["a", "a", "b", "b"], z=[6.7, 8.9, 4.3, 7.7])
         .group_by("x")
         .group_by("y")
     )
 
-    actual = table.slice0([1])
+    actual = df.slice0([1])
     assert actual == expected
 
-    actual = table.slice1([2])
+    actual = df.slice1([2])
     assert actual == expected
 
 
 def test_slice_to_nothing():
-    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5])
+    df = DataFrame(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5])
 
-    expected = DataTable(x=[], y=[])
+    expected = DataFrame(x=[], y=[])
 
-    actual = table.slice0([])
+    actual = df.slice0([])
     assert actual == expected
 
-    actual = table.slice1([])
+    actual = df.slice1([])
     assert actual == expected
 
 
 def test_slice_groups_to_nothing():
-    table = DataTable(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
+    df = DataFrame(x=[1, 2, 2, 1, 2, 1], y=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5]).group_by("x")
 
-    expected = DataTable(x=[], y=[]).group_by("x")
+    expected = DataFrame(x=[], y=[]).group_by("x")
 
-    actual = table.slice0([])
+    actual = df.slice0([])
     assert actual == expected
 
-    actual = table.slice1([])
+    actual = df.slice1([])
     assert actual == expected
 
 
 def test_slice_multiple_groups_to_nothing():
-    table = (
-        DataTable(
+    df = (
+        DataFrame(
             x=[1, 2, 2, 1, 2, 1, 1, 2],
             y=["a", "a", "a", "a", "b", "b", "b", "b"],
             z=[3.5, 2.2, 6.7, 8.9, -1.1, 4.5, 4.3, 7.7],
@@ -122,128 +122,128 @@ def test_slice_multiple_groups_to_nothing():
         .group_by("y")
     )
 
-    expected = DataTable(x=[], y=[], z=[]).group_by("x").group_by("y")
+    expected = DataFrame(x=[], y=[], z=[]).group_by("x").group_by("y")
 
-    actual = table.slice0([])
+    actual = df.slice0([])
     assert actual == expected
 
-    actual = table.slice1([])
+    actual = df.slice1([])
     assert actual == expected
 
 
 def test_slice_only_one_out_of_bounds():
-    table = DataTable(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group_by("x")
+    df = DataFrame(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group_by("x")
 
     # General Exception because who know what will come out of Polars
     with pytest.raises(Exception):
-        _ = table.slice0([1, 2])
+        _ = df.slice0([1, 2])
 
     with pytest.raises(Exception):
-        _ = table.slice1([2, 3])
+        _ = df.slice1([2, 3])
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(),
-        DataTable().group_by(),
-        DataTable().group_by().group_by(),
+        DataFrame(),
+        DataFrame().group_by(),
+        DataFrame().group_by().group_by(),
     ],
 )
-def test_slice_empty(table):
-    actual = table.slice0([])
-    assert actual == table
+def test_slice_empty(df):
+    actual = df.slice0([])
+    assert actual == df
 
-    actual = table.slice1([])
-    assert actual == table
+    actual = df.slice1([])
+    assert actual == df
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(),
-        DataTable().group_by(),
-        DataTable().group_by().group_by(),
+        DataFrame(),
+        DataFrame().group_by(),
+        DataFrame().group_by().group_by(),
     ],
 )
-def test_slice_empty_out_of_bounds(table):
-    table = DataTable()
+def test_slice_empty_out_of_bounds(df):
+    df = DataFrame()
 
     # General Exception because who know what will come out of Polars
     with pytest.raises(Exception):
-        _ = table.slice0([0])
+        _ = df.slice0([0])
 
     with pytest.raises(Exception):
-        _ = table.slice1([1])
+        _ = df.slice1([1])
 
 
 @pytest.mark.parametrize(
-    ["table", "expected"],
+    ["df", "expected"],
     [
-        [DataTable.columnless(height=6), DataTable.columnless(height=3)],
-        [DataTable.columnless(height=6).group_by(), DataTable.columnless(height=3).group_by()],
+        [DataFrame.columnless(height=6), DataFrame.columnless(height=3)],
+        [DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=3).group_by()],
         [
-            DataTable.columnless(height=6).group_by().group_by(),
-            DataTable.columnless(height=3).group_by().group_by(),
+            DataFrame.columnless(height=6).group_by().group_by(),
+            DataFrame.columnless(height=3).group_by().group_by(),
         ],
     ],
 )
-def test_slice_columnless(table, expected):
-    actual = table.slice0([0, 1, 4])
+def test_slice_columnless(df, expected):
+    actual = df.slice0([0, 1, 4])
     assert actual == expected
 
-    actual = table.slice1([1, 2, 5])
+    actual = df.slice1([1, 2, 5])
     assert actual == expected
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable.columnless(height=4),
-        DataTable.columnless(height=4).group_by(),
-        DataTable.columnless(height=4).group_by().group_by(),
+        DataFrame.columnless(height=4),
+        DataFrame.columnless(height=4).group_by(),
+        DataFrame.columnless(height=4).group_by().group_by(),
     ],
 )
-def test_slice_columnless_out_of_bounds(table):
+def test_slice_columnless_out_of_bounds(df):
     with pytest.raises(IndexOutOfRange):
-        _ = table.slice0([2, 4])
+        _ = df.slice0([2, 4])
 
     with pytest.raises(IndexOutOfRange):
-        _ = table.slice1([0, 2])
+        _ = df.slice1([0, 2])
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group_by(),
-        DataTable(x=[]).group_by().group_by(),
+        DataFrame(x=[], y=[], z=[]),
+        DataFrame(x=[], y=[]).group_by(),
+        DataFrame(x=[]).group_by().group_by(),
     ],
 )
-def test_slice_rowless(table):
-    table = DataTable(x=[], y=[], z=[])
+def test_slice_rowless(df):
+    df = DataFrame(x=[], y=[], z=[])
 
-    actual = table.slice0([])
-    assert actual == table
+    actual = df.slice0([])
+    assert actual == df
 
-    actual = table.slice1([])
-    assert actual == table
+    actual = df.slice1([])
+    assert actual == df
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group_by(),
-        DataTable(x=[]).group_by().group_by(),
+        DataFrame(x=[], y=[], z=[]),
+        DataFrame(x=[], y=[]).group_by(),
+        DataFrame(x=[]).group_by().group_by(),
     ],
 )
-def test_slice_rowless_out_of_bounds(table):
-    table = DataTable(x=[], y=[], z=[])
+def test_slice_rowless_out_of_bounds(df):
+    df = DataFrame(x=[], y=[], z=[])
 
     # General Exception because who know what will come out of Polars
     with pytest.raises(Exception):
-        _ = table.slice0([0])
+        _ = df.slice0([0])
 
     with pytest.raises(Exception):
-        _ = table.slice1([1])
+        _ = df.slice1([1])
