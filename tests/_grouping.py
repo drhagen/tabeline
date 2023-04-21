@@ -1,9 +1,9 @@
 __all__ = ["apply_groups"]
 
-from tabeline import DataTable
+from tabeline import DataFrame
 
 
-def apply_groups(table: DataTable, group_levels: tuple[tuple[str, ...], ...]) -> DataTable:
+def apply_groups(df: DataFrame, group_levels: tuple[tuple[str, ...], ...]) -> DataFrame:
     for group_level in group_levels:
-        table = table.group_by(*group_level)
-    return table
+        df = df.group_by(*group_level)
+    return df

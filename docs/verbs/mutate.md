@@ -8,15 +8,15 @@ The `mutate` and `transmute` verbs create new columns based on expressions of ex
 Create new columns or redefine existing columns. This takes an arbitrary number of named arguments. The name of each argument is the name of a column. The value of the argument is an expression that provides a definition for that column. If the column name already exists, that column will be replaced by the evaluation of the new definition. If the column name does not already exist, the new column will be appended to the existing columns.
 
 ```python
-from tabeline import DataTable
+from tabeline import DataFrame
 
-table = DataTable(
-    name = ["wide", "tall", "square"],
-    width = [5, 2, 3],
-    height = [1, 4, 3],
+df = DataFrame(
+    name=["wide", "tall", "square"],
+    width=[5, 2, 3],
+    height=[1, 4, 3],
 )
 
-table.mutate(area="width * height")
+df.mutate(area="width * height")
 # ┌────────┬───────┬────────┬──────┐
 # │ name   ┆ width ┆ height ┆ area │
 # │ ---    ┆ ---   ┆ ---    ┆ ---  │
@@ -35,15 +35,15 @@ table.mutate(area="width * height")
 Just like mutate except the existing columns are not kept. This is identical to `mutate` followed by `select` on the newly defined columns.
 
 ```python
-from tabeline import DataTable
+from tabeline import DataFrame
 
-table = DataTable(
-    name = ["wide", "tall", "square"],
-    width = [5, 2, 3],
-    height = [1, 4, 3],
+df = DataFrame(
+    name=["wide", "tall", "square"],
+    width=[5, 2, 3],
+    height=[1, 4, 3],
 )
 
-table.transmute(name="name", area="width * height")
+df.transmute(name="name", area="width * height")
 # shape: (3, 2)
 # ┌────────┬──────┐
 # │ name   ┆ area │

@@ -1,46 +1,46 @@
 import pytest
 
-from tabeline import DataTable
+from tabeline import DataFrame
 
 
 def test_distinct():
-    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.distinct("x")
-    expected = DataTable(x=[0, 1], y=[1, 3])
+    df = DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
+    actual = df.distinct("x")
+    expected = DataFrame(x=[0, 1], y=[1, 3])
     assert actual == expected
 
 
 def test_distinct_unsorted():
-    table = DataTable(x=[1, 1, 0, 0], y=[1, 2, 3, 4])
-    actual = table.distinct("x")
-    expected = DataTable(x=[1, 0], y=[1, 3])
+    df = DataFrame(x=[1, 1, 0, 0], y=[1, 2, 3, 4])
+    actual = df.distinct("x")
+    expected = DataFrame(x=[1, 0], y=[1, 3])
     assert actual == expected
 
 
 def test_empty_distinct():
-    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
-    actual = table.distinct()
-    expected = DataTable(x=[0], y=[1])
+    df = DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 4])
+    actual = df.distinct()
+    expected = DataFrame(x=[0], y=[1])
     assert actual == expected
 
 
 @pytest.mark.parametrize("distinct_columns", [["z"], ["x", "z"], ["z", "x"]])
 def test_distinct_with_grouped_column(distinct_columns):
-    table = DataTable(
+    df = DataFrame(
         x=[0, 0, 0, 1, 1, 1, 1], y=["a", "a", "b", "a", "a", "b", "b"], z=[1, 1, 1, 1, 2, 3, 3]
     ).group_by("x")
-    actual = table.distinct(*distinct_columns)
-    expected = DataTable(x=[0, 1, 1, 1], y=["a", "a", "a", "b"], z=[1, 1, 2, 3]).group_by("x")
+    actual = df.distinct(*distinct_columns)
+    expected = DataFrame(x=[0, 1, 1, 1], y=["a", "a", "a", "b"], z=[1, 1, 2, 3]).group_by("x")
     assert actual == expected
 
 
 @pytest.mark.parametrize("distinct_columns", [["z"], ["y", "z"], ["x", "z"]])
 def test_distinct_with_two_grouped_columns(distinct_columns):
-    table = DataTable(
+    df = DataFrame(
         x=[0, 0, 0, 1, 1, 1, 1], y=["a", "a", "b", "a", "a", "b", "b"], z=[1, 1, 1, 1, 2, 3, 3]
     ).group_by("x", "y")
-    actual = table.distinct(*distinct_columns)
-    expected = DataTable(
+    actual = df.distinct(*distinct_columns)
+    expected = DataFrame(
         x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3]
     ).group_by("x", "y")
     assert actual == expected
@@ -48,16 +48,16 @@ def test_distinct_with_two_grouped_columns(distinct_columns):
 
 @pytest.mark.parametrize("distinct_columns", [["z"], ["y", "z"], ["x", "z"]])
 def test_distinct_with_two_separate_grouped_columns(distinct_columns):
-    table = (
-        DataTable(
+    df = (
+        DataFrame(
             x=[0, 0, 0, 1, 1, 1, 1], y=["a", "a", "b", "a", "a", "b", "b"], z=[1, 1, 1, 1, 2, 3, 3]
         )
         .group_by("x")
         .group_by("y")
     )
-    actual = table.distinct(*distinct_columns)
+    actual = df.distinct(*distinct_columns)
     expected = (
-        DataTable(x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3])
+        DataFrame(x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3])
         .group_by("x")
         .group_by("y")
     )
@@ -65,43 +65,43 @@ def test_distinct_with_two_separate_grouped_columns(distinct_columns):
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(),
-        DataTable().group_by(),
-        DataTable().group_by().group_by(),
+        DataFrame(),
+        DataFrame().group_by(),
+        DataFrame().group_by().group_by(),
     ],
 )
-def test_distinct_on_empty(table):
-    actual = table.distinct()
-    assert actual == table
+def test_distinct_on_empty(df):
+    actual = df.distinct()
+    assert actual == df
 
 
 @pytest.mark.parametrize("columns", [[], ["x"], ["x", "y"], ["y", "x"]])
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group_by(),
-        DataTable(x=[], y=[]).group_by().group_by(),
+        DataFrame(x=[], y=[], z=[]),
+        DataFrame(x=[], y=[]).group_by(),
+        DataFrame(x=[], y=[]).group_by().group_by(),
     ],
 )
-def test_distinct_on_rowless(columns, table):
-    actual = table.distinct(*columns)
-    assert actual == table
+def test_distinct_on_rowless(columns, df):
+    actual = df.distinct(*columns)
+    assert actual == df
 
 
 @pytest.mark.parametrize(
-    ["table", "expected"],
+    ["df", "expected"],
     [
-        [DataTable.columnless(height=6), DataTable.columnless(height=1)],
-        [DataTable.columnless(height=6).group_by(), DataTable.columnless(height=1).group_by()],
+        [DataFrame.columnless(height=6), DataFrame.columnless(height=1)],
+        [DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=1).group_by()],
         [
-            DataTable.columnless(height=6).group_by().group_by(),
-            DataTable.columnless(height=1).group_by().group_by(),
+            DataFrame.columnless(height=6).group_by().group_by(),
+            DataFrame.columnless(height=1).group_by().group_by(),
         ],
     ],
 )
-def test_distinct_on_columnless(table, expected):
-    actual = table.distinct()
+def test_distinct_on_columnless(df, expected):
+    actual = df.distinct()
     assert actual == expected

@@ -3,8 +3,8 @@ import operator
 
 import pytest
 
-from tabeline import DataTable
-from tabeline.testing import assert_table_equal
+from tabeline import DataFrame
+from tabeline.testing import assert_data_frame_equal
 
 interesting_numbers = [1, 0, -5, 1.0, 0.0, -0.0, -15.3, math.inf, -math.inf, math.nan]
 
@@ -22,8 +22,8 @@ interesting_numbers = [1, 0, -5, 1.0, 0.0, -0.0, -15.3, math.inf, -math.inf, mat
     ],
 )
 def test_numeric_operators(left, right, operator, comparer):
-    table = DataTable(left=[left], right=[right])
-    actual = table.transmute(output=f"left {operator} right")
+    df = DataFrame(left=[left], right=[right])
+    actual = df.transmute(output=f"left {operator} right")
 
     try:
         output = comparer(left, right)
@@ -35,8 +35,8 @@ def test_numeric_operators(left, right, operator, comparer):
         # Python pow returns complex, while we want nan
         output = math.nan
 
-    expected = DataTable(output=[output])
-    assert_table_equal(actual, expected)
+    expected = DataFrame(output=[output])
+    assert_data_frame_equal(actual, expected)
 
 
 @pytest.mark.parametrize("left", interesting_numbers)
@@ -53,7 +53,7 @@ def test_numeric_operators(left, right, operator, comparer):
     ],
 )
 def test_comparison_operators(left, right, operator, comparer):
-    table = DataTable(left=[left], right=[right])
-    actual = table.transmute(output=f"left {operator} right")
-    expected = DataTable(output=[comparer(left, right)])
+    df = DataFrame(left=[left], right=[right])
+    actual = df.transmute(output=f"left {operator} right")
+    expected = DataFrame(output=[comparer(left, right)])
     assert actual == expected

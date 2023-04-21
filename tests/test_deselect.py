@@ -2,14 +2,14 @@ from typing import Any
 
 import pytest
 
-from tabeline import DataTable
+from tabeline import DataFrame
 from tabeline.exceptions import GroupColumn, NonexistentColumn
 
 
 def test_deselect():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
-    actual = table.deselect("x", "z")
-    expected = DataTable(y=[True, False, True])
+    df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
+    actual = df.deselect("x", "z")
+    expected = DataFrame(y=[True, False, True])
     assert actual == expected
 
 
@@ -47,50 +47,50 @@ def test_deselect_columns(
     expected_columns: list[str],
     test_columns: dict[str, Any],
 ):
-    table = DataTable(**{name: full_columns[name] for name in input_columns})
-    actual = table.deselect(*deselectors)
+    df = DataFrame(**{name: full_columns[name] for name in input_columns})
+    actual = df.deselect(*deselectors)
     if len(expected_columns) == 0:
-        expected = DataTable.columnless(height=table.height)
+        expected = DataFrame.columnless(height=df.height)
     else:
-        expected = DataTable(**{name: full_columns[name] for name in expected_columns})
+        expected = DataFrame(**{name: full_columns[name] for name in expected_columns})
     assert actual == expected
 
 
 def test_deselect_nonexistent_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
+    df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
 
     with pytest.raises(NonexistentColumn):
-        _ = table.deselect("x", "a")
+        _ = df.deselect("x", "a")
 
 
 def test_deselect_group_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x")
+    df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x")
 
     with pytest.raises(GroupColumn):
-        _ = table.deselect("x")
+        _ = df.deselect("x")
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable(),
-        DataTable().group_by(),
-        DataTable().group_by().group_by(),
+        DataFrame(),
+        DataFrame().group_by(),
+        DataFrame().group_by().group_by(),
     ],
 )
-def test_deselect_empty(table):
-    actual = table.deselect()
-    assert actual == table
+def test_deselect_empty(df):
+    actual = df.deselect()
+    assert actual == df
 
 
 @pytest.mark.parametrize(
-    "table",
+    "df",
     [
-        DataTable.columnless(height=6),
-        DataTable.columnless(height=6).group_by(),
-        DataTable.columnless(height=6).group_by().group_by(),
+        DataFrame.columnless(height=6),
+        DataFrame.columnless(height=6).group_by(),
+        DataFrame.columnless(height=6).group_by().group_by(),
     ],
 )
-def test_deselect_columnless(table):
-    actual = table.deselect()
-    assert actual == table
+def test_deselect_columnless(df):
+    actual = df.deselect()
+    assert actual == df

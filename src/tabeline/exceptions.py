@@ -35,12 +35,12 @@ class RenameExisting(TabelineException):
 
 class HasGroups(TabelineException):
     def __str__(self) -> str:
-        return "Cannot perform this operation on a table with any group levels"
+        return "Cannot perform this operation on a data frame with any group levels"
 
 
 class NoGroups(TabelineException):
     def __str__(self) -> str:
-        return "Cannot perform this operation on a table with no group levels"
+        return "Cannot perform this operation on a data frame with no group levels"
 
 
 class GroupColumn(TabelineException):
@@ -52,9 +52,9 @@ class GroupColumn(TabelineException):
         return f"Cannot perform this operation on group column {self.column}"
 
 
-class RowlessTable(TabelineException):
+class RowlessDataFrame(TabelineException):
     def __str__(self) -> str:
-        return "Cannot perform this operation on a table with no rows"
+        return "Cannot perform this operation on a data frame with no rows"
 
 
 class IndexOutOfRange(TabelineException):
@@ -63,4 +63,4 @@ class IndexOutOfRange(TabelineException):
         self.length = length
 
     def __str__(self) -> str:
-        return f"Cannot index element {self.index} from table with {self.length} rows"
+        return f"Cannot index element {self.index} from data frame with {self.length} rows"

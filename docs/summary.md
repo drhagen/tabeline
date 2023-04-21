@@ -4,16 +4,16 @@ This is an index of the main functionality available in Tabeline. Each construct
 
 ## Creation
 
-These are the ways to create a `DataTable` from something that is not already a `DataTable`
+These are the ways to create a `DataFrame` from something that is not already a `DataFrame`
 
-* [`DataTable(**columns)`](creation.md#datatable): Construct table directly from columns
-* [`DataTable.read_csv(filename)`](creation.md#datatableread_csv): Read table from CSV file
-* [`DataTable.from_pandas(df)`](creation.md#datatablefrom_pandas): Convert from Pandas `DataFrame`
-* [`DataTable.from_polars(df)`](creation.md#datatablefrom_polars): Convert from Polars `DataFrame`
+* [`DataFrame(**columns)`](creation.md#dataframe): Construct data frame directly from columns
+* [`DataFrame.read_csv(filename)`](creation.md#dataframeread_csv): Read data frame from CSV file
+* [`DataFrame.from_pandas(df)`](creation.md#dataframefrom_pandas): Convert from Pandas `DataFrame`
+* [`DataFrame.from_polars(df)`](creation.md#dataframefrom_polars): Convert from Polars `DataFrame`
 
 ## Verbs
 
-Each verb is a method of `DataTable`.
+Each verb is a method of `DataFrame`.
 
 ### Column reorganization
 
@@ -31,7 +31,7 @@ Each verb is a method of `DataTable`.
 
 ### Row reordering
 
-* [`sort`](verbs/sort.md#sort): Sort table according to given columns
+* [`sort`](verbs/sort.md#sort): Sort data frame according to given columns
 * [`cluster`](verbs/sort.md#cluster): Bring rows together with same values under given columns
 
 ### Column mutation
@@ -55,9 +55,9 @@ Each verb is a method of `DataTable`.
 
 ### Joining
 
-* [`inner_join`](verbs/join.md#inner_join): Merge tables, dropping unmatched
-* [`outer_join`](verbs/join.md#outer_join): Merge tables, adding nulls for unmatched
-* [`left_join`](verbs/join.md#left_join): Merge tables, adding nulls for unmatched on the left table
+* [`inner_join`](verbs/join.md#inner_join): Merge data frames, dropping unmatched
+* [`outer_join`](verbs/join.md#outer_join): Merge data frames, adding nulls for unmatched
+* [`left_join`](verbs/join.md#left_join): Merge data frames, adding nulls for unmatched on the left data frame
 
 ## Functions
 
