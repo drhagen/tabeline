@@ -64,20 +64,20 @@ def test_reordered_columns_are_not_equal():
 
 
 def test_grouped_tables_are_equal():
-    first = DataTable(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]).group_by(
-        "x"
-    )
-    second = DataTable(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]).group_by(
-        "x"
-    )
+    first = DataTable(
+        x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]
+    ).group_by("x")
+    second = DataTable(
+        x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]
+    ).group_by("x")
     assert first == second
 
 
 def test_grouped_tables_with_differnt_levels_are_not_equal():
-    first = DataTable(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]).group_by(
-        "x"
-    )
-    second = DataTable(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]).group_by(
-        "y"
-    )
+    first = DataTable(
+        x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]
+    ).group_by("x")
+    second = DataTable(
+        x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]
+    ).group_by("y")
     assert first != second

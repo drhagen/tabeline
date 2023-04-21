@@ -18,11 +18,13 @@ def test_cluster_two():
 
 
 def test_cluster_grouped():
-    table = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 4, 4, 3, 4, 3], z=[1, 2, 3, 4, 5, 6]).group_by("x")
-    actual = table.cluster("y")
-    expected = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 3, 4, 3, 4, 4], z=[1, 6, 3, 4, 2, 5]).group_by(
+    table = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 4, 4, 3, 4, 3], z=[1, 2, 3, 4, 5, 6]).group_by(
         "x"
     )
+    actual = table.cluster("y")
+    expected = DataTable(
+        x=[2, 2, 1, 1, 2, 2], y=[3, 3, 4, 3, 4, 4], z=[1, 6, 3, 4, 2, 5]
+    ).group_by("x")
     assert actual == expected
 
 

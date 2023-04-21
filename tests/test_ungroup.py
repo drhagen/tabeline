@@ -5,7 +5,9 @@ from tabeline.exceptions import NoGroups
 
 
 def test_ungroup():
-    actual = DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup()
+    actual = (
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").group_by("y").ungroup()
+    )
     expected = DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x")
     assert actual == expected
 
@@ -16,7 +18,11 @@ def test_ungroup():
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by().ungroup(),
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x").ungroup(),
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by("x", "y").ungroup(),
-        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"]).group_by().group_by().ungroup().ungroup(),
+        DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
+        .group_by()
+        .group_by()
+        .ungroup()
+        .ungroup(),
         DataTable(x=[0, 0, 1, 1], y=["a", "b", "b", "b"])
         .group_by("x")
         .group_by("y")

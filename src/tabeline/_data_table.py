@@ -390,7 +390,9 @@ class DataTable:
 
         return DataTable(ordered_table._df, self.group_levels + (columns,), self.height)
 
-    def group(self, *columns: str, order: Literal["original", "cluster", "sort"] = "original") -> DataTable:
+    def group(
+        self, *columns: str, order: Literal["original", "cluster", "sort"] = "original"
+    ) -> DataTable:
         return self.group_by(*columns, order=order)
 
     def ungroup(self) -> DataTable:

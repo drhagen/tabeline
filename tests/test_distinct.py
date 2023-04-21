@@ -40,9 +40,9 @@ def test_distinct_with_two_grouped_columns(distinct_columns):
         x=[0, 0, 0, 1, 1, 1, 1], y=["a", "a", "b", "a", "a", "b", "b"], z=[1, 1, 1, 1, 2, 3, 3]
     ).group_by("x", "y")
     actual = table.distinct(*distinct_columns)
-    expected = DataTable(x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3]).group_by(
-        "x", "y"
-    )
+    expected = DataTable(
+        x=[0, 0, 1, 1, 1], y=["a", "b", "a", "a", "b"], z=[1, 1, 1, 2, 3]
+    ).group_by("x", "y")
     assert actual == expected
 
 

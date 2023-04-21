@@ -18,20 +18,24 @@ def test_sort_two():
 
 
 def test_sort_grouped():
-    table = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 4, 3, 1, 1, 3], z=[5, 4, 3, 2, 1, 0]).group_by("x")
-    actual = table.sort("y")
-    expected = DataTable(x=[2, 2, 1, 1, 2, 2], y=[1, 3, 1, 3, 3, 4], z=[1, 5, 2, 3, 0, 4]).group_by(
+    table = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 4, 3, 1, 1, 3], z=[5, 4, 3, 2, 1, 0]).group_by(
         "x"
     )
+    actual = table.sort("y")
+    expected = DataTable(
+        x=[2, 2, 1, 1, 2, 2], y=[1, 3, 1, 3, 3, 4], z=[1, 5, 2, 3, 0, 4]
+    ).group_by("x")
     assert actual == expected
 
 
 def test_sort_two_grouped():
-    table = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 4, 3, 1, 1, 3], z=[5, 4, 3, 2, 1, 0]).group_by("x")
-    actual = table.sort("y", "z")
-    expected = DataTable(x=[2, 2, 1, 1, 2, 2], y=[1, 3, 1, 3, 3, 4], z=[1, 0, 2, 3, 5, 4]).group_by(
+    table = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 4, 3, 1, 1, 3], z=[5, 4, 3, 2, 1, 0]).group_by(
         "x"
     )
+    actual = table.sort("y", "z")
+    expected = DataTable(
+        x=[2, 2, 1, 1, 2, 2], y=[1, 3, 1, 3, 3, 4], z=[1, 0, 2, 3, 5, 4]
+    ).group_by("x")
     assert actual == expected
 
 
@@ -40,9 +44,9 @@ def test_sort_grouped_two():
         "x", "y"
     )
     actual = table.sort("z")
-    expected = DataTable(x=[2, 2, 1, 1, 2, 2], y=[3, 3, 3, 1, 1, 3], z=[0, 4, 3, 2, 1, 5]).group_by(
-        "x", "y"
-    )
+    expected = DataTable(
+        x=[2, 2, 1, 1, 2, 2], y=[3, 3, 3, 1, 1, 3], z=[0, 4, 3, 2, 1, 5]
+    ).group_by("x", "y")
     assert actual == expected
 
 

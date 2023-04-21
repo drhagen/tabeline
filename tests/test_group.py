@@ -35,7 +35,7 @@ def test_group_by_cluster():
 def test_group_by_sort():
     table = DataTable(x=[1, 0, 2, 1, 1], y=[2.1, 1.0, 0.0, 3.4, 2.1], z=[1, 2, 3, 4, 5])
     actual = table.group_by("x", order="sort")
-    expected = DataTable(x=[0, 1, 1, 1, 2], y=[1.0, 2.1, 3.4, 2.1, 0.0], z=[2, 1, 4, 5, 3]).group_by(
-        "x"
-    )
+    expected = DataTable(
+        x=[0, 1, 1, 1, 2], y=[1.0, 2.1, 3.4, 2.1, 0.0], z=[2, 1, 4, 5, 3]
+    ).group_by("x")
     assert actual == expected
