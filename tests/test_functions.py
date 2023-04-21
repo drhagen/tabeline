@@ -69,11 +69,11 @@ def test_single_numeric_argument_against_python(name, function):
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
-        DataTable(a=[]).group("a"),
-        DataTable(a=[], b=[]).group("a", "b"),
-        DataTable(a=[], b=[]).group("a").group("b"),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
+        DataTable(a=[]).group_by("a"),
+        DataTable(a=[], b=[]).group_by("a", "b"),
+        DataTable(a=[], b=[]).group_by("a").group_by("b"),
     ],
 )
 def test_zero_argument_functions_on_rowless_table_with_mutate(name, table):
@@ -89,18 +89,18 @@ def test_zero_argument_functions_on_rowless_table_with_mutate(name, table):
         # Polars chokes on empty list in groupby
         # https://github.com/pola-rs/polars/issues/3041
         xfail_param(DataTable()),
-        xfail_param(DataTable().group()),
-        xfail_param(DataTable().group().group()),
+        xfail_param(DataTable().group_by()),
+        xfail_param(DataTable().group_by().group_by()),
         xfail_param(DataTable(a=[])),
-        DataTable(a=[]).group("a"),
-        DataTable(a=[], b=[]).group("a", "b"),
-        DataTable(a=[], b=[]).group("a").group("b"),
+        DataTable(a=[]).group_by("a"),
+        DataTable(a=[], b=[]).group_by("a", "b"),
+        DataTable(a=[], b=[]).group_by("a").group_by("b"),
     ],
 )
 def test_zero_argument_functions_on_rowless_table_with_summarize(name, table):
     expected = table.mutate(x="1")
 
-    actual = table.group().summarize(x=f"{name}()")
+    actual = table.group_by().summarize(x=f"{name}()")
     assert actual == expected
 
 
@@ -113,11 +113,11 @@ def test_zero_argument_functions_on_rowless_table_with_summarize(name, table):
     "table",
     [
         DataTable(a=[]),
-        DataTable(a=[]).group(),
-        DataTable(a=[]).group().group(),
-        DataTable(a=[]).group("a"),
-        DataTable(a=[], b=[], c=[]).group("a", "b"),
-        DataTable(a=[], b=[], c=[]).group("a").group("b"),
+        DataTable(a=[]).group_by(),
+        DataTable(a=[]).group_by().group_by(),
+        DataTable(a=[]).group_by("a"),
+        DataTable(a=[], b=[], c=[]).group_by("a", "b"),
+        DataTable(a=[], b=[], c=[]).group_by("a").group_by("b"),
     ],
 )
 def test_one_argument_functions_on_rowless_table_with_mutate(name, table):
@@ -134,6 +134,6 @@ def test_quantile():
 
 def test_trapz():
     table = DataTable(id=[0, 0, 0, 1, 1, 1], t=[2, 4, 5, 10, 11, 14], y=[0, 1, 1, 2, 3, 4])
-    actual = table.group("id").summarize(q="trapz(t, y)")
+    actual = table.group_by("id").summarize(q="trapz(t, y)")
     expected = DataTable(id=[0, 1], q=[2.0, 13.0])
     assert_table_equal(actual, expected, reltol=1e-8)

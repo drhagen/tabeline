@@ -12,16 +12,16 @@ def test_transmute():
 
 
 def test_transmute_grouped():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4]).group("y", "x")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4]).group_by("y", "x")
     actual = table.transmute(zz="z + 1")
-    expected = DataTable(y=[True, False, True], x=[0, 0, 1], zz=[4, 3, 5]).group("y", "x")
+    expected = DataTable(y=[True, False, True], x=[0, 0, 1], zz=[4, 3, 5]).group_by("y", "x")
     assert actual == expected
 
 
 def test_transmute_referencing_group():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4]).group("y", "x")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4]).group_by("y", "x")
     actual = table.transmute(zz="x + 1")
-    expected = DataTable(y=[True, False, True], x=[0, 0, 1], zz=[1, 1, 2]).group("y", "x")
+    expected = DataTable(y=[True, False, True], x=[0, 0, 1], zz=[1, 1, 2]).group_by("y", "x")
     assert actual == expected
 
 
@@ -33,20 +33,20 @@ def test_transmute_overwrite():
 
 
 def test_transmute_overwrite_grouped():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4], a=[2.3, 4.5, 6.7]).group(
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4], a=[2.3, 4.5, 6.7]).group_by(
         "y", "x"
     )
     actual = table.transmute(z="z + 1")
-    expected = DataTable(y=[True, False, True], x=[0, 0, 1], z=[4, 3, 5]).group("y", "x")
+    expected = DataTable(y=[True, False, True], x=[0, 0, 1], z=[4, 3, 5]).group_by("y", "x")
     assert actual == expected
 
 
 def test_transmute_overwrite_referencing_group():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4], a=[2.3, 4.5, 6.7]).group(
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=[3, 2, 4], a=[2.3, 4.5, 6.7]).group_by(
         "y", "x"
     )
     actual = table.transmute(z="x + 1")
-    expected = DataTable(y=[True, False, True], x=[0, 0, 1], z=[1, 1, 2]).group("y", "x")
+    expected = DataTable(y=[True, False, True], x=[0, 0, 1], z=[1, 1, 2]).group_by("y", "x")
     assert actual == expected
 
 
@@ -58,9 +58,9 @@ def test_transmute_reference_previous_mutator():
 
 
 def test_transmute_reference_previous_mutator_grouped():
-    table = DataTable(x=[0, 0, 1], a=[2.3, 4.5, 6.7]).group("x")
+    table = DataTable(x=[0, 0, 1], a=[2.3, 4.5, 6.7]).group_by("x")
     actual = table.transmute(y="x + 1", z="2*y")
-    expected = DataTable(x=[0, 0, 1], y=[1, 1, 2], z=[2, 2, 4]).group("x")
+    expected = DataTable(x=[0, 0, 1], y=[1, 1, 2], z=[2, 2, 4]).group_by("x")
     assert actual == expected
 
 
@@ -72,7 +72,7 @@ def test_transmute_broadcast_scalar():
 
 
 def test_transmute_group_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True]).group("x")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True]).group_by("x")
     with pytest.raises(GroupColumn):
         _ = table.transmute(x="x+1")
 
@@ -81,8 +81,8 @@ def test_transmute_group_column():
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_mutate_empty(table):
@@ -94,8 +94,8 @@ def test_mutate_empty(table):
     "table",
     [
         DataTable.columnless(height=6),
-        DataTable.columnless(height=6).group(),
-        DataTable.columnless(height=6).group().group(),
+        DataTable.columnless(height=6).group_by(),
+        DataTable.columnless(height=6).group_by().group_by(),
     ],
 )
 def test_mutate_columnless(table):
@@ -115,11 +115,11 @@ def test_mutate_columnless(table):
     "table",
     [
         DataTable(y=[], z=[]),
-        DataTable(y=[], z=[]).group(),
-        DataTable(y=[], z=[]).group().group(),
-        DataTable(x=[], y=[], z=[]).group("x"),
-        DataTable(w=[], x=[], y=[], z=[]).group("w", "x"),
-        DataTable(w=[], x=[], y=[], z=[]).group("w").group("x"),
+        DataTable(y=[], z=[]).group_by(),
+        DataTable(y=[], z=[]).group_by().group_by(),
+        DataTable(x=[], y=[], z=[]).group_by("x"),
+        DataTable(w=[], x=[], y=[], z=[]).group_by("w", "x"),
+        DataTable(w=[], x=[], y=[], z=[]).group_by("w").group_by("x"),
     ],
 )
 def test_transmute_rowless(expression, table):

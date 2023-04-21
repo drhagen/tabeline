@@ -11,9 +11,9 @@ def test_filter():
 
 
 def test_grouped_filter():
-    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group("x")
+    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x")
     actual = table.filter("y == max(y)")
-    expected = DataTable(x=[0, 1, 1], y=[2, 3, 3]).group("x")
+    expected = DataTable(x=[0, 1, 1], y=[2, 3, 3]).group_by("x")
     assert actual == expected
 
 
@@ -28,11 +28,11 @@ def test_filter_out_all_rows():
     "table",
     [
         DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]),
-        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group("x"),
-        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group("x", "y"),
+        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x"),
+        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group_by("x", "y"),
         DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3])
-        .group("x")
-        .group("y"),
+        .group_by("x")
+        .group_by("y"),
     ],
 )
 def test_filter_true(table):
@@ -44,11 +44,11 @@ def test_filter_true(table):
     "table",
     [
         DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]),
-        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group("x"),
-        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group("x", "y"),
+        DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x"),
+        DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3]).group_by("x", "y"),
         DataTable(x=[0, 0, 1, 1], y=[True, False, False, True], z=[1, 2, 3, 3])
-        .group("x")
-        .group("y"),
+        .group_by("x")
+        .group_by("y"),
     ],
 )
 def test_filter_false(table):
@@ -62,8 +62,8 @@ def test_filter_false(table):
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_filter_empty(expression, table):
@@ -75,10 +75,10 @@ def test_filter_empty(expression, table):
     ["table", "expected"],
     [
         [DataTable.columnless(height=6), DataTable.columnless(height=3)],
-        [DataTable.columnless(height=6).group(), DataTable.columnless(height=3).group()],
+        [DataTable.columnless(height=6).group_by(), DataTable.columnless(height=3).group_by()],
         [
-            DataTable.columnless(height=6).group().group(),
-            DataTable.columnless(height=3).group().group(),
+            DataTable.columnless(height=6).group_by().group_by(),
+            DataTable.columnless(height=3).group_by().group_by(),
         ],
     ],
 )
@@ -92,11 +92,11 @@ def test_filter_columnless(table, expected):
     "table",
     [
         DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group(),
-        DataTable(x=[]).group().group(),
-        DataTable(x=[], y=[], z=[]).group("x"),
-        DataTable(x=[], y=[], z=[]).group("x", "y"),
-        DataTable(x=[], y=[], z=[]).group("x").group("y"),
+        DataTable(x=[], y=[]).group_by(),
+        DataTable(x=[]).group_by().group_by(),
+        DataTable(x=[], y=[], z=[]).group_by("x"),
+        DataTable(x=[], y=[], z=[]).group_by("x", "y"),
+        DataTable(x=[], y=[], z=[]).group_by("x").group_by("y"),
     ],
 )
 def test_filter_rowless(expression, table):

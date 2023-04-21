@@ -12,7 +12,7 @@ table = DataTable(
     x = [1, 2, 3, 4],
 )
 
-table.group("id").summarize(x = "mean(x)")
+table.group_by("id").summarize(x="mean(x)")
 # shape: (2, 2)
 # ┌─────┬─────┐
 # │ id  ┆ x   │

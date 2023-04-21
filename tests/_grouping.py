@@ -5,5 +5,5 @@ from tabeline import DataTable
 
 def apply_groups(table: DataTable, group_levels: tuple[tuple[str, ...], ...]) -> DataTable:
     for group_level in group_levels:
-        table = table.group(*group_level)
+        table = table.group_by(*group_level)
     return table

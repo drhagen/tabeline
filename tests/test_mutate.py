@@ -12,16 +12,16 @@ def test_mutate():
 
 
 def test_mutate_grouped():
-    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group("x")
+    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group_by("x")
     actual = table.mutate(z="y + 1")
-    expected = DataTable(x=[True, False, True], y=[0, 0, 1], z=[1, 1, 2]).group("x")
+    expected = DataTable(x=[True, False, True], y=[0, 0, 1], z=[1, 1, 2]).group_by("x")
     assert actual == expected
 
 
 def test_mutate_referencing_group():
-    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group("x")
+    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group_by("x")
     actual = table.mutate(z="~x")
-    expected = DataTable(x=[True, False, True], y=[0, 0, 1], z=[False, True, False]).group("x")
+    expected = DataTable(x=[True, False, True], y=[0, 0, 1], z=[False, True, False]).group_by("x")
     assert actual == expected
 
 
@@ -33,16 +33,16 @@ def test_mutate_overwrite():
 
 
 def test_mutate_overwrite_grouped():
-    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group("x")
+    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group_by("x")
     actual = table.mutate(y="y + 1")
-    expected = DataTable(x=[True, False, True], y=[1, 1, 2]).group("x")
+    expected = DataTable(x=[True, False, True], y=[1, 1, 2]).group_by("x")
     assert actual == expected
 
 
 def test_mutate_overwrite_referencing_group():
-    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group("x")
+    table = DataTable(x=[True, False, True], y=[0, 0, 1]).group_by("x")
     actual = table.mutate(y="~x")
-    expected = DataTable(x=[True, False, True], y=[False, True, False]).group("x")
+    expected = DataTable(x=[True, False, True], y=[False, True, False]).group_by("x")
     assert actual == expected
 
 
@@ -54,9 +54,9 @@ def test_mutate_reference_previous_mutator():
 
 
 def test_mutate_reference_previous_mutator_grouped():
-    table = DataTable(x=[0, 0, 1]).group("x")
+    table = DataTable(x=[0, 0, 1]).group_by("x")
     actual = table.mutate(y="max(x)", z="y+1")
-    expected = DataTable(x=[0, 0, 1], y=[0, 0, 1], z=[1, 1, 2]).group("x")
+    expected = DataTable(x=[0, 0, 1], y=[0, 0, 1], z=[1, 1, 2]).group_by("x")
     assert actual == expected
 
 
@@ -68,7 +68,7 @@ def test_mutate_broadcast_scalar():
 
 
 def test_mutate_group_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True]).group("x")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True]).group_by("x")
     with pytest.raises(GroupColumn):
         _ = table.mutate(x="x+1")
 
@@ -77,8 +77,8 @@ def test_mutate_group_column():
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_mutate_empty(table):
@@ -90,8 +90,8 @@ def test_mutate_empty(table):
     "table",
     [
         DataTable.columnless(height=6),
-        # DataTable.columnless(height=6).group(),
-        # DataTable.columnless(height=6).group().group(),
+        DataTable.columnless(height=6).group_by(),
+        DataTable.columnless(height=6).group_by().group_by(),
     ],
 )
 def test_mutate_columnless(table):
@@ -112,11 +112,11 @@ def test_mutate_columnless(table):
     "table",
     [
         DataTable(w=[], x=[], y=[], z=[]),
-        DataTable(w=[], x=[], y=[], z=[]).group(),
-        DataTable(w=[], x=[], y=[], z=[]).group().group(),
-        DataTable(w=[], x=[], y=[], z=[]).group("x"),
-        DataTable(w=[], x=[], y=[], z=[]).group("x", "y"),
-        DataTable(w=[], x=[], y=[], z=[]).group("x").group("y"),
+        DataTable(w=[], x=[], y=[], z=[]).group_by(),
+        DataTable(w=[], x=[], y=[], z=[]).group_by().group_by(),
+        DataTable(w=[], x=[], y=[], z=[]).group_by("x"),
+        DataTable(w=[], x=[], y=[], z=[]).group_by("x", "y"),
+        DataTable(w=[], x=[], y=[], z=[]).group_by("x").group_by("y"),
     ],
 )
 def test_mutate_rowless(expression, table):

@@ -11,9 +11,9 @@ def test_unique():
 
 
 def test_unique_grouped():
-    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group("x")
+    table = DataTable(x=[0, 0, 1, 1], y=[1, 2, 3, 3]).group_by("x")
     actual = table.unique()
-    expected = DataTable(x=[0, 0, 1], y=[1, 2, 3]).group("x")
+    expected = DataTable(x=[0, 0, 1], y=[1, 2, 3]).group_by("x")
     assert actual == expected
 
 
@@ -21,8 +21,8 @@ def test_unique_grouped():
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_unique_empty(table):
@@ -34,8 +34,8 @@ def test_unique_empty(table):
     "table",
     [
         DataTable(x=[], y=[], z=[]),
-        DataTable(x=[], y=[]).group(),
-        DataTable(x=[], y=[]).group().group(),
+        DataTable(x=[], y=[]).group_by(),
+        DataTable(x=[], y=[]).group_by().group_by(),
     ],
 )
 def test_unique_rowless(table):
@@ -47,8 +47,8 @@ def test_unique_rowless(table):
     "table",
     [
         DataTable.columnless(height=6),
-        DataTable.columnless(height=6).group(),
-        DataTable.columnless(height=6).group().group(),
+        DataTable.columnless(height=6).group_by(),
+        DataTable.columnless(height=6).group_by().group_by(),
     ],
 )
 def test_unique_columnless(table):

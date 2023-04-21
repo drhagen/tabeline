@@ -85,11 +85,11 @@ def test_select_columns_grouped(
 ):
     table = DataTable(**{name: test_columns[name] for name in input_columns})
     for level in groups:
-        table = table.group(*level)
+        table = table.group_by(*level)
     actual = table.select(*selectors)
     expected = DataTable(**{name: test_columns[name] for name in expected_columns})
     for level in groups:
-        expected = expected.group(*level)
+        expected = expected.group_by(*level)
     assert actual == expected
 
 
@@ -104,8 +104,8 @@ def test_select_nonexistent_column():
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_select_empty(table):
@@ -117,8 +117,8 @@ def test_select_empty(table):
     "table",
     [
         DataTable.columnless(height=6),
-        DataTable.columnless(height=6).group(),
-        DataTable.columnless(height=6).group().group(),
+        DataTable.columnless(height=6).group_by(),
+        DataTable.columnless(height=6).group_by().group_by(),
     ],
 )
 def test_select_columnless(table):

@@ -15,7 +15,7 @@ table = DataTable(
     grades=[0, 0, 1, 1, 2, 2], sex=["M", "F", "M", "F", "M", "F"], count=[8, 9, 9, 10, 6, 9]
 )
 
-table.group("sex").spread("grades", "count")
+table.group_by("sex").spread("grades", "count")
 # shape: (2, 4)
 # ┌─────┬─────┬─────┬─────┐
 # │ sex ┆ 0   ┆ 1   ┆ 2   │

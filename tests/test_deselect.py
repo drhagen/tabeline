@@ -64,7 +64,7 @@ def test_deselect_nonexistent_column():
 
 
 def test_deselect_group_column():
-    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group("x")
+    table = DataTable(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x")
 
     with pytest.raises(GroupColumn):
         _ = table.deselect("x")
@@ -74,8 +74,8 @@ def test_deselect_group_column():
     "table",
     [
         DataTable(),
-        DataTable().group(),
-        DataTable().group().group(),
+        DataTable().group_by(),
+        DataTable().group_by().group_by(),
     ],
 )
 def test_deselect_empty(table):
@@ -87,8 +87,8 @@ def test_deselect_empty(table):
     "table",
     [
         DataTable.columnless(height=6),
-        DataTable.columnless(height=6).group(),
-        DataTable.columnless(height=6).group().group(),
+        DataTable.columnless(height=6).group_by(),
+        DataTable.columnless(height=6).group_by().group_by(),
     ],
 )
 def test_deselect_columnless(table):
