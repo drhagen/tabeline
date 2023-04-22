@@ -23,6 +23,9 @@ one_argument_functions = [
     "sin",
     "cos",
     "tan",
+    "arcsin",
+    "arccos",
+    "arctan",
     "floor",
     "ceil",
     "is_nan",
@@ -52,12 +55,15 @@ one_argument_functions = [
         ["sin", math.sin],
         ["cos", math.cos],
         ["tan", math.tan],
+        ["arcsin", math.asin],
+        ["arccos", math.acos],
+        ["arctan", math.atan],
         ["floor", math.floor],
         ["ceil", math.ceil],
     ],
 )
 def test_single_numeric_argument_against_python(name, function):
-    values = [0.5, 1.0, math.pi]
+    values = [0.5, 1.0, math.pi / 4]
     df = DataFrame(x=values)
     actual = df.transmute(y=f"{name}(x)")
     expected = DataFrame(y=[function(value) for value in values])
