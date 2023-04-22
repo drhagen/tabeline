@@ -53,7 +53,7 @@ print(analysis)
 
 A data grammar is a particular style of data frame library popularized by Hadley Wickham via the [dplyr](https://dplyr.tidyverse.org/) package in R. In a library written as a data grammar, the data frame object has a relatively small number of methods. The parameters of most of these methods are columns names or expressions of column names. The return value of most of these methods is a new data frame. These methods that transform a data frame into another data frame by taking simple inputs are called the "verbs" of the data grammar. Each verb does a single simple transformation. By always returning a new data frame, the verbs can be cleanly combined via method chaining. The `filter` and `summarize` methods in the above example are two such verbs.
 
-A user who wants to do an analysis of a data frame, however basic, is unlikely to find a single function that does exactly what he wants. This is by design. It is not feasible to make a data frame library that has a function for every kind of analysis someone would want. Tabeline expects the user to learn the data grammar so that he can split the analysis into steps than can be performed by verbs.
+Users who want to do an analysis of a data frame, however basic, are unlikely to find a single function that does exactly what they want. This is by design. It is not feasible to make a data frame library that has a function for every kind of analysis someone would want. Tabeline expects users to learn the data grammar so that they can split the analysis into steps than can be performed by verbs.
 
 ### Expressions
 

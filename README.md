@@ -1,6 +1,6 @@
 # Tabeline
 
-Tabeline is a data frame and data grammar library. You write the expressions in strings and supply them to methods on the `DataFrame` class. The  strings are parsed by Parsita and converted into Polars for execution.
+Tabeline is a data frame and data grammar library. You write the expressions in strings and supply them to methods on the `DataFrame` class. The strings are parsed by Parsita and converted into Polars for execution.
 
 Tabeline draws inspiration from dplyr, the data grammar of R's tidyverse, especially for its methods names. The `filter`, `mutate`, `group_by`, and `summarize` methods should all feel familiar. But Tabeline is as proper a Python library as can be, using methods instead of pipes, like is standard in R. 
 
