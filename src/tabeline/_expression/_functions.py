@@ -32,9 +32,9 @@ built_in_functions: list[Function[Any, Any]] = [
     Function("sin", lambda x: x.sin()),
     Function("cos", lambda x: x.cos()),
     Function("tan", lambda x: x.tan()),
-    # Function("arcsin", lambda x: x.arcsin()),  # Decide on name
-    # Function("arccos", lambda x: x.arccos()),  # Decide on name
-    # Function("arctan", lambda x: x.arctan()),  # Decide on name
+    Function("arcsin", lambda x: x.arcsin()),
+    Function("arccos", lambda x: x.arccos()),
+    Function("arctan", lambda x: x.arctan()),
     Function("floor", lambda x: x.floor()),
     Function("ceil", lambda x: x.ceil()),
     # Numeric -> boolean elementwise
