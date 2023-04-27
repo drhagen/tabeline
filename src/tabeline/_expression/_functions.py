@@ -61,6 +61,10 @@ built_in_functions: list[Function[Any, Any]] = [
     # Function("mode", lambda x: x.mode()),  # Not type stable
     Function("first", lambda x: x.first()),
     Function("last", lambda x: x.last()),
+    Function(
+        "if_else",
+        lambda condition, true, false=None: pl.when(condition).then(true).otherwise(false),
+    ),
 ]
 
 function_by_name: dict[str, Function[Any, Any]] = {x.name: x for x in built_in_functions}
