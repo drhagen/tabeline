@@ -86,12 +86,19 @@ The functions in this section mathematical operations on numbers. If these funct
 * `sin(x)`: Sine of `x`
 * `cos(x)`: Cosine of `x`
 * `tan(x)`: Tangent of `x`
+* `arcsin(x)`: Inverse sine of `x`
+* `arccos(x)`: Inverse cosine of `x`
+* `arctan(x)`: Inverse tangent of `x`
 * `floor(x)`: `x` rounded down to the nearest integer
 * `ceil(x)`: `x` rounded up to the nearest integer
 
 ### Numeric to boolean broadcast
 
-* `is_nan`: True if numeric value is a floating point `NaN`
+* `is_nan(x)`: True if `x` value is a floating point `NaN`
+
+### Other broadcast
+
+* `if_else(condition, true_value, false_value)`: If `condition` is true, return `true_value`, otherwise return `false_value`.
 
 ### Numeric to numeric reduction
 
