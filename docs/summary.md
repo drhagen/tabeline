@@ -7,6 +7,7 @@ This is an index of the main functionality available in Tabeline. Each construct
 These are the ways to create a `DataFrame` from something that is not already a `DataFrame`
 
 * [`DataFrame(**columns)`](creation.md#dataframe): Construct data frame directly from columns
+* [`DataFrame.from_dict(columns)`](creation.md#dataframefrom_dict): Construct data frame directly from columns
 * [`DataFrame.read_csv(filename)`](creation.md#dataframeread_csv): Read data frame from CSV file
 * [`DataFrame.from_pandas(df)`](creation.md#dataframefrom_pandas): Convert from Pandas `DataFrame`
 * [`DataFrame.from_polars(df)`](creation.md#dataframefrom_polars): Convert from Polars `DataFrame`
