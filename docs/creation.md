@@ -24,6 +24,22 @@ df = DataFrame(
     If you poke around in the code, you may notice that the contructor also takes positional arguments. Those are part of the private constructor; don't use them.
 
 
+## `DataFrame.from_dict`
+
+This is basically the same as the constructor, except the arguments are kept as a single dictionary instead of being splatted out.
+
+```python
+from tabeline import DataFrame
+
+data = {
+    "name": ["A New Hope", "The Empire Strikes Back", "Return of the Jedi"],
+    "episode": [4, 5, 6],
+    "release_year": [1977, 1980, 1983],
+}
+
+df = DataFrame.from_dict(data)
+```
+
 ## `DataFrame.read_csv`
 
 Reads a data frame from a CSV file.

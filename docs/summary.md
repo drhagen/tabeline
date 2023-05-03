@@ -7,6 +7,7 @@ This is an index of the main functionality available in Tabeline. Each construct
 These are the ways to create a `DataFrame` from something that is not already a `DataFrame`
 
 * [`DataFrame(**columns)`](creation.md#dataframe): Construct data frame directly from columns
+* [`DataFrame.from_dict(columns)`](creation.md#dataframefrom_dict): Construct data frame directly from columns
 * [`DataFrame.read_csv(filename)`](creation.md#dataframeread_csv): Read data frame from CSV file
 * [`DataFrame.from_pandas(df)`](creation.md#dataframefrom_pandas): Convert from Pandas `DataFrame`
 * [`DataFrame.from_polars(df)`](creation.md#dataframefrom_polars): Convert from Polars `DataFrame`
@@ -58,6 +59,11 @@ Each verb is a method of `DataFrame`.
 * [`inner_join`](verbs/join.md#inner_join): Merge data frames, dropping unmatched
 * [`outer_join`](verbs/join.md#outer_join): Merge data frames, adding nulls for unmatched
 * [`left_join`](verbs/join.md#left_join): Merge data frames, adding nulls for unmatched on the left data frame
+
+### Concatenating
+
+* [`concatenate_rows`](verbs/concatenate.md#concatenate_rows): Concatenate rows of data frames
+* [`concatenate_columns`](verbs/concatenate.md#concatenate_columns): Concatenate columns of data frames
 
 ## Functions
 
