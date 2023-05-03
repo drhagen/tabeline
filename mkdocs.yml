@@ -60,4 +60,5 @@ nav:
     - Summarizing: verbs/summarize.md
     - Reshaping: verbs/spread.md
     - Joining: verbs/join.md
+    - Concatenating: verbs/concatenate.md
   - Contributing: contributing.md

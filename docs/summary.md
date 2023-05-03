@@ -60,6 +60,11 @@ Each verb is a method of `DataFrame`.
 * [`outer_join`](verbs/join.md#outer_join): Merge data frames, adding nulls for unmatched
 * [`left_join`](verbs/join.md#left_join): Merge data frames, adding nulls for unmatched on the left data frame
 
+### Concatenating
+
+* [`concatenate_rows`](verbs/concatenate.md#concatenate_rows): Concatenate rows of data frames
+* [`concatenate_columns`](verbs/concatenate.md#concatenate_columns): Concatenate columns of data frames
+
 ## Functions
 
 These are the operators and functions available in the string expressions.
