@@ -96,3 +96,15 @@ class UnmatchedGroupLevels(TabelineException):
         )
         actual_str = ",".join("[" + ",".join(level) + "]" for level in self.actual_group_levels)
         return f"Group levels do not match; expected {expected_str} but got {actual_str}"
+
+
+class UnmatchedHeight(TabelineException):
+    def __init__(self, expected_height: int, actual_height: int):
+        super().__init__(expected_height, actual_height)
+        self.expected_height = expected_height
+        self.actual_height = actual_height
+
+    def __str__(self) -> str:
+        return (
+            f"Heights do not match; expected {self.expected_height} but got {self.actual_height}"
+        )
