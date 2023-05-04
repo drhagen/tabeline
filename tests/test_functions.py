@@ -137,6 +137,28 @@ def test_quantile():
     assert_data_frame_equal(actual, expected, reltol=1e-8)
 
 
+@pytest.mark.skip("Parser does not support array literals")
+def test_interp():
+    ts = [1.2, 2.4, 3.4, 5.2, 8.9]
+    ys = [0.3, 0.1, 0.8, 1.0, 0.9]
+    t = [2.4, 1.0, 12.4]
+    df = DataFrame(t=t)
+    actual = df.mutate(y=f"interp(t, {ts}, {ys})")
+    expected = DataFrame(t=t, y=[0.1, 0.3, 0.9])
+    assert_data_frame_equal(actual, expected, reltol=1e-8)
+
+
+def test_interp_reduce():
+    df = DataFrame(
+        id=[1, 1, 1, 2, 2, 2],
+        ts=[1.2, 2.5, 3.4, 2.0, 3.0, 10.3],
+        ys=[0.3, 0.1, 0.8, 1.0, 0.8, 0.1],
+    )
+    actual = df.group_by("id").summarize(y="interp(2.5, ts, ys)")
+    expected = DataFrame(id=[1, 2], y=[0.1, 0.9])
+    assert_data_frame_equal(actual, expected, reltol=1e-8)
+
+
 def test_trapz():
     df = DataFrame(id=[0, 0, 0, 1, 1, 1], t=[2, 4, 5, 10, 11, 14], y=[0, 1, 1, 2, 3, 4])
     actual = df.group_by("id").summarize(q="trapz(t, y)")

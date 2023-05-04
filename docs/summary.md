@@ -118,8 +118,9 @@ The functions in this section consume an entire column of numbers and to produce
 * `mean(x)`: Mean of `x`
 * `median(x)`: Median of `x`
 * `quantile(x, quantile)`: The `quantile` of `x` obtained via linear interpolation
-  * `quantile` must be a `float` not an expression
+  * `quantile` must be a `float` literal not an expression
 * `trapz(x, y)`: Numerically integrate `y` over `x` using the trapezoidal rule
+* `interp(x, xp, fp)`: Linearly interpolate `fp` over `xp` at `x`; typically, `x` is a float literal
 
 ### Boolean to boolean reduction
 
