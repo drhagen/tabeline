@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Generic, TypeVar
 from typing_extensions import ParamSpec  # Not present in Python 3.9
 
+import numpy as np
 import polars as pl
 
 P = ParamSpec("P")
@@ -54,6 +55,15 @@ built_in_functions: list[Function[Any, Any]] = [
     Function(
         "trapz", lambda x, y: 0.5 * ((x - x.shift()) * (y + y.shift())).sum()
     ),  # https://github.com/pola-rs/polars/issues/3043
+    Function(
+        "interp",
+        lambda x, xp, fp: pl.apply(
+            exprs=[x, xp, fp],
+            function=lambda args: pl.Series(
+                [np.interp(args[0], args[1], args[2])], dtype=pl.Float64
+            ),
+        ),
+    ),  # https://stackoverflow.com/a/69585269/
     # Boolean -> boolean reduction
     Function("any", lambda x: x.any()),
     Function("all", lambda x: x.all()),

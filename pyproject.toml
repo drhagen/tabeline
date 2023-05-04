@@ -19,6 +19,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.9"
 polars = "^0.17.5"
+numpy = "^1.24.3"
 parsita = "^1.7.0"
 typing_extensions = "^4.3.0"
 pandas = { version = "^1.4.3", optional = true }

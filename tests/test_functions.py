@@ -110,11 +110,7 @@ def test_zero_argument_functions_on_rowless_data_frame_with_summarize(name, df):
     assert actual == expected
 
 
-# Skip any and all because Polars has no concept of List[Nothing]. This will
-# probably have to be handled by separate dtypes stored in Tabeline.
-@pytest.mark.parametrize(
-    "name", [xfail_param(f) if f in ("all", "any") else f for f in one_argument_functions]
-)
+@pytest.mark.parametrize("name", one_argument_functions)
 @pytest.mark.parametrize(
     "df",
     [
@@ -127,6 +123,9 @@ def test_zero_argument_functions_on_rowless_data_frame_with_summarize(name, df):
     ],
 )
 def test_one_argument_functions_on_rowless_data_frame_with_mutate(name, df):
+    if name in ("any", "all") and len(df.group_names) == 0:
+        pytest.xfail("Skip any and all because Polars has no concept of List[Nothing]")
+
     actual = df.mutate(x=f"{name}(a)")
     expected = df.mutate(x="1")
     assert actual == expected
@@ -135,6 +134,28 @@ def test_one_argument_functions_on_rowless_data_frame_with_mutate(name, df):
 def test_quantile():
     actual = DataFrame(x=[20, 21, 22]).mutate(q="quantile(x, 0.75)")
     expected = DataFrame(x=[20, 21, 22], q=[21.5, 21.5, 21.5])
+    assert_data_frame_equal(actual, expected, reltol=1e-8)
+
+
+@pytest.mark.skip("Parser does not support array literals")
+def test_interp():
+    ts = [1.2, 2.4, 3.4, 5.2, 8.9]
+    ys = [0.3, 0.1, 0.8, 1.0, 0.9]
+    t = [2.4, 1.0, 12.4]
+    df = DataFrame(t=t)
+    actual = df.mutate(y=f"interp(t, {ts}, {ys})")
+    expected = DataFrame(t=t, y=[0.1, 0.3, 0.9])
+    assert_data_frame_equal(actual, expected, reltol=1e-8)
+
+
+def test_interp_reduce():
+    df = DataFrame(
+        id=[1, 1, 1, 2, 2, 2],
+        ts=[1.2, 2.5, 3.4, 2.0, 3.0, 10.3],
+        ys=[0.3, 0.1, 0.8, 1.0, 0.8, 0.1],
+    )
+    actual = df.group_by("id").summarize(y="interp(2.5, ts, ys)")
+    expected = DataFrame(id=[1, 2], y=[0.1, 0.9])
     assert_data_frame_equal(actual, expected, reltol=1e-8)
 
 
@@ -180,10 +201,9 @@ def test_if_else_grouped_no_otherwise():
         DataFrame(a=[]),
         DataFrame(a=[]).group_by(),
         DataFrame(a=[]).group_by().group_by(),
-        # Polars does not like empty if_else in group_by
-        xfail_param(DataFrame(a=[]).group_by("a")),
-        xfail_param(DataFrame(a=[], b=[], c=[]).group_by("a", "b")),
-        xfail_param(DataFrame(a=[], b=[], c=[]).group_by("a").group_by("b")),
+        DataFrame(a=[]).group_by("a"),
+        DataFrame(a=[], b=[], c=[]).group_by("a", "b"),
+        DataFrame(a=[], b=[], c=[]).group_by("a").group_by("b"),
     ],
 )
 def test_if_else_on_rowless_data_frame_with_mutate(default, df):
