@@ -110,11 +110,7 @@ def test_zero_argument_functions_on_rowless_data_frame_with_summarize(name, df):
     assert actual == expected
 
 
-# Skip any and all because Polars has no concept of List[Nothing]. This will
-# probably have to be handled by separate dtypes stored in Tabeline.
-@pytest.mark.parametrize(
-    "name", [xfail_param(f) if f in ("all", "any") else f for f in one_argument_functions]
-)
+@pytest.mark.parametrize("name", one_argument_functions)
 @pytest.mark.parametrize(
     "df",
     [
@@ -127,6 +123,9 @@ def test_zero_argument_functions_on_rowless_data_frame_with_summarize(name, df):
     ],
 )
 def test_one_argument_functions_on_rowless_data_frame_with_mutate(name, df):
+    if name in ("any", "all") and len(df.group_names) == 0:
+        pytest.xfail("Skip any and all because Polars has no concept of List[Nothing]")
+
     actual = df.mutate(x=f"{name}(a)")
     expected = df.mutate(x="1")
     assert actual == expected
@@ -180,10 +179,9 @@ def test_if_else_grouped_no_otherwise():
         DataFrame(a=[]),
         DataFrame(a=[]).group_by(),
         DataFrame(a=[]).group_by().group_by(),
-        # Polars does not like empty if_else in group_by
-        xfail_param(DataFrame(a=[]).group_by("a")),
-        xfail_param(DataFrame(a=[], b=[], c=[]).group_by("a", "b")),
-        xfail_param(DataFrame(a=[], b=[], c=[]).group_by("a").group_by("b")),
+        DataFrame(a=[]).group_by("a"),
+        DataFrame(a=[], b=[], c=[]).group_by("a", "b"),
+        DataFrame(a=[], b=[], c=[]).group_by("a").group_by("b"),
     ],
 )
 def test_if_else_on_rowless_data_frame_with_mutate(default, df):
