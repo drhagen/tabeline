@@ -3,7 +3,7 @@ __all__ = ["parse_expression"]
 from functools import reduce
 from typing import Literal, Union
 
-from parsita import Failure, ParserContext, lit, opt, pred, reg, rep, rep1sep, repsep, Result
+from parsita import ParserContext, Result, lit, opt, pred, reg, rep, rep1sep, repsep
 from parsita.util import constant, splat
 
 from . import ast
