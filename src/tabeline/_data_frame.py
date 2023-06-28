@@ -179,7 +179,7 @@ class DataFrame:
         return self.slice0([index - 1 for index in indexes])
 
     def filter(self, predicate: str, /) -> DataFrame:
-        expression = to_polars(Expression.parse(predicate).or_die())
+        expression = to_polars(Expression.parse(predicate).unwrap())
 
         if self.width == 0:
             # There is no way to evaluate an expression outside a data frame, so
@@ -350,12 +350,12 @@ class DataFrame:
         if len(group_set) == 0:
             for name, mutator in mutators.items():
                 polars_operation = polars_operation.with_columns(
-                    to_polars(Expression.parse(mutator).or_die()).alias(name)
+                    to_polars(Expression.parse(mutator).unwrap()).alias(name)
                 )
         else:
             for name, mutator in mutators.items():
                 polars_operation = polars_operation.with_columns(
-                    to_polars(Expression.parse(mutator).or_die())
+                    to_polars(Expression.parse(mutator).unwrap())
                     .over(list(self.group_names))
                     .alias(name)
                 )
@@ -411,7 +411,7 @@ class DataFrame:
         substituted_reducers = {}
         for name, reducer in reducers.items():
             substituted_reducers[name] = substitute(
-                Expression.parse(reducer).or_die(), substituted_reducers
+                Expression.parse(reducer).unwrap(), substituted_reducers
             )
 
         polars_expressions = [

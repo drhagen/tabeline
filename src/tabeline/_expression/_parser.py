@@ -1,12 +1,11 @@
-__all__ = ["parse_expression", "ParseError"]
+__all__ = ["parse_expression"]
 
 from functools import reduce
 from typing import Literal, Union
 
-from parsita import Failure, TextParsers, lit, opt, pred, reg, rep, rep1sep, repsep
+from parsita import ParserContext, Result, lit, opt, pred, reg, rep, rep1sep, repsep
 from parsita.util import constant, splat
 
-from .. import _result
 from . import ast
 from .ast import Expression
 
@@ -71,7 +70,7 @@ def make_comparison_expression(
             raise NotImplementedError
 
 
-class ExpressionParser(TextParsers):
+class ExpressionParser(ParserContext, whitespace=r"[ ]*"):
     name = pred(reg(r"[A-Za-z_][A-Za-z_0-9]*"), lambda x: x not in reserved_names, "non-keyword")
 
     # Atoms
@@ -129,14 +128,5 @@ class ExpressionParser(TextParsers):
     expression = rep1sep(and_expression, "|") > (lambda x: reduce(ast.Or, x))
 
 
-class ParseError(Exception):
-    pass
-
-
-def parse_expression(text: str) -> _result.Result[Expression, ParseError]:
-    result = ExpressionParser.expression.parse(text)
-
-    if isinstance(result, Failure):
-        return _result.Failure(ParseError(result.message))
-    else:
-        return _result.Success(result.or_die())
+def parse_expression(text: str) -> Result:
+    return ExpressionParser.expression.parse(text)

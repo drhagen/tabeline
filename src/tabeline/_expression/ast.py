@@ -29,17 +29,13 @@ __all__ = [
 ]
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-from .._result import Result
-
-if TYPE_CHECKING:
-    from ._parser import ParseError
+from parsita import Result
 
 
 class Expression:
     @staticmethod
-    def parse(text: str) -> Result[Expression, ParseError]:
+    def parse(text: str) -> Result:
         from ._parser import parse_expression
 
         return parse_expression(text)
