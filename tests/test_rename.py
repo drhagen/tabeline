@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import NonexistentColumn, RenameExisting
+from tabeline.exceptions import NonexistentColumnError, RenameExistingError
 
 swappers = [{"x": "y", "y": "x"}, {"y": "x", "x": "y"}]
 
@@ -157,12 +157,12 @@ def test_rename_self(columns, df):
 def test_rename_nonexistent():
     df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
 
-    with pytest.raises(NonexistentColumn):
+    with pytest.raises(NonexistentColumnError):
         _ = df.rename(aa="a")
 
 
 def test_rename_existing():
     df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
 
-    with pytest.raises(RenameExisting):
+    with pytest.raises(RenameExistingError):
         _ = df.rename(x="y")

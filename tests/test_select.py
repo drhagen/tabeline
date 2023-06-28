@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import NonexistentColumn
+from tabeline.exceptions import NonexistentColumnError
 
 
 def test_select():
@@ -20,15 +20,15 @@ test_columns = {
 
 
 @pytest.mark.parametrize(
-    ["input_columns", "selectors"],
+    ("input_columns", "selectors"),
     [
-        [["a", "b", "c"], ["a"]],
-        [["a", "b", "c"], ["b"]],
-        [["a", "b", "c"], ["c"]],
-        [["a", "b", "c", "d"], ["b", "c"]],
-        [["a", "b", "c", "d"], ["c", "b"]],
-        [["a", "b", "c", "d"], ["a", "b", "c", "d"]],
-        [["a", "b", "c", "d"], ["d", "b", "a", "c"]],
+        (["a", "b", "c"], ["a"]),
+        (["a", "b", "c"], ["b"]),
+        (["a", "b", "c"], ["c"]),
+        (["a", "b", "c", "d"], ["b", "c"]),
+        (["a", "b", "c", "d"], ["c", "b"]),
+        (["a", "b", "c", "d"], ["a", "b", "c", "d"]),
+        (["a", "b", "c", "d"], ["d", "b", "a", "c"]),
     ],
 )
 def test_select_columns(input_columns: list[str], selectors: list[str]):
@@ -54,27 +54,27 @@ def test_select_no_columns(input_columns):
 
 
 @pytest.mark.parametrize(
-    ["input_columns", "groups", "selectors", "expected_columns"],
+    ("input_columns", "groups", "selectors", "expected_columns"),
     [
-        [[], [], [], []],
-        [["a"], [["a"]], [], ["a"]],
-        [["a", "b"], [["a", "b"]], [], ["a", "b"]],
-        [["a", "b"], [["a"], ["b"]], [], ["a", "b"]],
-        [["a"], [["a"]], ["a"], ["a"]],
-        [["a", "b"], [["a", "b"]], ["b"], ["a", "b"]],
-        [["a", "b"], [["a"], ["b"]], ["b"], ["a", "b"]],
-        [["a", "b"], [["a", "b"]], ["a"], ["b", "a"]],
-        [["a", "b"], [["a"], ["b"]], ["a"], ["b", "a"]],
-        [["a", "b", "c", "d"], [["a", "b"]], ["c"], ["a", "b", "c"]],
-        [["a", "b", "c", "d"], [["a", "b"]], ["a", "c"], ["b", "a", "c"]],
-        [["a", "b", "c", "d"], [["a", "b"]], ["a", "b", "c"], ["a", "b", "c"]],
-        [["a", "b", "c", "d"], [["b", "a"]], ["c"], ["a", "b", "c"]],
-        [["a", "b", "c", "d"], [["b", "a"]], ["a", "c"], ["b", "a", "c"]],
-        [["a", "b", "c", "d"], [["b", "a"]], ["b", "c"], ["a", "b", "c"]],
-        [["a", "b", "c", "d"], [["b", "a"]], ["a", "b", "c"], ["a", "b", "c"]],
-        [["a", "b", "c", "d"], [["b", "a"], []], ["a", "b", "c"], ["a", "b", "c"]],
-        [["a", "b", "c", "d"], [["b"], ["a"]], ["a", "b", "c"], ["a", "b", "c"]],
-        [["a", "b", "c", "d"], [[], ["b", "a"]], ["a", "b", "c"], ["a", "b", "c"]],
+        ([], [], [], []),
+        (["a"], [["a"]], [], ["a"]),
+        (["a", "b"], [["a", "b"]], [], ["a", "b"]),
+        (["a", "b"], [["a"], ["b"]], [], ["a", "b"]),
+        (["a"], [["a"]], ["a"], ["a"]),
+        (["a", "b"], [["a", "b"]], ["b"], ["a", "b"]),
+        (["a", "b"], [["a"], ["b"]], ["b"], ["a", "b"]),
+        (["a", "b"], [["a", "b"]], ["a"], ["b", "a"]),
+        (["a", "b"], [["a"], ["b"]], ["a"], ["b", "a"]),
+        (["a", "b", "c", "d"], [["a", "b"]], ["c"], ["a", "b", "c"]),
+        (["a", "b", "c", "d"], [["a", "b"]], ["a", "c"], ["b", "a", "c"]),
+        (["a", "b", "c", "d"], [["a", "b"]], ["a", "b", "c"], ["a", "b", "c"]),
+        (["a", "b", "c", "d"], [["b", "a"]], ["c"], ["a", "b", "c"]),
+        (["a", "b", "c", "d"], [["b", "a"]], ["a", "c"], ["b", "a", "c"]),
+        (["a", "b", "c", "d"], [["b", "a"]], ["b", "c"], ["a", "b", "c"]),
+        (["a", "b", "c", "d"], [["b", "a"]], ["a", "b", "c"], ["a", "b", "c"]),
+        (["a", "b", "c", "d"], [["b", "a"], []], ["a", "b", "c"], ["a", "b", "c"]),
+        (["a", "b", "c", "d"], [["b"], ["a"]], ["a", "b", "c"], ["a", "b", "c"]),
+        (["a", "b", "c", "d"], [[], ["b", "a"]], ["a", "b", "c"], ["a", "b", "c"]),
     ],
 )
 def test_select_columns_grouped(
@@ -96,7 +96,7 @@ def test_select_columns_grouped(
 def test_select_nonexistent_column():
     df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
 
-    with pytest.raises(NonexistentColumn):
+    with pytest.raises(NonexistentColumnError):
         _ = df.select("x", "a")
 
 

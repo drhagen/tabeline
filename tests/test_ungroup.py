@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import NoGroups
+from tabeline.exceptions import NoGroupsError
 
 
 def test_ungroup():
@@ -64,5 +64,5 @@ def test_ungroup_to_one_level(df):
     ],
 )
 def test_ungroup_no_groups(df):
-    with pytest.raises(NoGroups):
+    with pytest.raises(NoGroupsError):
         _ = df.ungroup()

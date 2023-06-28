@@ -36,17 +36,9 @@ pandas = "^1.4"
 pytest = "^7.2"
 pytest-cov = "*"
 
-# Black
-black = ">=22.3.0"
-
-# Isort
-isort = "^5.9.3"
-
-# Flake8
-flake8 = "^4.0.1"
-pyproject-flake8 = "^0.0.1a3"
-pep8-naming = "^0.12.1"
-flake8-noqa = "^1.2.1"
+# Lint
+black = ">=23.3"
+ruff = ">=0.0.275"
 
 # Docs
 mkdocs-material = "^9"
@@ -79,20 +71,32 @@ source = [
 
 [tool.black]
 line-length = 99
-preview = true
 
 
-[tool.isort]
-profile = "black"
-line_length = 99
-extra_standard_library = ["typing_extensions"]
-
-
-[tool.flake8]
-max-line-length = 99
-noqa-require-code = true
+[tool.ruff]
+src = ["src"]
+line-length = 99
+extend-select = [
+    "I", # isort
+    "N", # pep8-naming
+    "RUF", # ruff
+    "B", # flake8-bugbear
+    "N", # flake8-broken-line
+    "C4", # flake8-comprehensions
+    "PIE", # flake8-pie
+    "PT", # flake8-pytest-style
+    "PTH", # flake8-use-pathlib
+    "ERA", # flake8-eradicate
+]
 # F821: undefined-name; Parsita triggers this, but code coverage will catch it
 extend-ignore = ["F821"]
+
+[tool.ruff.per-file-ignores]
+# F401: unused-import; Allow unused imports in __init__.py files
+"__init__.py" = ["F401"]
+
+[tool.ruff.isort]
+extra-standard-library = ["typing_extensions"]
 
 
 [build-system]

@@ -72,14 +72,14 @@ def test_filter_empty(expression, df):
 
 
 @pytest.mark.parametrize(
-    ["df", "expected"],
+    ("df", "expected"),
     [
-        [DataFrame.columnless(height=6), DataFrame.columnless(height=3)],
-        [DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=3).group_by()],
-        [
+        (DataFrame.columnless(height=6), DataFrame.columnless(height=3)),
+        (DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=3).group_by()),
+        (
             DataFrame.columnless(height=6).group_by().group_by(),
             DataFrame.columnless(height=3).group_by().group_by(),
-        ],
+        ),
     ],
 )
 def test_filter_columnless(df, expected):

@@ -44,22 +44,22 @@ one_argument_functions = [
 
 
 @pytest.mark.parametrize(
-    ["name", "function"],
+    ("name", "function"),
     [
-        ["abs", abs],
-        ["sqrt", math.sqrt],
-        ["log", math.log],
-        ["log2", math.log2],
-        ["log10", math.log10],
-        ["exp", math.exp],
-        ["sin", math.sin],
-        ["cos", math.cos],
-        ["tan", math.tan],
-        ["arcsin", math.asin],
-        ["arccos", math.acos],
-        ["arctan", math.atan],
-        ["floor", math.floor],
-        ["ceil", math.ceil],
+        ("abs", abs),
+        ("sqrt", math.sqrt),
+        ("log", math.log),
+        ("log2", math.log2),
+        ("log10", math.log10),
+        ("exp", math.exp),
+        ("sin", math.sin),
+        ("cos", math.cos),
+        ("tan", math.tan),
+        ("arcsin", math.asin),
+        ("arccos", math.acos),
+        ("arctan", math.atan),
+        ("floor", math.floor),
+        ("ceil", math.ceil),
     ],
 )
 def test_single_numeric_argument_against_python(name, function):

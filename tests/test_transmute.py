@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import GroupColumn
+from tabeline.exceptions import GroupColumnError
 
 
 def test_transmute():
@@ -73,7 +73,7 @@ def test_transmute_broadcast_scalar():
 
 def test_transmute_group_column():
     df = DataFrame(x=[0, 0, 1], y=[True, False, True]).group_by("x")
-    with pytest.raises(GroupColumn):
+    with pytest.raises(GroupColumnError):
         _ = df.transmute(x="x+1")
 
 

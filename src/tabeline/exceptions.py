@@ -1,8 +1,8 @@
-class TabelineException(Exception):
+class TabelineError(Exception):
     pass
 
 
-class NonexistentColumn(TabelineException):
+class NonexistentColumnError(TabelineError):
     def __init__(self, column: str):
         super().__init__(column)
         self.column = column
@@ -11,7 +11,7 @@ class NonexistentColumn(TabelineException):
         return f"Cannot perform this operation using nonexistent column {self.column}"
 
 
-class DuplicateColumn(TabelineException):
+class DuplicateColumnError(TabelineError):
     def __init__(self, column: str):
         super().__init__(column)
         self.column = column
@@ -20,7 +20,7 @@ class DuplicateColumn(TabelineException):
         return f"Column {self.column} is duplicated."
 
 
-class RenameExisting(TabelineException):
+class RenameExistingError(TabelineError):
     def __init__(self, old_column: str, new_column: str):
         super().__init__(old_column, new_column)
         self.old_column = old_column
@@ -33,17 +33,17 @@ class RenameExisting(TabelineException):
         )
 
 
-class HasGroups(TabelineException):
+class HasGroupsError(TabelineError):
     def __str__(self) -> str:
         return "Cannot perform this operation on a data frame with any group levels"
 
 
-class NoGroups(TabelineException):
+class NoGroupsError(TabelineError):
     def __str__(self) -> str:
         return "Cannot perform this operation on a data frame with no group levels"
 
 
-class GroupColumn(TabelineException):
+class GroupColumnError(TabelineError):
     def __init__(self, column: str):
         super().__init__(column)
         self.column = column
@@ -52,12 +52,12 @@ class GroupColumn(TabelineException):
         return f"Cannot perform this operation on group column {self.column}"
 
 
-class RowlessDataFrame(TabelineException):
+class RowlessDataFrameError(TabelineError):
     def __str__(self) -> str:
         return "Cannot perform this operation on a data frame with no rows"
 
 
-class IndexOutOfRange(TabelineException):
+class IndexOutOfRangeError(TabelineError):
     def __init__(self, index: int, length: int):
         self.index = index
         self.length = length
@@ -66,7 +66,7 @@ class IndexOutOfRange(TabelineException):
         return f"Cannot index element {self.index} from data frame with {self.length} rows"
 
 
-class UnmatchedColumns(TabelineException):
+class UnmatchedColumnsError(TabelineError):
     def __init__(self, expected_columns: tuple[str, ...], actual_columns: tuple[str, ...]):
         super().__init__(expected_columns, actual_columns)
         self.expected_columns = expected_columns
@@ -80,7 +80,7 @@ class UnmatchedColumns(TabelineException):
         )
 
 
-class UnmatchedGroupLevels(TabelineException):
+class UnmatchedGroupLevelsError(TabelineError):
     def __init__(
         self,
         expected_group_levels: tuple[tuple[str, ...], ...],
@@ -98,7 +98,7 @@ class UnmatchedGroupLevels(TabelineException):
         return f"Group levels do not match; expected {expected_str} but got {actual_str}"
 
 
-class UnmatchedHeight(TabelineException):
+class UnmatchedHeightError(TabelineError):
     def __init__(self, expected_height: int, actual_height: int):
         super().__init__(expected_height, actual_height)
         self.expected_height = expected_height

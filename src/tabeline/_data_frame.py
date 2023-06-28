@@ -12,12 +12,12 @@ from ._expression import substitute, to_polars
 from ._expression.ast import Expression
 from ._validation import assert_legal_columns, missing
 from .exceptions import (
-    GroupColumn,
-    HasGroups,
-    IndexOutOfRange,
-    NoGroups,
-    NonexistentColumn,
-    RenameExisting,
+    GroupColumnError,
+    HasGroupsError,
+    IndexOutOfRangeError,
+    NoGroupsError,
+    NonexistentColumnError,
+    RenameExistingError,
 )
 
 # Singleton indicating that the default value is to error
@@ -90,7 +90,7 @@ class DataFrame:
         import pandas as pd
 
         if len(self.group_levels) != 0:
-            raise HasGroups()
+            raise HasGroupsError()
 
         if self.width == 0:
             # Polars does not understand columnless data frames
@@ -104,7 +104,7 @@ class DataFrame:
 
     def to_polars(self) -> pl.DataFrame:
         if len(self.group_levels) != 0:
-            raise HasGroups()
+            raise HasGroupsError()
 
         return self._df
 
@@ -115,7 +115,7 @@ class DataFrame:
 
     def write_csv(self, path: Path) -> None:
         if len(self.group_levels) != 0:
-            raise HasGroups()
+            raise HasGroupsError()
 
         self._df.write_csv(str(path))
 
@@ -125,7 +125,7 @@ class DataFrame:
         if self.width == 0:
             for index in indexes:
                 if index >= self.height or index < 0:
-                    raise IndexOutOfRange(index, self.height)
+                    raise IndexOutOfRangeError(index, self.height)
             return DataFrame(self._df, self.group_levels, len(indexes))
         else:
             group_names = self.group_names
@@ -312,13 +312,13 @@ class DataFrame:
 
         for old_column in names.values():
             if old_column not in columns_set:
-                raise NonexistentColumn(old_column)
+                raise NonexistentColumnError(old_column)
             else:
                 columns_set.remove(old_column)
 
         for new_column in names.keys():
             if new_column in columns_set:
-                raise RenameExisting(names[new_column], new_column)
+                raise RenameExistingError(names[new_column], new_column)
             else:
                 columns_set.add(new_column)
 
@@ -335,7 +335,7 @@ class DataFrame:
         group_set = set(self.group_names)
         for column in mutators.keys():
             if column in group_set:
-                raise GroupColumn(column)
+                raise GroupColumnError(column)
 
         if self.width == 0:
             df = dummy_frame(self.height)
@@ -388,7 +388,7 @@ class DataFrame:
                 f"For order, expected 'original', 'cluster', or 'sort', but got {order!r}"
             )
 
-        return DataFrame(ordered_df._df, self.group_levels + (columns,), self.height)
+        return DataFrame(ordered_df._df, (*self.group_levels, columns), self.height)
 
     def group(
         self, *columns: str, order: Literal["original", "cluster", "sort"] = "original"
@@ -397,13 +397,13 @@ class DataFrame:
 
     def ungroup(self) -> DataFrame:
         if len(self.group_levels) == 0:
-            raise NoGroups()
+            raise NoGroupsError()
         else:
             return DataFrame(self._df, self.group_levels[:-1], self.height)
 
     def summarize(self, **reducers: str) -> DataFrame:
         if len(self.group_levels) == 0:
-            raise NoGroups()
+            raise NoGroupsError()
 
         # There is no way to sequentially evaluate expressions in a groupby
         # context, so each reducer must be substituted into subsequent reducers:
@@ -436,7 +436,7 @@ class DataFrame:
 
     def spread(self, key: str, value: str, *, fill: Any = error) -> DataFrame:
         if len(self.group_levels) == 0:
-            raise NoGroups()
+            raise NoGroupsError()
 
         assert_legal_columns([key, value], self.column_names, self.group_names)
 
