@@ -6,20 +6,20 @@ import tabeline as tb
 
 
 @pytest.mark.parametrize(
-    ["polars_df", "df"],
+    ("polars_df", "df"),
     [
-        [
-            pl.DataFrame(dict(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True])),
+        (
+            pl.DataFrame({"x": [0, 0, 1], "y": ["a", "b", "b"], "z": [True, False, True]}),
             tb.DataFrame(x=[0, 0, 1], y=["a", "b", "b"], z=[True, False, True]),
-        ],
-        [
-            pl.DataFrame(dict(x=[], y=[], z=[])),
+        ),
+        (
+            pl.DataFrame({"x": [], "y": [], "z": []}),
             tb.DataFrame(x=[], y=[], z=[]),
-        ],
-        [
+        ),
+        (
             pl.DataFrame(),
             tb.DataFrame(),
-        ],
+        ),
     ],
 )
 def test_polars_conversion(polars_df, df):

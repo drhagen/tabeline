@@ -4,21 +4,21 @@ import polars as pl
 
 from tabeline._data_frame import DataFrame
 from tabeline.exceptions import (
-    DuplicateColumn,
-    HasGroups,
-    UnmatchedColumns,
-    UnmatchedGroupLevels,
-    UnmatchedHeight,
+    DuplicateColumnError,
+    HasGroupsError,
+    UnmatchedColumnsError,
+    UnmatchedGroupLevelsError,
+    UnmatchedHeightError,
 )
 
 
 def concatenate_rows(df: DataFrame, *dfs: DataFrame) -> DataFrame:
     for df_i in dfs:
         if df_i.column_names != df.column_names:
-            raise UnmatchedColumns(df.column_names, df_i.column_names)
+            raise UnmatchedColumnsError(df.column_names, df_i.column_names)
 
         if df.group_levels != df_i.group_levels:
-            raise UnmatchedGroupLevels(df.group_levels, df_i.group_levels)
+            raise UnmatchedGroupLevelsError(df.group_levels, df_i.group_levels)
 
     return DataFrame(
         pl.concat([df._df, *(df_i._df for df_i in dfs)], how="vertical"), df.group_levels
@@ -27,19 +27,19 @@ def concatenate_rows(df: DataFrame, *dfs: DataFrame) -> DataFrame:
 
 def concatenate_columns(df: DataFrame, *dfs: DataFrame) -> DataFrame:
     if df.group_levels != ():
-        raise HasGroups()
+        raise HasGroupsError()
 
     found_columns = set(df.column_names)
     for df_i in dfs:
         if df_i.height != df.height:
-            raise UnmatchedHeight(df.height, df_i.height)
+            raise UnmatchedHeightError(df.height, df_i.height)
 
         if df_i.group_levels != ():
-            raise HasGroups()
+            raise HasGroupsError()
 
         for column in df_i.column_names:
             if column in found_columns:
-                raise DuplicateColumn(column)
+                raise DuplicateColumnError(column)
         found_columns.update(df_i.column_names)
 
     return DataFrame(

@@ -68,7 +68,7 @@ built_in_functions: list[Function[Any, Any]] = [
     Function("any", lambda x: x.any()),
     Function("all", lambda x: x.all()),
     # Any -> any reduction
-    # Function("mode", lambda x: x.mode()),  # Not type stable
+    # Function("mode", lambda x: x.mode()),  # Not type stable  # noqa: ERA001
     Function("first", lambda x: x.first()),
     Function("last", lambda x: x.last()),
     Function(

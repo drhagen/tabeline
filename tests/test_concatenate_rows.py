@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame, concatenate_rows
-from tabeline.exceptions import UnmatchedColumns, UnmatchedGroupLevels
+from tabeline.exceptions import UnmatchedColumnsError, UnmatchedGroupLevelsError
 
 
 def test_concatenate_rows():
@@ -23,28 +23,28 @@ def test_concatenate_rows_grouped():
 def test_concatenate_rows_extra_columns():
     df1 = DataFrame(x=[0, 1], y=["a", "b"])
     df2 = DataFrame(x=[3, 3], y=["c", "c"], z=[True, False])
-    with pytest.raises(UnmatchedColumns):
+    with pytest.raises(UnmatchedColumnsError):
         _ = concatenate_rows(df1, df2)
 
 
 def test_concatenate_rows_missing_columns():
     df1 = DataFrame(x=[0, 1], y=["a", "b"])
     df2 = DataFrame(x=[3, 3])
-    with pytest.raises(UnmatchedColumns):
+    with pytest.raises(UnmatchedColumnsError):
         _ = concatenate_rows(df1, df2)
 
 
 def test_concatenate_rows_reordered_columns():
     df1 = DataFrame(x=[0, 1], y=["a", "b"])
     df2 = DataFrame(y=["c", "c"], x=[3, 3])
-    with pytest.raises(UnmatchedColumns):
+    with pytest.raises(UnmatchedColumnsError):
         _ = concatenate_rows(df1, df2)
 
 
 def test_concatenate_rows_different_groups():
     df1 = DataFrame(x=[0, 1], y=["a", "b"]).group_by("x")
     df2 = DataFrame(x=[3, 3], y=["c", "c"]).group_by("y")
-    with pytest.raises(UnmatchedGroupLevels):
+    with pytest.raises(UnmatchedGroupLevelsError):
         _ = concatenate_rows(df1, df2)
 
 

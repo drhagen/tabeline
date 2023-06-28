@@ -2,7 +2,7 @@ __all__ = ["missing", "assert_legal_columns"]
 
 from typing import Sequence
 
-from tabeline.exceptions import DuplicateColumn, GroupColumn, NonexistentColumn
+from tabeline.exceptions import DuplicateColumnError, GroupColumnError, NonexistentColumnError
 
 missing = object()
 
@@ -17,10 +17,10 @@ def assert_legal_columns(
     group_column_set = set(illegal_group_columns)
     for column in columns:
         if column in columns_set:
-            raise DuplicateColumn(column)
+            raise DuplicateColumnError(column)
 
         if column not in existing_columns_set:
-            raise NonexistentColumn(column)
+            raise NonexistentColumnError(column)
 
         if column in group_column_set:
-            raise GroupColumn(column)
+            raise GroupColumnError(column)

@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import GroupColumn
+from tabeline.exceptions import GroupColumnError
 
 
 def test_group_by():
@@ -21,7 +21,7 @@ def test_group_by_multiple_levels():
 
 def test_group_by_same_column_twice():
     df = DataFrame(x=[0, 0, 1, 1], y=[1, 2, 3, 4]).group_by("x")
-    with pytest.raises(GroupColumn):
+    with pytest.raises(GroupColumnError):
         _ = df.group_by("x")
 
 

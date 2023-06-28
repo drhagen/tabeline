@@ -12,13 +12,13 @@ interesting_numbers = [1, 0, -5, 1.0, 0.0, -0.0, -15.3, math.inf, -math.inf, mat
 @pytest.mark.parametrize("left", interesting_numbers)
 @pytest.mark.parametrize("right", interesting_numbers)
 @pytest.mark.parametrize(
-    ["operator", "comparer"],
+    ("operator", "comparer"),
     [
-        ["+", operator.add],
-        ["-", operator.sub],
-        ["*", operator.mul],
-        ["/", operator.truediv],
-        ["**", operator.pow],
+        ("+", operator.add),
+        ("-", operator.sub),
+        ("*", operator.mul),
+        ("/", operator.truediv),
+        ("**", operator.pow),
     ],
 )
 def test_numeric_operators(left, right, operator, comparer):
@@ -42,14 +42,14 @@ def test_numeric_operators(left, right, operator, comparer):
 @pytest.mark.parametrize("left", interesting_numbers)
 @pytest.mark.parametrize("right", interesting_numbers)
 @pytest.mark.parametrize(
-    ["operator", "comparer"],
+    ("operator", "comparer"),
     [
-        ["==", operator.eq],
-        ["!=", operator.ne],
-        [">=", operator.ge],
-        ["<=", operator.le],
-        [">", operator.gt],
-        ["<", operator.lt],
+        ("==", operator.eq),
+        ("!=", operator.ne),
+        (">=", operator.ge),
+        ("<=", operator.le),
+        (">", operator.gt),
+        ("<", operator.lt),
     ],
 )
 def test_comparison_operators(left, right, operator, comparer):

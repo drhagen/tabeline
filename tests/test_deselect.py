@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import GroupColumn, NonexistentColumn
+from tabeline.exceptions import GroupColumnError, NonexistentColumnError
 
 
 def test_deselect():
@@ -30,15 +30,15 @@ empty_columns = {
 
 @pytest.mark.parametrize("test_columns", [full_columns, empty_columns])
 @pytest.mark.parametrize(
-    ["input_columns", "deselectors", "expected_columns"],
+    ("input_columns", "deselectors", "expected_columns"),
     [
-        [[], [], []],
-        [["a"], [], ["a"]],
-        [["a", "b"], ["a"], ["b"]],
-        [["a", "b", "c"], ["a", "c"], ["b"]],
-        [["a", "b", "c"], ["c", "a"], ["b"]],
-        [["a", "b", "c"], ["b", "c", "a"], []],
-        [["a", "b", "c", "d"], ["c", "a"], ["b", "d"]],
+        ([], [], []),
+        (["a"], [], ["a"]),
+        (["a", "b"], ["a"], ["b"]),
+        (["a", "b", "c"], ["a", "c"], ["b"]),
+        (["a", "b", "c"], ["c", "a"], ["b"]),
+        (["a", "b", "c"], ["b", "c", "a"], []),
+        (["a", "b", "c", "d"], ["c", "a"], ["b", "d"]),
     ],
 )
 def test_deselect_columns(
@@ -59,14 +59,14 @@ def test_deselect_columns(
 def test_deselect_nonexistent_column():
     df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
 
-    with pytest.raises(NonexistentColumn):
+    with pytest.raises(NonexistentColumnError):
         _ = df.deselect("x", "a")
 
 
 def test_deselect_group_column():
     df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"]).group_by("x")
 
-    with pytest.raises(GroupColumn):
+    with pytest.raises(GroupColumnError):
         _ = df.deselect("x")
 
 

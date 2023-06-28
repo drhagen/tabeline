@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import IndexOutOfRange
+from tabeline.exceptions import IndexOutOfRangeError
 
 
 def test_slice():
@@ -20,10 +20,10 @@ def test_slice_out_of_bounds():
     df = DataFrame(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
 
     # General Exception because who know what will come out of Polars
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice0([2, 4])
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice1([0, 2])
 
 
@@ -135,10 +135,10 @@ def test_slice_only_one_out_of_bounds():
     df = DataFrame(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group_by("x")
 
     # General Exception because who know what will come out of Polars
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice0([1, 2])
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice1([2, 3])
 
 
@@ -170,22 +170,22 @@ def test_slice_empty_out_of_bounds(df):
     df = DataFrame()
 
     # General Exception because who know what will come out of Polars
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice0([0])
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice1([1])
 
 
 @pytest.mark.parametrize(
-    ["df", "expected"],
+    ("df", "expected"),
     [
-        [DataFrame.columnless(height=6), DataFrame.columnless(height=3)],
-        [DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=3).group_by()],
-        [
+        (DataFrame.columnless(height=6), DataFrame.columnless(height=3)),
+        (DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=3).group_by()),
+        (
             DataFrame.columnless(height=6).group_by().group_by(),
             DataFrame.columnless(height=3).group_by().group_by(),
-        ],
+        ),
     ],
 )
 def test_slice_columnless(df, expected):
@@ -205,10 +205,10 @@ def test_slice_columnless(df, expected):
     ],
 )
 def test_slice_columnless_out_of_bounds(df):
-    with pytest.raises(IndexOutOfRange):
+    with pytest.raises(IndexOutOfRangeError):
         _ = df.slice0([2, 4])
 
-    with pytest.raises(IndexOutOfRange):
+    with pytest.raises(IndexOutOfRangeError):
         _ = df.slice1([0, 2])
 
 
@@ -242,8 +242,8 @@ def test_slice_rowless_out_of_bounds(df):
     df = DataFrame(x=[], y=[], z=[])
 
     # General Exception because who know what will come out of Polars
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice0([0])
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: PT011, B017
         _ = df.slice1([1])
