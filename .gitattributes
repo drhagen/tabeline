@@ -1,1 +1,6 @@
-* text=auto
+*       text=auto
+
+*.py    text
+*.md    text
+*.yml   text
+*.toml  text

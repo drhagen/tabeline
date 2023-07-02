@@ -440,7 +440,9 @@ class DataFrame:
 
         assert_legal_columns([key, value], self.column_names, self.group_names)
 
-        df = self._df.pivot(index=list(self.group_names), columns=key, values=value)
+        df = self._df.pivot(
+            index=list(self.group_names), columns=key, values=value, aggregate_function=None
+        )
 
         return DataFrame(df, self.group_levels[:-1])
 
