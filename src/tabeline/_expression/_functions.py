@@ -17,6 +17,17 @@ class Function(Generic[P, R]):
     implementation: Callable[P, R]
 
 
+def polars_interp(args):
+    x, xp, fp = args
+
+    if len(x) == 1:
+        # Polars does not support scalars
+        # Assume all length-1 vectors are scalars
+        x = x[0]
+
+    return pl.Series([np.interp(x, xp, fp)], dtype=pl.Float64)
+
+
 built_in_functions: list[Function[Any, Any]] = [
     # Constant
     Function("n", lambda: pl.first().count()),  # https://stackoverflow.com/a/71644903/1485877
@@ -59,9 +70,7 @@ built_in_functions: list[Function[Any, Any]] = [
         "interp",
         lambda x, xp, fp: pl.apply(
             exprs=[x, xp, fp],
-            function=lambda args: pl.Series(
-                [np.interp(args[0], args[1], args[2])], dtype=pl.Float64
-            ),
+            function=polars_interp,
         ),
     ),  # https://stackoverflow.com/a/69585269/
     # Boolean -> boolean reduction
