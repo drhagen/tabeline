@@ -1,6 +1,7 @@
 import math
 
 import pytest
+from polars import PolarsPanicError
 
 from tabeline import DataFrame
 from tabeline.testing import assert_data_frame_equal
@@ -29,6 +30,7 @@ one_argument_functions = [
     "floor",
     "ceil",
     "is_nan",
+    "is_finite",
     "std",
     "var",
     "max",
@@ -40,6 +42,11 @@ one_argument_functions = [
     "all",
     "first",
     "last",
+    "same",
+    "to_boolean",
+    "to_integer",
+    "to_float",
+    "to_string",
 ]
 
 
@@ -131,10 +138,86 @@ def test_one_argument_functions_on_rowless_data_frame_with_mutate(name, df):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    "values",
+    [
+        (0, -1, 4),
+        (0.0, -1.0, 4.0),
+        (True, False, True),
+    ],
+)
+def test_cast_boolean(values):
+    df = DataFrame(a=values)
+    actual = df.transmute(b="to_boolean(a)")
+    expected = DataFrame(b=[bool(value) for value in values])
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (0, -1, 4),
+        (0.0, -1.0, 4.0),
+        (True, False, True),
+        ("0", "-1", "4"),
+    ],
+)
+def test_cast_integer(values):
+    df = DataFrame(a=values)
+    actual = df.transmute(b="to_integer(a)")
+    expected = DataFrame(b=[int(value) for value in values])
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (0, -1, 4),
+        (0.0, -1.0, 4.0),
+        (True, False, True),
+        ("0.0", "-1.5", "4", "3.2e-4"),
+    ],
+)
+def test_cast_float(values):
+    df = DataFrame(a=values)
+    actual = df.transmute(b="to_float(a)")
+    expected = DataFrame(b=[float(value) for value in values])
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (0, -1, 4),
+        (0.0, -1.0, 4.0),
+        ("0.0", "-1.5", "4", "3.2e-4"),
+    ],
+)
+def test_cast_string(values):
+    df = DataFrame(a=values)
+    actual = df.transmute(b="to_string(a)")
+    expected = DataFrame(b=[str(value) for value in values])
+    assert actual == expected
+
+
 def test_quantile():
     actual = DataFrame(x=[20, 21, 22]).mutate(q="quantile(x, 0.75)")
     expected = DataFrame(x=[20, 21, 22], q=[21.5, 21.5, 21.5])
     assert_data_frame_equal(actual, expected, reltol=1e-8)
+
+
+def test_same():
+    df = DataFrame(a=[0, 0, 1], x=[True, True, False], y=[-1, -1, 2], z=["aa", "aa", "bb"])
+    actual = df.group_by("a").summarize(x="same(x)", y="same(y)", z="same(z)")
+    expected = DataFrame(a=[0, 1], x=[True, False], y=[-1, 2], z=["aa", "bb"])
+    assert actual == expected
+
+
+def test_same_error():
+    df = DataFrame(a=[0, 0, 1], x=[True, True, False], y=[-1, -1, 2], z=["aa", "bb", "bb"])
+    # PanicException because Polars eats the SameError
+    with pytest.raises(PolarsPanicError):
+        _ = df.group_by("a").summarize(x="same(x)", y="same(y)", z="same(z)")
 
 
 @pytest.mark.skip("Parser does not support array literals")
