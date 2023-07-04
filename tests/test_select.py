@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import NonexistentColumnError
+from tabeline.exceptions import DuplicateColumnError, NonexistentColumnError
 
 
 def test_select():
@@ -98,6 +98,13 @@ def test_select_nonexistent_column():
 
     with pytest.raises(NonexistentColumnError):
         _ = df.select("x", "a")
+
+
+def test_select_duplicate_columns():
+    df = DataFrame(x=[0, 0, 1], y=[True, False, True], z=["a", "b", "c"])
+
+    with pytest.raises(DuplicateColumnError):
+        _ = df.select("x", "x")
 
 
 @pytest.mark.parametrize(
