@@ -63,6 +63,7 @@ built_in_functions: list[Function[Any, Any]] = [
     Function("ceil", lambda x: x.ceil()),
     # Numeric -> boolean elementwise
     Function("is_nan", lambda x: x.is_nan()),
+    Function("is_finite", lambda x: x.is_finite()),
     # Numeric -> numeric reduction
     Function("std", lambda x: x.std()),
     Function("var", lambda x: x.var()),

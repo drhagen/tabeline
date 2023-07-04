@@ -30,6 +30,7 @@ one_argument_functions = [
     "floor",
     "ceil",
     "is_nan",
+    "is_finite",
     "std",
     "var",
     "max",
