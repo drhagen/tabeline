@@ -84,6 +84,11 @@ built_in_functions: list[Function[Any, Any]] = [
         "if_else",
         lambda condition, true, false=None: pl.when(condition).then(true).otherwise(false),
     ),
+    # Casting
+    Function("to_boolean", lambda x: x.cast(pl.Boolean)),
+    Function("to_integer", lambda x: x.cast(pl.Int64)),
+    Function("to_float", lambda x: x.cast(pl.Float64)),
+    Function("to_string", lambda x: x.cast(pl.Utf8)),
 ]
 
 function_by_name: dict[str, Function[Any, Any]] = {x.name: x for x in built_in_functions}
