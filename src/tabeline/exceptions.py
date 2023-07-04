@@ -108,3 +108,14 @@ class UnmatchedHeightError(TabelineError):
         return (
             f"Heights do not match; expected {self.expected_height} but got {self.actual_height}"
         )
+
+
+class NotSameError(TabelineError):
+    def __init__(self, column: tuple[object, ...]):
+        super().__init__(column)
+        self.column = column
+
+    def __str__(self) -> str:
+        used = set()
+        unique_elements = [x for x in self.column if x not in used and (used.add(x) or True)]
+        return f"Assertion that all elements are the same failed, found {unique_elements}"

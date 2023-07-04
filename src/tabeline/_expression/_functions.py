@@ -7,6 +7,8 @@ from typing_extensions import ParamSpec  # Not present in Python 3.9
 import numpy as np
 import polars as pl
 
+from ..exceptions import NotSameError
+
 P = ParamSpec("P")
 R = TypeVar("R")
 
@@ -15,6 +17,16 @@ R = TypeVar("R")
 class Function(Generic[P, R]):
     name: str
     implementation: Callable[P, R]
+
+
+def polars_same(args):
+    x = args[0]
+    if x.n_unique() == 0:
+        return pl.Series([], dtype=x.dtype)
+    elif x.n_unique() == 1:
+        return pl.Series([x[0]], dtype=x.dtype)
+    else:
+        raise NotSameError(x.unique().to_list())
 
 
 def polars_interp(args):
@@ -80,6 +92,7 @@ built_in_functions: list[Function[Any, Any]] = [
     # Function("mode", lambda x: x.mode()),  # Not type stable  # noqa: ERA001
     Function("first", lambda x: x.first()),
     Function("last", lambda x: x.last()),
+    Function("same", lambda x: pl.apply(exprs=[x], function=polars_same)),
     Function(
         "if_else",
         lambda condition, true, false=None: pl.when(condition).then(true).otherwise(false),
