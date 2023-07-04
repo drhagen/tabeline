@@ -42,7 +42,7 @@ def polars_interp(args):
 
 built_in_functions: list[Function[Any, Any]] = [
     # Constant
-    Function("n", lambda: pl.first().count()),  # https://stackoverflow.com/a/71644903/1485877
+    Function("n", lambda: pl.count()),  # https://stackoverflow.com/a/71644903/1485877
     Function("row_index0", lambda: pl.arange(0, pl.count())),
     Function("row_index1", lambda: pl.arange(0, pl.count()) + 1),
     # Numeric -> numeric elementwise
