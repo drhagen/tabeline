@@ -24,3 +24,5 @@ def assert_legal_columns(
 
         if column in group_column_set:
             raise GroupColumnError(column)
+
+        columns_set.add(column)
