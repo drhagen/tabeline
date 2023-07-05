@@ -3,7 +3,7 @@ from __future__ import annotations
 __all__ = ["DataFrame"]
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Literal, Optional, Sequence, Union, overload
 
 import polars as pl
 
@@ -28,6 +28,19 @@ if TYPE_CHECKING:
 
 
 class DataFrame:
+    @overload
+    def __init__(self, **columns: list[bool] | list[int] | list[float] | list[str]):
+        pass
+
+    @overload
+    def __init__(
+        self,
+        polars_df: pl.DataFrame,
+        group_levels: tuple[tuple[str, ...], ...] = (),
+        height: Optional[int] = None,
+    ):
+        pass
+
     def __init__(
         self,
         polars_df: pl.DataFrame = missing,
@@ -78,7 +91,7 @@ class DataFrame:
         return DataFrame(df)
 
     @staticmethod
-    def from_pandas(df: pd.DataFrame) -> DataFrame:
+    def from_pandas(df: pd.DataFrame, /) -> DataFrame:
         if df.shape[1] == 0:
             # Polars does not understand columnless data frames
             return DataFrame.columnless(height=df.shape[0])
@@ -99,7 +112,7 @@ class DataFrame:
         return self._df.to_pandas()
 
     @staticmethod
-    def from_polars(df: pl.DataFrame) -> DataFrame:
+    def from_polars(df: pl.DataFrame, /) -> DataFrame:
         return DataFrame(df)
 
     def to_polars(self) -> pl.DataFrame:
@@ -109,11 +122,11 @@ class DataFrame:
         return self._df
 
     @staticmethod
-    def read_csv(path: Path) -> DataFrame:
+    def read_csv(path: Path, /) -> DataFrame:
         df = pl.read_csv(str(path))
         return DataFrame(df)
 
-    def write_csv(self, path: Path) -> None:
+    def write_csv(self, path: Path, /) -> None:
         if len(self.group_levels) != 0:
             raise HasGroupsError()
 
