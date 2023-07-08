@@ -64,6 +64,16 @@ built_in_functions: list[Function[Any, Any]] = [
     # Numeric -> boolean elementwise
     Function("is_nan", lambda x: x.is_nan()),
     Function("is_finite", lambda x: x.is_finite()),
+    # Casting elementwise
+    Function("to_boolean", lambda x: x.cast(pl.Boolean)),
+    Function("to_integer", lambda x: x.cast(pl.Int64)),
+    Function("to_float", lambda x: x.cast(pl.Float64)),
+    Function("to_string", lambda x: x.cast(pl.Utf8)),
+    # Other elementwise
+    Function(
+        "if_else",
+        lambda condition, true, false=None: pl.when(condition).then(true).otherwise(false),
+    ),
     # Numeric -> numeric reduction
     Function("std", lambda x: x.std()),
     Function("var", lambda x: x.var()),
@@ -94,15 +104,6 @@ built_in_functions: list[Function[Any, Any]] = [
     Function("first", lambda x: x.first()),
     Function("last", lambda x: x.last()),
     Function("same", lambda x: pl.apply(exprs=[x], function=polars_same)),
-    Function(
-        "if_else",
-        lambda condition, true, false=None: pl.when(condition).then(true).otherwise(false),
-    ),
-    # Casting
-    Function("to_boolean", lambda x: x.cast(pl.Boolean)),
-    Function("to_integer", lambda x: x.cast(pl.Int64)),
-    Function("to_float", lambda x: x.cast(pl.Float64)),
-    Function("to_string", lambda x: x.cast(pl.Utf8)),
 ]
 
 function_by_name: dict[str, Function[Any, Any]] = {x.name: x for x in built_in_functions}

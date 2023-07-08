@@ -101,6 +101,16 @@ The functions in this section mathematical operations on numbers. If these funct
 ### Numeric to boolean broadcast
 
 * `is_nan(x)`: True if `x` value is a floating point `NaN`
+* `is_finite(x)`: True if `x` value is a floating point finite number
+
+### Casting broadcast
+
+The functions in this section convert values from one type to another. These are completely dependent on the behavior of the Polars [`cast`](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/api/polars.Expr.cast.html) function.
+
+* `to_boolean(x)`: Convert `x` from a boolean, a float, or an integer, to a boolean
+* `to_integer(x)`: Convert `x` from a boolean, a float, or an integer to an integer or parse a string as an integer
+* `to_float(x)`: Convert `x` from a boolean, a float, or an integer to a float or parse a string as a float
+* `to_string(x)`: Deparse `x` to a string
 
 ### Other broadcast
 
@@ -135,3 +145,12 @@ The functions in this section consume an entire column of anything and to produc
 
 * `first(x)`: The first value of `x`
 * `last(x)`: The last value of `x`
+* `same(x)`: One value of `x` if all values of `x` are the same, otherwise error
+
+### Argumentless functions
+
+The functions in this section evalute in the context of the `DataFrame`, not any particular column.
+
+* `n()`: The number of rows in the `DataFrame`
+* `row_index0()`: The 0-index of each row
+* `row_index1()`: The 1-index of each row
