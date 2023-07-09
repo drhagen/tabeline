@@ -7,9 +7,11 @@ from typing import TYPE_CHECKING, Any, Literal, Optional, Sequence, Union, overl
 
 import polars as pl
 
+from ._array import Array
 from ._dummy import dummy_frame, dummy_name
 from ._expression import substitute, to_polars
 from ._expression.ast import Expression
+from ._record import Record
 from ._validation import assert_legal_columns, missing
 from .exceptions import (
     GroupColumnError,
@@ -593,6 +595,43 @@ class DataFrame:
         return DataFrame(
             joined_df,
         )
+
+    @overload
+    def __getitem__(self, key: tuple[int, str]) -> bool | int | float | str:
+        pass
+
+    @overload
+    def __getitem__(self, key: tuple[int, Sequence[str]]) -> Record:
+        pass
+
+    @overload
+    def __getitem__(self, key: tuple[Sequence[int] | Sequence[bool], str]) -> Array:
+        pass
+
+    @overload
+    def __getitem__(self, key: tuple[Sequence[int] | Sequence[bool], Sequence[str]]) -> DataFrame:
+        pass
+
+    def __getitem__(
+        self, key: tuple[int | Sequence[int] | Sequence[bool], str | Sequence[str]]
+    ) -> DataFrame | Array | Record | bool | int | float | str:
+        row_index, column_index = key
+
+        if isinstance(column_index, str):
+            if isinstance(row_index, int):
+                return self._df.item(row_index, column_index)
+            else:
+                return Array(self._df[column_index][row_index])
+        elif column_index == slice(None):
+            if isinstance(row_index, int):
+                return Record(self._df.row(row_index, named=True))
+            else:
+                return DataFrame(self._df[row_index, :], (), len(row_index))
+        else:
+            if isinstance(row_index, int):
+                return Record(self._df.select(column_index).row(row_index, named=True))
+            else:
+                return DataFrame(self._df[row_index, column_index], (), len(row_index))
 
     def __eq__(self, other):
         if isinstance(other, DataFrame):
