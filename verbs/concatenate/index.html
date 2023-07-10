@@ -13,17 +13,17 @@
       
       
       
-        <link rel="prev" href="../filter/">
+        <link rel="prev" href="../join/">
       
       
-        <link rel="next" href="../mutate/">
+        <link rel="next" href="../../contributing/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.17">
     
     
       
-        <title>Sorting - Tabeline</title>
+        <title>Concatenating - Tabeline</title>
       
     
     
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#row-reordering" class="md-skip">
+        <a href="#concatenating" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Sorting
+              Concatenating
             
           </span>
         </div>
@@ -346,59 +346,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Sorting
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../sort/" class="md-nav__link">
         Sorting
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#sort" class="md-nav__link">
-    sort
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cluster" class="md-nav__link">
-    cluster
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -478,11 +430,59 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../concatenate/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Concatenating
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Concatenating
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#concatenate_rows" class="md-nav__link">
+    concatenate_rows
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concatenate_columns" class="md-nav__link">
+    concatenate_columns
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -536,15 +536,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#sort" class="md-nav__link">
-    sort
+  <a href="#concatenate_rows" class="md-nav__link">
+    concatenate_rows
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cluster" class="md-nav__link">
-    cluster
+  <a href="#concatenate_columns" class="md-nav__link">
+    concatenate_columns
   </a>
   
 </li>
@@ -564,66 +564,49 @@
                   
 
 
-<h1 id="row-reordering">Row reordering</h1>
-<p>The <code>sort</code> and <code>cluster</code> verbs change the order of rows. The individual rows are unchanged.</p>
-<h2 id="sort"><code>sort</code></h2>
-<p>Sort rows according to the given column names. The data frame is sorted by the first column name using subsequent columns to break any ties.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+<h1 id="concatenating">Concatenating</h1>
+<p>The <code>concatenate_rows</code> and <code>concatenate_columns</code> functions are not really verbs in the data grammar, but are more like conjunctions. They are the only operations that take an arbitrary number of data frames as arguments. As such, they are genuine Python functions importable from <code>tabeline</code>, not methods of <code>DataFrame</code>.</p>
+<h2 id="concatenate_rows"><code>concatenate_rows</code></h2>
+<p>Concatenate the rows of the given data frames into a single data frame. The data frames must have the same columns, in the same order. Typically, only data frames without grouping are concatenated, but concatenation will be allowed if all group levels are identical. In other libraries, this operation may be called "row binding" or "vertical stacking".</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">concatenate_rows</span>
 
-<span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span>
-    <span class="n">patient_id</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">],</span>
-    <span class="n">measurement</span><span class="o">=</span><span class="p">[</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
-<span class="p">)</span>
+<span class="n">study1</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">study</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">subject</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">])</span>
+<span class="n">study2</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">study</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">subject</span><span class="o">=</span><span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">22</span><span class="p">])</span>
 
-<span class="n">df</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;patient_id&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">)</span>
-<span class="c1"># ┌────────────┬──────┬─────────────┐</span>
-<span class="c1"># │ patient_id ┆ t    ┆ measurement │</span>
-<span class="c1"># │ ---        ┆ ---  ┆ ---         │</span>
-<span class="c1"># │ i64        ┆ f64  ┆ f64         │</span>
-<span class="c1"># ╞════════════╪══════╪═════════════╡</span>
-<span class="c1"># │ 1          ┆ 0.0  ┆ 5.5         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 1          ┆ 6.0  ┆ 4.0         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 1          ┆ 24.0 ┆ 3.0         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 2          ┆ 0.0  ┆ 6.0         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 2          ┆ 6.0  ┆ 4.2         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 2          ┆ 24.0 ┆ 3.1         │</span>
-<span class="c1"># └────────────┴──────┴─────────────┘</span>
+<span class="n">concatenate_rows</span><span class="p">(</span><span class="n">study1</span><span class="p">,</span> <span class="n">study2</span><span class="p">)</span>
+<span class="c1"># shape: (6, 2)</span>
+<span class="c1"># ┌───────┬─────────┐</span>
+<span class="c1"># │ study ┆ subject │</span>
+<span class="c1"># │ ---   ┆ ---     │</span>
+<span class="c1"># │ i64   ┆ i64     │</span>
+<span class="c1"># ╞═══════╪═════════╡</span>
+<span class="c1"># │ 1     ┆ 10      │</span>
+<span class="c1"># │ 1     ┆ 11      │</span>
+<span class="c1"># │ 1     ┆ 12      │</span>
+<span class="c1"># │ 2     ┆ 20      │</span>
+<span class="c1"># │ 2     ┆ 21      │</span>
+<span class="c1"># │ 2     ┆ 22      │</span>
+<span class="c1"># └───────┴─────────┘</span>
 </code></pre></div>
-<h2 id="cluster"><code>cluster</code></h2>
-<p>Bring together all the rows with the same value under the given columns. A side effect of <code>sort</code> is that all rows with the same key value under some given columns are brought together. If you want this clustering, without the sorting, <code>cluster</code> will bring all the rows with a given key together, but retain the order of first instance of that key.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+<h2 id="concatenate_columns"><code>concatenate_columns</code></h2>
+<p>Concatenate the columns of the given data frames into a single data frame. All data frames must have the same number of rows. No columns may be duplicated. No group levels may be present. In other libraries, this operation may be called "column binding" or "horizontal stacking".</p>
+<p>This is one of the most dangerous operations in Tabeline. Often, <a href="../join/#inner_join"><code>inner_join</code></a> is a safer choice than <code>concatenate_columns</code>. Joining on key columns ensures that the data is correctly matched even if the row order is mixed up. If you find yourself dropping duplicate</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">concatenate_columns</span>
 
-<span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span>
-    <span class="n">patient_id</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="n">t</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">],</span>
-    <span class="n">measurement</span><span class="o">=</span><span class="p">[</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
-<span class="p">)</span>
+<span class="n">study1</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">study</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">subject</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">])</span>
+<span class="n">study2</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">measurements</span><span class="o">=</span><span class="p">[</span><span class="mf">12.5</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">5.6</span><span class="p">])</span>
 
-<span class="n">df</span><span class="o">.</span><span class="n">cluster</span><span class="p">(</span><span class="s2">&quot;patient_id&quot;</span><span class="p">)</span>
-<span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="c1"># ┌────────────┬──────┬─────────────┐</span>
-<span class="c1"># │ patient_id ┆ t    ┆ measurement │</span>
-<span class="c1"># │ ---        ┆ ---  ┆ ---         │</span>
-<span class="c1"># │ i64        ┆ f64  ┆ f64         │</span>
-<span class="c1"># ╞════════════╪══════╪═════════════╡</span>
-<span class="c1"># │ 2          ┆ 0.0  ┆ 6.0         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 2          ┆ 6.0  ┆ 4.2         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 2          ┆ 24.0 ┆ 3.1         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 1          ┆ 0.0  ┆ 5.5         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 1          ┆ 6.0  ┆ 4.0         │</span>
-<span class="c1"># ├╌╌╌╌╌╌╌╌╌╌╌╌┼╌╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌╌╌┤</span>
-<span class="c1"># │ 1          ┆ 24.0 ┆ 3.0         │</span>
-<span class="c1"># └────────────┴──────┴─────────────┘</span>
+<span class="n">concatenate_columns</span><span class="p">(</span><span class="n">study1</span><span class="p">,</span> <span class="n">study2</span><span class="p">)</span>
+<span class="c1"># shape: (3, 3)</span>
+<span class="c1"># ┌───────┬─────────┬──────────────┐</span>
+<span class="c1"># │ study ┆ subject ┆ measurements │</span>
+<span class="c1"># │ ---   ┆ ---     ┆ ---          │</span>
+<span class="c1"># │ i64   ┆ i64     ┆ f64          │</span>
+<span class="c1"># ╞═══════╪═════════╪══════════════╡</span>
+<span class="c1"># │ 1     ┆ 10      ┆ 12.5         │</span>
+<span class="c1"># │ 1     ┆ 10      ┆ 12.0         │</span>
+<span class="c1"># │ 1     ┆ 11      ┆ 5.6          │</span>
+<span class="c1"># └───────┴─────────┴──────────────┘</span>
 </code></pre></div>
 
 
