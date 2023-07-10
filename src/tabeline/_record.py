@@ -30,6 +30,7 @@ class Record:
         return self._data
 
     def __eq__(self, other: object) -> bool:
+        # Cannot add `strict=True` to `zip` and still run on Python 3.9
         if isinstance(other, Record):
             return len(self) == len(other) and all(
                 item == other_item

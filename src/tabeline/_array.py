@@ -59,10 +59,12 @@ class Array:
         return iter(self._array)
 
     def __eq__(self, other: object) -> bool:
+        # Series equality considers the name of the series, convert to NumPy
+        # array compare just values and also consider NaNs equal.
         if isinstance(other, (Array, pl.Series)):
-            return np.array_equal(self.to_numpy(), other.to_numpy())
+            return np.array_equal(self.to_numpy(), other.to_numpy(), equal_nan=True)
         elif isinstance(other, np.ndarray):
-            return np.array_equal(self.to_numpy(), other)
+            return np.array_equal(self.to_numpy(), other, equal_nan=True)
         return NotImplemented
 
     def __str__(self) -> str:
