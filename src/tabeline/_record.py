@@ -33,12 +33,11 @@ class Record:
         if isinstance(other, Record):
             return len(self) == len(other) and all(
                 item == other_item
-                for item, other_item in zip(self._data.items(), other._data.items(), strict=True)
+                for item, other_item in zip(self._data.items(), other._data.items())
             )
         elif isinstance(other, dict):
             return len(self) == len(other) and all(
-                item == other_item
-                for item, other_item in zip(self._data.items(), other.items(), strict=True)
+                item == other_item for item, other_item in zip(self._data.items(), other.items())
             )
         return NotImplemented
 
