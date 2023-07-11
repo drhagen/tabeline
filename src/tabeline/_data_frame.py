@@ -3,13 +3,15 @@ from __future__ import annotations
 __all__ = ["DataFrame"]
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Literal, Optional, Sequence, Union, overload
 
 import polars as pl
 
+from ._array import Array
 from ._dummy import dummy_frame, dummy_name
 from ._expression import substitute, to_polars
 from ._expression.ast import Expression
+from ._record import Record
 from ._validation import assert_legal_columns, missing
 from .exceptions import (
     GroupColumnError,
@@ -28,6 +30,19 @@ if TYPE_CHECKING:
 
 
 class DataFrame:
+    @overload
+    def __init__(self, **columns: list[bool] | list[int] | list[float] | list[str]):
+        pass
+
+    @overload
+    def __init__(
+        self,
+        polars_df: pl.DataFrame,
+        group_levels: tuple[tuple[str, ...], ...] = (),
+        height: Optional[int] = None,
+    ):
+        pass
+
     def __init__(
         self,
         polars_df: pl.DataFrame = missing,
@@ -78,7 +93,7 @@ class DataFrame:
         return DataFrame(df)
 
     @staticmethod
-    def from_pandas(df: pd.DataFrame) -> DataFrame:
+    def from_pandas(df: pd.DataFrame, /) -> DataFrame:
         if df.shape[1] == 0:
             # Polars does not understand columnless data frames
             return DataFrame.columnless(height=df.shape[0])
@@ -99,7 +114,7 @@ class DataFrame:
         return self._df.to_pandas()
 
     @staticmethod
-    def from_polars(df: pl.DataFrame) -> DataFrame:
+    def from_polars(df: pl.DataFrame, /) -> DataFrame:
         return DataFrame(df)
 
     def to_polars(self) -> pl.DataFrame:
@@ -109,11 +124,11 @@ class DataFrame:
         return self._df
 
     @staticmethod
-    def read_csv(path: Path) -> DataFrame:
+    def read_csv(path: Path, /) -> DataFrame:
         df = pl.read_csv(str(path))
         return DataFrame(df)
 
-    def write_csv(self, path: Path) -> None:
+    def write_csv(self, path: Path, /) -> None:
         if len(self.group_levels) != 0:
             raise HasGroupsError()
 
@@ -580,6 +595,43 @@ class DataFrame:
         return DataFrame(
             joined_df,
         )
+
+    @overload
+    def __getitem__(self, key: tuple[int, str]) -> bool | int | float | str:
+        pass
+
+    @overload
+    def __getitem__(self, key: tuple[int, Sequence[str]]) -> Record:
+        pass
+
+    @overload
+    def __getitem__(self, key: tuple[Sequence[int] | Sequence[bool], str]) -> Array:
+        pass
+
+    @overload
+    def __getitem__(self, key: tuple[Sequence[int] | Sequence[bool], Sequence[str]]) -> DataFrame:
+        pass
+
+    def __getitem__(
+        self, key: tuple[int | Sequence[int] | Sequence[bool], str | Sequence[str]]
+    ) -> DataFrame | Array | Record | bool | int | float | str:
+        row_index, column_index = key
+
+        if isinstance(column_index, str):
+            if isinstance(row_index, int):
+                return self._df.item(row_index, column_index)
+            else:
+                return Array(self._df[column_index][row_index])
+        elif column_index == slice(None):
+            if isinstance(row_index, int):
+                return Record(self._df.row(row_index, named=True))
+            else:
+                return DataFrame(self._df[row_index, :], (), len(row_index))
+        else:
+            if isinstance(row_index, int):
+                return Record(self._df.select(column_index).row(row_index, named=True))
+            else:
+                return DataFrame(self._df[row_index, column_index], (), len(row_index))
 
     def __eq__(self, other):
         if isinstance(other, DataFrame):

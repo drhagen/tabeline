@@ -84,8 +84,8 @@ built_in_functions: list[Function[Any, Any]] = [
     Function("median", lambda x: x.median()),
     Function(
         "quantile",
-        lambda x, quantile: x.quantile(pl.select(quantile)[0, 0], interpolation="linear"),
-    ),
+        lambda x, quantile: x.quantile(pl.select(quantile).item(), interpolation="linear"),
+    ),  # https://stackoverflow.com/a/71721580/
     Function(
         "trapz", lambda x, y: 0.5 * ((x - x.shift()) * (y + y.shift())).sum()
     ),  # https://github.com/pola-rs/polars/issues/3043
