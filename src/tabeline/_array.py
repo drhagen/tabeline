@@ -62,9 +62,9 @@ class Array:
         # Series equality considers the name of the series, convert to NumPy
         # array compare just values and also consider NaNs equal.
         if isinstance(other, (Array, pl.Series)):
-            return np.array_equal(self.to_numpy(), other.to_numpy(), equal_nan=True)
+            return array_equal(self.to_numpy(), other.to_numpy())
         elif isinstance(other, np.ndarray):
-            return np.array_equal(self.to_numpy(), other, equal_nan=True)
+            return array_equal(self.to_numpy(), other)
         return NotImplemented
 
     def __str__(self) -> str:
@@ -75,3 +75,11 @@ class Array:
 
     def __array__(self) -> np.ndarray:
         return self.to_numpy()
+
+
+def array_equal(left: np.ndarray, right: np.ndarray) -> bool:
+    # equal_nan crashes on non-numeric arrays, catch that error and try again
+    try:
+        return np.array_equal(left, right, equal_nan=True)
+    except TypeError:
+        return np.array_equal(left, right)
