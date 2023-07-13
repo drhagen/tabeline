@@ -2,13 +2,16 @@ from __future__ import annotations
 
 __all__ = ["Array"]
 
-from typing import Iterator, overload
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Iterator, overload
 
-import numpy as np
 import polars as pl
 
+if TYPE_CHECKING:
+    import numpy as np
 
-class Array:
+
+class Array(Sequence):
     @overload
     def __init__(self, *elements: bool):
         pass
@@ -78,6 +81,8 @@ class Array:
 
 
 def array_equal(left: np.ndarray, right: np.ndarray) -> bool:
+    import numpy as np
+
     # equal_nan crashes on non-numeric arrays, catch that error and try again
     try:
         return np.array_equal(left, right, equal_nan=True)

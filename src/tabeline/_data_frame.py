@@ -49,9 +49,9 @@ class DataFrame:
         group_levels: tuple[tuple[str, ...], ...] = (),
         height: Optional[int] = None,
         /,
-        **columns,
+        **columns: list[bool] | list[int] | list[float] | list[str],
     ):
-        self.groups: tuple[tuple[str, ...], ...]
+        self.group_levels: tuple[tuple[str, ...], ...]
 
         if polars_df is missing:
             self._df = pl.DataFrame(columns)
@@ -88,9 +88,15 @@ class DataFrame:
         return tuple(names for level in self.group_levels for names in level)
 
     @staticmethod
-    def from_dict(columns: dict[str, list[Any]], /) -> DataFrame:
-        df = pl.DataFrame(columns)
+    def from_dict(columns: dict[str, Sequence[Any]], /) -> DataFrame:
+        df = pl.from_dict(columns)
         return DataFrame(df)
+
+    def to_dict(self) -> dict[str, Array]:
+        if len(self.group_levels) != 0:
+            raise HasGroupsError()
+
+        return {name: Array(series) for name, series in self._df.to_dict().items()}
 
     @staticmethod
     def from_pandas(df: pd.DataFrame, /) -> DataFrame:
