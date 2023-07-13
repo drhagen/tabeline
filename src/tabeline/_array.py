@@ -65,8 +65,16 @@ class Array(Sequence):
         # Series equality considers the name of the series, convert to NumPy
         # array compare just values and also consider NaNs equal.
         if isinstance(other, (Array, pl.Series)):
+            # Exit early on empty arrays to avoid NumPy/ctypes warning in Python 3.9
+            if len(self) == 0 or len(other) == 0:
+                return len(self) == len(other)
+
             return array_equal(self.to_numpy(), other.to_numpy())
         elif isinstance(other, np.ndarray):
+            # Exit early on empty arrays to avoid NumPy/ctypes warning in Python 3.9
+            if len(self) == 0 or len(other) == 0:
+                return len(self) == len(other)
+
             return array_equal(self.to_numpy(), other)
         return NotImplemented
 
@@ -82,10 +90,6 @@ class Array(Sequence):
 
 def array_equal(left: np.ndarray, right: np.ndarray) -> bool:
     import numpy as np
-
-    # Exit early on empty arrays to avoid NumPy/ctypes warning in Python 3.9
-    if len(left) == 0 or len(right) == 0:
-        return len(left) == len(right)
 
     # equal_nan crashes on non-numeric arrays, catch that error and try again
     try:
