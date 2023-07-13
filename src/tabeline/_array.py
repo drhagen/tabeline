@@ -83,6 +83,10 @@ class Array(Sequence):
 def array_equal(left: np.ndarray, right: np.ndarray) -> bool:
     import numpy as np
 
+    # Exit early on empty arrays to avoid NumPy/ctypes warning in Python 3.9
+    if len(left) == 0 or len(right) == 0:
+        return len(left) == len(right)
+
     # equal_nan crashes on non-numeric arrays, catch that error and try again
     try:
         return np.array_equal(left, right, equal_nan=True)
