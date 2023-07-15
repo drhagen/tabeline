@@ -49,8 +49,9 @@ extra:
 
 nav:
   - Home: index.md
-  - Index: summary.md
-  - Data frame creation: creation.md
+  - Overview: overview.md
+  - Creation: creation.md
+  - Export: export.md
   - Verbs:
     - Reorganizing: verbs/select.md
     - Filtering: verbs/filter.md
@@ -61,4 +62,5 @@ nav:
     - Reshaping: verbs/spread.md
     - Joining: verbs/join.md
     - Concatenating: verbs/concatenate.md
+  - Indexing: indexing.md
   - Contributing: contributing.md

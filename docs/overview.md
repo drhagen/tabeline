@@ -1,4 +1,4 @@
-# Index
+# Overview
 
 This is an index of the main functionality available in Tabeline. Each constructor and verb has a link to more detailed documentation. The expression functions do not yet have detailed documentation, but should be self-explanatory.
 
@@ -11,6 +11,15 @@ These are the ways to create a `DataFrame` from something that is not already a 
 * [`DataFrame.read_csv(filename)`](creation.md#dataframeread_csv): Read data frame from CSV file
 * [`DataFrame.from_pandas(df)`](creation.md#dataframefrom_pandas): Convert from Pandas `DataFrame`
 * [`DataFrame.from_polars(df)`](creation.md#dataframefrom_polars): Convert from Polars `DataFrame`
+
+## Export
+
+These are the various things that a `DataFrame` can be converted into
+
+* [`to_dict()`](export.md#to_dict): Convert to dictionary of columns
+* [`to_pandas()`](export.md#to_pandas): Convert to Pandas `DataFrame`
+* [`to_polars()`](export.md#to_polars): Convert to Polars `DataFrame`
+* [`write_csv(filename)`](export.md#to_csv): Write to CSV file
 
 ## Verbs
 

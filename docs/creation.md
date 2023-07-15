@@ -26,7 +26,7 @@ df = DataFrame(
 
 ## `DataFrame.from_dict`
 
-This is basically the same as the constructor, except the arguments are kept as a single dictionary instead of being splatted out.
+This is basically the same as the constructor, except the arguments are kept as a single dictionary instead of being splatted out. The values of the dictionary can be any `Sequence`.
 
 ```python
 from tabeline import DataFrame
@@ -40,6 +40,9 @@ data = {
 df = DataFrame.from_dict(data)
 ```
 
+See also [`DataFrame.to_dict`](export.md#to_dict).
+
+
 ## `DataFrame.read_csv`
 
 Reads a data frame from a CSV file.
@@ -51,10 +54,12 @@ from tabeline import DataFrame
 df = DataFrame.read_csv(Path("star_wars.csv"))
 ```
 
+See also [`DataFrame.write_csv`](export.md#write_csvfilename).
+
 
 ## `DataFrame.from_pandas`
 
-Create a `tabeline.DataFrame` from a `pandas.DataFrame`. This ignores the index. Use `df.reset_index()` on the Pandas `DataFrame` to copy the index to columns first.
+Create a `tabeline.DataFrame` from a `pandas.DataFrame`. This ignores the index. Use `df.reset_index()` on the Pandas `DataFrame` to copy the index to columns first. This requires that the `pandas` extra is installed (i.e. `pip install tabeline[pandas]`) because this conversion through Polars relies on PyArrow, which may not otherwise be installed.
 
 ```python
 import pandas as pd
@@ -68,6 +73,8 @@ pandas_df = pd.DataFrame(dict(
 
 df = DataFrame.from_pandas(pandas_df)
 ```
+
+See also [`DataFrame.to_pandas`](export.md#to_pandas).
 
 
 ## `DataFrame.from_polars`
@@ -86,3 +93,5 @@ polars_df = pl.DataFrame(dict(
 
 df = DataFrame.from_polars(polars_df)
 ```
+
+See also [`DataFrame.to_polars`](export.md#to_polars).
