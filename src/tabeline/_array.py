@@ -62,6 +62,8 @@ class Array(Sequence):
         return iter(self._array)
 
     def __eq__(self, other: object) -> bool:
+        import numpy as np
+        
         # Series equality considers the name of the series, convert to NumPy
         # array compare just values and also consider NaNs equal.
         if isinstance(other, (Array, pl.Series)):
