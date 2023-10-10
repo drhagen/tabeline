@@ -3,12 +3,10 @@ from __future__ import annotations
 __all__ = ["Array"]
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Iterator, overload
+from typing import Iterator, overload
 
+import numpy as np
 import polars as pl
-
-if TYPE_CHECKING:
-    import numpy as np
 
 
 class Array(Sequence):
