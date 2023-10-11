@@ -69,11 +69,12 @@ poetry run mkdocs gh-deploy
     1. Increment version in `pyproject.toml`
     2. Commit with message "Bump version number to X.Y.Z"
     3. Push commit to GitHub
-    4. Check GitHub Actions to ensure all tests pass
+    4. Check [CI](https://github.com/drhagen/tabeline/actions/workflows/ci.yml) to ensure all tests pass
 2. Tag
     1. Tag commit with "vX.Y.Z"
     2. Push tag to GitHub
-        - `release.yml` will automatically build and publish the tag to [PyPI](https://pypi.org/project/parsita/)
+    3. Wait for [build](https://github.com/drhagen/tabeline/actions/workflows/release.yml) to finish
+    4. Check [PyPI](https://pypi.org/project/tabeline/) for good upload
 3. Document
     1. Create [GitHub release](https://github.com/drhagen/tabeline/releases) with name "Tabeline X.Y.Z" and major changes in body
     2. If appropriate, deploy updated docs
