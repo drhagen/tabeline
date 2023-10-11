@@ -73,16 +73,7 @@ poetry run mkdocs gh-deploy
 2. Tag
     1. Tag commit with "vX.Y.Z"
     2. Push tag to GitHub
-    3. Check GitHub Actions for tag
-3. Build
-    1. Clear `dist/`
-    2. Run `poetry build`
-    3. Verify that sdist (`.tar.gz`) and bdist (`.whl`) are in `dist/`
-4. Publish
-    1. Run `poetry publish -r test`
-    2. Check [PyPI test server](https://test.pypi.org/project/tabeline/) for good upload
-    3. Run `poetry publish`
-    4. Check [PyPI](https://pypi.org/project/tabeline/) for good upload
-5. Document
+        - `release.yml` will automatically build and publish the tag to [PyPI](https://pypi.org/project/parsita/)
+3. Document
     1. Create [GitHub release](https://github.com/drhagen/tabeline/releases) with name "Tabeline X.Y.Z" and major changes in body
     2. If appropriate, deploy updated docs
