@@ -46,10 +46,11 @@ def test_numeric_operators(left, right, operator, comparer):
     [
         ("==", operator.eq),
         ("!=", operator.ne),
-        (">=", operator.ge),
-        ("<=", operator.le),
-        (">", operator.gt),
-        ("<", operator.lt),
+        # Polars defines NaNs as the largest floating point values
+        (">=", lambda x, y: math.isnan(x) or operator.ge(x, y)),
+        ("<=", lambda x, y: math.isnan(y) or operator.le(x, y)),
+        (">", lambda x, y: not math.isnan(y) if math.isnan(x) else operator.gt(x, y)),
+        ("<", lambda x, y: not math.isnan(x) if math.isnan(y) else operator.lt(x, y)),
     ],
 )
 def test_comparison_operators(left, right, operator, comparer):
