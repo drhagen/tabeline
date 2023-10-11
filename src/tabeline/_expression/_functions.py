@@ -91,7 +91,7 @@ built_in_functions: list[Function[Any, Any]] = [
     ),  # https://github.com/pola-rs/polars/issues/3043
     Function(
         "interp",
-        lambda x, xp, fp: pl.apply(
+        lambda x, xp, fp: pl.map_groups(
             exprs=[x, xp, fp],
             function=polars_interp,
         ),
@@ -103,7 +103,7 @@ built_in_functions: list[Function[Any, Any]] = [
     # Function("mode", lambda x: x.mode()),  # Not type stable  # noqa: ERA001
     Function("first", lambda x: x.first()),
     Function("last", lambda x: x.last()),
-    Function("same", lambda x: pl.apply(exprs=[x], function=polars_same)),
+    Function("same", lambda x: pl.map_groups(exprs=[x], function=polars_same)),
 ]
 
 function_by_name: dict[str, Function[Any, Any]] = {x.name: x for x in built_in_functions}

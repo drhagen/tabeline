@@ -176,7 +176,7 @@ class DataFrame:
                     new_df = (
                         self._df.lazy()
                         .with_columns(pl.int_range(0, pl.count()).alias("_index"))
-                        .groupby(list(group_names), maintain_order=True)
+                        .group_by(list(group_names), maintain_order=True)
                         .agg(pl.all().take(indexes))
                         .sort("_index")
                         .drop("_index")
@@ -186,7 +186,7 @@ class DataFrame:
                     new_df = (
                         self._df.lazy()
                         .with_columns(pl.int_range(0, pl.count()).alias("_index"))
-                        .groupby(list(group_names), maintain_order=True)
+                        .group_by(list(group_names), maintain_order=True)
                         .agg(pl.all().take(indexes))
                         .explode(non_group_columns)
                         .sort("_index")
@@ -426,7 +426,7 @@ class DataFrame:
         if len(self.group_levels) == 0:
             raise NoGroupsError()
 
-        # There is no way to sequentially evaluate expressions in a groupby
+        # There is no way to sequentially evaluate expressions in a group_by
         # context, so each reducer must be substituted into subsequent reducers:
         # https://stackoverflow.com/q/71120396/
         substituted_reducers = {}
@@ -449,7 +449,7 @@ class DataFrame:
             else:
                 df = self._df
 
-            summarized = df.groupby(list(self.group_names), maintain_order=True).agg(
+            summarized = df.group_by(list(self.group_names), maintain_order=True).agg(
                 polars_expressions
             )
 
