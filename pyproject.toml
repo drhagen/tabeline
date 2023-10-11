@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tabeline"
-version = "0.3.2.dev1"
+version = "0.3.2"
 description = "A data frame and data grammar library"
 authors = ["David Hagen <david@drhagen.com>"]
 license = "MIT"
