@@ -17,7 +17,8 @@ classifiers = [
 
 
 [tool.poetry.dependencies]
-python = "^3.9"
+# Ceiling at 3.12 required by numpy 1.x
+python = "^3.9,<3.13"
 polars = "^0.19"
 numpy = "^1.24"
 parsita = "^2.0"
