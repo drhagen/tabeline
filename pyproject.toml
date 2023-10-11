@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tabeline"
-version = "0.3.2"
+version = "0.3.2.dev1"
 description = "A data frame and data grammar library"
 authors = ["David Hagen <david@drhagen.com>"]
 license = "MIT"
@@ -48,10 +48,7 @@ pandas = ["pandas", "pyarrow"]
 
 
 [tool.pytest.ini_options]
-addopts = [
-    "--strict-config",
-    "--strict-markers",
-]
+addopts = ["--strict-config", "--strict-markers"]
 xfail_strict = true
 filterwarnings = [
     # When running tests, treat warnings as errors (e.g. -Werror).
