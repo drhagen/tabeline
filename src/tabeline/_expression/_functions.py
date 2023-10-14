@@ -62,6 +62,7 @@ built_in_functions: list[Function[Any, Any]] = [
     Function("floor", lambda x: x.floor()),
     Function("ceil", lambda x: x.ceil()),
     # Numeric -> boolean elementwise
+    Function("is_null", lambda x: x.is_null()),
     Function("is_nan", lambda x: x.is_nan()),
     Function("is_finite", lambda x: x.is_finite()),
     # Casting elementwise

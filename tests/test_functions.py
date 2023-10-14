@@ -29,6 +29,7 @@ one_argument_functions = [
     "arctan",
     "floor",
     "ceil",
+    "is_null",
     "is_nan",
     "is_finite",
     "std",
@@ -135,6 +136,13 @@ def test_one_argument_functions_on_rowless_data_frame_with_mutate(name, df):
 
     actual = df.mutate(x=f"{name}(a)")
     expected = df.mutate(x="1")
+    assert actual == expected
+
+
+def test_is_null():
+    df = DataFrame(a=[0.0, math.nan, None])
+    actual = df.transmute(b="is_null(a)")
+    expected = DataFrame(b=[False, False, True])
     assert actual == expected
 
 
