@@ -172,52 +172,43 @@ def default_element_type(
     ) = DataType.Nothing
 
     for element in sequence:
-        match best_type:
-            case DataType.Nothing:
-                match element:
-                    case None:
-                        pass
-                    case bool():
-                        best_type = DataType.Boolean
-                    case int():
-                        best_type = DataType.Integer64
-                    case float():
-                        best_type = DataType.Float64
-                    case str():
-                        best_type = DataType.String
-                    case _:
-                        raise TypeError(
-                            f"Expected bool, int, float, str, or None, but got {type(element)}: "
-                            f"{element}"
-                        )
-            case DataType.Boolean:
-                match element:
-                    case None | bool():
-                        pass
-                    case _:
-                        raise TypeError(f"Expected bool, but got {type(element)}: {element}")
-            case DataType.Integer64:
-                match element:
-                    case None | int():
-                        pass
-                    case float():
-                        best_type = DataType.Float64
-                    case _:
-                        raise TypeError(f"Expected int, but got {type(element)}: {element}")
-            case DataType.Float64:
-                match element:
-                    case None | int() | float():
-                        pass
-                    case _:
-                        raise TypeError(
-                            f"Expected int or float, but got {type(element)}: {element}"
-                        )
-            case DataType.String:
-                match element:
-                    case None | str():
-                        pass
-                    case _:
-                        raise TypeError(f"Expected str, but got {type(element)}: {element}")
+        if best_type == DataType.Nothing:
+            if element is None:
+                pass
+            elif isinstance(element, bool):
+                best_type = DataType.Boolean
+            elif isinstance(element, int):
+                best_type = DataType.Integer64
+            elif isinstance(element, float):
+                best_type = DataType.Float64
+            elif isinstance(element, str):
+                best_type = DataType.String
+            else:
+                raise TypeError(
+                    f"Expected bool, int, float, str, or None, but got {type(element)}: {element}"
+                )
+        elif best_type == DataType.Boolean:
+            if element is None or isinstance(element, bool):
+                pass
+            else:
+                raise TypeError(f"Expected bool, but got {type(element)}: {element}")
+        elif best_type == DataType.Integer64:
+            if element is None or isinstance(element, int):
+                pass
+            elif isinstance(element, float):
+                best_type = DataType.Float64
+            else:
+                raise TypeError(f"Expected int, but got {type(element)}: {element}")
+        elif best_type == DataType.Float64:
+            if element is None or isinstance(element, int) or isinstance(element, float):
+                pass
+            else:
+                raise TypeError(f"Expected int or float, but got {type(element)}: {element}")
+        elif best_type == DataType.String:
+            if element is None or isinstance(element, str):
+                pass
+            else:
+                raise TypeError(f"Expected str, but got {type(element)}: {element}")
 
     return best_type
 
@@ -230,30 +221,28 @@ def coerce_default_element_type(
     | DataType.Nothing,
     given: DataType | None,
 ) -> DataType:
-    match default, given:
-        case _, None:
-            return default
-        case DataType.Boolean, DataType.Boolean:
-            return given
-        case (
-            DataType.Integer64,
-            DataType.Integer8
-            | DataType.Integer16
-            | DataType.Integer32
-            | DataType.Integer64
-            | DataType.Whole8
-            | DataType.Whole16
-            | DataType.Whole32
-            | DataType.Whole64
-            | DataType.Float32
-            | DataType.Float64,
-        ):
-            return given
-        case DataType.Float64, DataType.Float32 | DataType.Float64:
-            return given
-        case DataType.String, DataType.String:
-            return given
-        case DataType.Nothing, DataType.Nothing:
-            return given
-        case _:
-            raise TypeError(f"Expected data_type to be compatible with {default}, but got {given}")
+    if given is None:
+        return default
+    elif default == DataType.Boolean and given == DataType.Boolean:
+        return given
+    elif default == DataType.Integer64 and given in [
+        DataType.Integer8,
+        DataType.Integer16,
+        DataType.Integer32,
+        DataType.Integer64,
+        DataType.Whole8,
+        DataType.Whole16,
+        DataType.Whole32,
+        DataType.Whole64,
+        DataType.Float32,
+        DataType.Float64,
+    ]:
+        return given
+    elif default == DataType.Float64 and given in [DataType.Float32, DataType.Float64]:
+        return given
+    elif default == DataType.String and given == DataType.String:
+        return given
+    elif default == DataType.Nothing and given == DataType.Nothing:
+        return given
+    else:
+        raise TypeError(f"Expected data_type to be compatible with {default}, but got {given}")
