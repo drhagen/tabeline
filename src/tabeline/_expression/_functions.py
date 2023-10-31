@@ -1,7 +1,7 @@
 __all__ = ["Function", "function_by_name"]
 
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar, Union
 from typing_extensions import ParamSpec  # Not present in Python 3.9
 
 import numpy as np
@@ -29,15 +29,25 @@ def polars_same(args):
         raise NotSameError(x.unique().to_list())
 
 
+def has_null(x: Union[pl.Expr, float]):
+    if isinstance(x, float):
+        return False
+    elif isinstance(x, pl.Series):
+        return x.is_null().any()
+
+
 def polars_interp(args):
     x, xp, fp = args
+
+    if has_null(x) or has_null(xp) or has_null(fp):
+        return pl.Series(values=[None], dtype=pl.Float64)
 
     if len(x) == 1:
         # Polars does not support scalars
         # Assume all length-1 vectors are scalars
         x = x[0]
 
-    return pl.Series([np.interp(x, xp, fp)], dtype=pl.Float64)
+    return pl.Series(values=[np.interp(x, xp, fp)], dtype=pl.Float64)
 
 
 built_in_functions: list[Function[Any, Any]] = [
@@ -76,19 +86,24 @@ built_in_functions: list[Function[Any, Any]] = [
         lambda condition, true, false=None: pl.when(condition).then(true).otherwise(false),
     ),
     # Numeric -> numeric reduction
-    Function("std", lambda x: x.std()),
-    Function("var", lambda x: x.var()),
-    Function("max", lambda x: x.max()),
-    Function("min", lambda x: x.min()),
-    Function("sum", lambda x: x.sum()),
-    Function("mean", lambda x: x.mean()),
-    Function("median", lambda x: x.median()),
+    Function("std", lambda x: pl.when(x.is_null().any()).then(None).otherwise(x.std())),
+    Function("var", lambda x: pl.when(x.is_null().any()).then(None).otherwise(x.var())),
+    Function("max", lambda x: pl.when(x.is_null().any()).then(None).otherwise(x.max())),
+    Function("min", lambda x: pl.when(x.is_null().any()).then(None).otherwise(x.min())),
+    Function("sum", lambda x: pl.when(x.is_null().any()).then(None).otherwise(x.sum())),
+    Function("mean", lambda x: pl.when(x.is_null().any()).then(None).otherwise(x.mean())),
+    Function("median", lambda x: pl.when(x.is_null().any()).then(None).otherwise(x.median())),
     Function(
         "quantile",
-        lambda x, quantile: x.quantile(pl.select(quantile).item(), interpolation="linear"),
+        lambda x, quantile: pl.when(x.is_null().any())
+        .then(None)
+        .otherwise(x.quantile(pl.select(quantile).item(), interpolation="linear")),
     ),  # https://stackoverflow.com/a/71721580/
     Function(
-        "trapz", lambda x, y: 0.5 * ((x - x.shift()) * (y + y.shift())).sum()
+        "trapz",
+        lambda x, y: pl.when(x.is_null().any().or_(y.is_null().any()))
+        .then(None)
+        .otherwise(0.5 * ((x - x.shift()) * (y + y.shift())).sum()),
     ),  # https://github.com/pola-rs/polars/issues/3043
     Function(
         "interp",
@@ -98,8 +113,8 @@ built_in_functions: list[Function[Any, Any]] = [
         ),
     ),  # https://stackoverflow.com/a/69585269/
     # Boolean -> boolean reduction
-    Function("any", lambda x: x.any()),
-    Function("all", lambda x: x.all()),
+    Function("any", lambda x: x.any(ignore_nulls=False)),
+    Function("all", lambda x: x.all(ignore_nulls=False)),
     # Any -> any reduction
     # Function("mode", lambda x: x.mode()),  # Not type stable  # noqa: ERA001
     Function("first", lambda x: x.first()),
