@@ -58,3 +58,21 @@ def test_comparison_operators(left, right, operator, comparer):
     actual = df.transmute(output=f"left {operator} right")
     expected = DataFrame(output=[comparer(left, right)])
     assert actual == expected
+
+
+@pytest.mark.parametrize("elements", [(1, 2), (1.0, 2.0)])
+@pytest.mark.parametrize("operator", ["+", "-", "*", "/", "**", ">=", "<=", ">", "<"])
+def test_null_propogation_in_math(elements, operator):
+    df = DataFrame(left=[*elements, None, None], right=[elements[0], None, elements[1], None])
+    actual = df.transmute(output=f"left {operator} right").slice1([2, 3, 4])
+    expected = DataFrame(output=[None, None, None])
+    assert actual == expected
+
+
+@pytest.mark.parametrize("elements", [(True, False), (1, 2), (1.0, 2.0), ("a", "b")])
+@pytest.mark.parametrize("operator", ["==", "!="])
+def test_null_propogation_in_equality(elements, operator):
+    df = DataFrame(left=[*elements, None, None], right=[elements[0], None, elements[1], None])
+    actual = df.transmute(output=f"left {operator} right").slice1([2, 3, 4])
+    expected = DataFrame(output=[None, None, None])
+    assert actual == expected
