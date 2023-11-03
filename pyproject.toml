@@ -19,18 +19,18 @@ classifiers = [
 [tool.poetry.dependencies]
 # Ceiling at 3.12 required by numpy 1.x
 python = "^3.9,<3.13"
-polars = "^0.19"
+polars = "0.19.12"
 numpy = "^1.24"
 parsita = "^2.0"
 typing_extensions = "^4.3"
 pandas = { version = "^1.4", optional = true }
-pyarrow = { version = "^11.0", optional = true }
+pyarrow = { version = "^14.0", optional = true }
 
 [tool.poetry.dev-dependencies]
 nox_poetry = "^1.0.2"
 
 # Converters
-pyarrow = "^11.0.0"
+pyarrow = "^14.0.0"
 pandas = "^1.4"
 
 # Test
