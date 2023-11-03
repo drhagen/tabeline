@@ -17,28 +17,29 @@ classifiers = [
 
 
 [tool.poetry.dependencies]
-python = "^3.9"
-polars = "^0.19"
+# Ceiling at 3.12 required by numpy 1.x
+python = "^3.9,<3.13"
+polars = "0.19.12"
 numpy = "^1.24"
 parsita = "^2.0"
 typing_extensions = "^4.3"
-pandas = { version = "^1.4", optional = true }
-pyarrow = { version = "^13.0", optional = true }
+pandas = { version = "^2.0", optional = true }
+pyarrow = { version = "^14.0", optional = true }
 
 [tool.poetry.dev-dependencies]
 nox_poetry = "^1.0.2"
 
 # Converters
-pyarrow = "^13.0"
-pandas = "^1.4"
+pyarrow = "^14.0.0"
+pandas = "^2.0"
 
 # Test
-pytest = "^7.2"
+pytest = "^7.4"
 pytest-cov = "*"
 
 # Lint
-black = ">=23.3"
-ruff = ">=0.0.275"
+black = ">=23.10"
+ruff = "^0.1"
 
 # Docs
 mkdocs-material = "^9"

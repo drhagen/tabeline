@@ -4,14 +4,14 @@ from nox_poetry import Session, session
 nox.options.sessions = ["test", "coverage", "lint"]
 
 
-@session(python=["3.9", "3.10", "3.11"])
+@session(python=["3.9", "3.10", "3.11", "3.12"])
 def test(s: Session):
     s.install(".", "pytest", "pytest-cov")
     s.env["COVERAGE_FILE"] = f".coverage.{s.python}"
     s.run("python", "-m", "pytest", "--cov", "tabeline")
 
 
-@session(python=["3.9", "3.10", "3.11"])
+@session(python=["3.9", "3.10", "3.11", "3.12"])
 def test_pandas(s: Session):
     s.install(".[pandas]", "pytest", "pytest-cov")
     s.env["COVERAGE_FILE"] = f".coverage.pandas.{s.python}"
