@@ -170,18 +170,6 @@ class DataFrame:
                     # grouped data frame, so just drop all rows.
                     # https://github.com/pola-rs/polars/issues/6723
                     new_df = self._df.select(pl.all().take(indexes))
-                elif len(indexes) == 1:
-                    # Polars is not type stable, so explode must be excluded
-                    # when taking only one element
-                    new_df = (
-                        self._df.lazy()
-                        .with_columns(pl.int_range(0, pl.count()).alias("_index"))
-                        .group_by(list(group_names), maintain_order=True)
-                        .agg(pl.all().take(indexes))
-                        .sort("_index")
-                        .drop("_index")
-                        .collect()
-                    )
                 else:
                     new_df = (
                         self._df.lazy()
