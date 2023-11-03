@@ -10,6 +10,7 @@ from tabeline import Array, DataFrame, Record
         ([0, 1], int),
         ([0.0, 1.0], float),
         (["0", "1"], str),
+        (["0", None], type(None)),
     ],
 )
 def test_scalar_indexing(column, exact_type):

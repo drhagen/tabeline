@@ -9,11 +9,11 @@ from ._validation import missing
 
 class Record:
     @overload
-    def __init__(self, **items: bool | int | float | str):
+    def __init__(self, **items: bool | int | float | str | None):
         pass
 
     @overload
-    def __init__(self, data: dict[str, bool | int | float | str], /):
+    def __init__(self, data: dict[str, bool | int | float | str | None], /):
         pass
 
     def __init__(self, data=missing, /, **items):
@@ -23,10 +23,10 @@ class Record:
             self._data = data
 
     @staticmethod
-    def from_dict(data: dict[str, bool | int | float | str], /) -> Record:
+    def from_dict(data: dict[str, bool | int | float | str | None], /) -> Record:
         return Record(data)
 
-    def to_dict(self) -> dict[str, bool | int | float | str]:
+    def to_dict(self) -> dict[str, bool | int | float | str | None]:
         return self._data
 
     def __eq__(self, other: object) -> bool:

@@ -80,6 +80,8 @@ These are the operators and functions available in the string expressions.
 
 ### Operators
 
+If either operand is null, the result is null.
+
 * `x + y`: `x` plus `y` or, if strings, `x` concatenated to `y`
 * `x - y`: `x` minus `y`
 * `x * y`: `x` times `y`
@@ -89,7 +91,7 @@ These are the operators and functions available in the string expressions.
 
 ### Numeric to numeric broadcast
 
-The functions in this section mathematical operations on numbers. If these functions receive scalar inputs, they return a scalar. If they receive any array inputs, any scalars are interpreted as constant vectors and an array is returned.
+The functions in this section mathematical operations on numbers. If these functions receive scalar inputs, they return a scalar. If they receive any array inputs, any scalars are interpreted as constant vectors and an array is returned. For each null element, the result is null.
 
 * `abs(x)`: Absolute value of `x`
 * `sqrt(x)`: Square root of `x`
@@ -109,12 +111,14 @@ The functions in this section mathematical operations on numbers. If these funct
 
 ### Numeric to boolean broadcast
 
+For each null element, the result is null.
+
 * `is_nan(x)`: True if `x` value is a floating point `NaN`
 * `is_finite(x)`: True if `x` value is a floating point finite number
 
 ### Casting broadcast
 
-The functions in this section convert values from one type to another. These are completely dependent on the behavior of the Polars [`cast`](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/api/polars.Expr.cast.html) function.
+The functions in this section convert values from one type to another. These are completely dependent on the behavior of the Polars [`cast`](https://pola-rs.github.io/polars/py-polars/html/reference/expressions/api/polars.Expr.cast.html) function. Nulls are preserved.
 
 * `to_boolean(x)`: Convert `x` from a boolean, a float, or an integer, to a boolean
 * `to_integer(x)`: Convert `x` from a boolean, a float, or an integer to an integer or parse a string as an integer
@@ -123,14 +127,15 @@ The functions in this section convert values from one type to another. These are
 
 ### Other broadcast
 
+* `is_null(x)`: True if `x` is null. This is one of the few functions that returns a non-null value on null inputs.
 * `if_else(condition, true_value, false_value)`: If `condition` is true, return `true_value`, otherwise return `false_value`.
 
 ### Numeric to numeric reduction
 
-The functions in this section consume an entire column of numbers and to produce a scalar number.
+The functions in this section consume an entire column of numbers and to produce a scalar number. If any element is null, the result is null.
 
 * `std(x)`: Population standard deviation of `x`
-* `var(x)`: Population variacne of `x`
+* `var(x)`: Population variance of `x`
 * `max(x)`: Maximum of `x`
 * `min(x)`: Minimum of `x`
 * `sum(x)`: Sum of `x`
@@ -143,14 +148,14 @@ The functions in this section consume an entire column of numbers and to produce
 
 ### Boolean to boolean reduction
 
-The functions in this section consume an entire column of booleans and to produce a scalar boolean.
+The functions in this section consume an entire column of booleans and to produce a scalar boolean. These follow [Kleene logic](https://en.wikipedia.org/wiki/Three-valued_logic#Kleene_and_Priest_logics) with respect to null.
 
 * `any(x)`: True if any of `x` are true
 * `all(x)`: True is all of `x` are true
 
 ### Any to any reduction
 
-The functions in this section consume an entire column of anything and to produce a scalar of that type.
+The functions in this section consume an entire column of anything and to produce a scalar of that type. These treat nulls as normal values.
 
 * `first(x)`: The first value of `x`
 * `last(x)`: The last value of `x`
