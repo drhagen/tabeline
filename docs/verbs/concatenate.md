@@ -1,4 +1,4 @@
-# Concatenating
+# Concatenating multiple data frames
 
 The `concatenate_rows` and `concatenate_columns` functions are not really verbs in the data grammar, but are more like conjunctions. They are the only operations that take an arbitrary number of data frames as arguments. As such, they are genuine Python functions importable from `tabeline`, not methods of `DataFrame`.
 
@@ -32,7 +32,7 @@ concatenate_rows(study1, study2)
 
 Concatenate the columns of the given data frames into a single data frame. All data frames must have the same number of rows. No columns may be duplicated. No group levels may be present. In other libraries, this operation may be called "column binding" or "horizontal stacking".
 
-This is one of the most dangerous operations in Tabeline. Often, [`inner_join`](../verbs/join.md#inner_join) is a safer choice than `concatenate_columns`. Joining on key columns ensures that the data is correctly matched even if the row order is mixed up. If you find yourself dropping duplicate
+This is one of the most dangerous operations in Tabeline. Often, [`inner_join`](../verbs/join.md#inner_join) is a safer choice than `concatenate_columns`. Joining on key columns ensures that the data is correctly matched even if the row order is mixed up.
 
 ```python
 from tabeline import DataFrame, concatenate_columns
