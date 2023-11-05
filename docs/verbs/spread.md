@@ -1,4 +1,4 @@
-# Pivoting
+# Pivoting between wide and tall formats
 
 The `spread` and `gather` verbs reshape a data frame between long format and wide format of data representation.
 
@@ -12,7 +12,9 @@ Turn a long data frame into a wide data frame. This operation takes the names of
 from tabeline import DataFrame
 
 df = DataFrame(
-    grades=[0, 0, 1, 1, 2, 2], sex=["M", "F", "M", "F", "M", "F"], count=[8, 9, 9, 10, 6, 9]
+    grades=[0, 0, 1, 1, 2, 2],
+    sex=["M", "F", "M", "F", "M", "F"],
+    count=[8, 9, 9, 10, 6, 9],
 )
 
 df.group_by("sex").spread("grades", "count")

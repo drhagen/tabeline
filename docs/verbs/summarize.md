@@ -1,4 +1,4 @@
-# Summarization
+# Reducing subframes
 
 ## `summarize`
 

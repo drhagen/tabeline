@@ -75,3 +75,56 @@ df.slice1([2, 1])
 # │ 1   ┆ a         │
 # └─────┴───────────┘
 ```
+
+## `distinct`
+
+Keep the first row for each unique record in the columns whose names are listed.
+
+```python
+from tabeline import DataFrame
+
+df = DataFrame(
+    given_name=["Alice", "Bob", "Alice", "Alice", "Bob"],
+    family_name=["Smith", "Smith", "Smith", "Jones", "Smith"],
+    age=[28, 30, 30, 18, 30],
+)
+
+df.distinct("given_name", "family_name")
+# shape: (3, 3)
+# ┌────────────┬─────────────┬─────┐
+# │ given_name ┆ family_name ┆ age │
+# │ ---        ┆ ---         ┆ --- │
+# │ str        ┆ str         ┆ i64 │
+# ╞════════════╪═════════════╪═════╡
+# │ Alice      ┆ Smith       ┆ 28  │
+# │ Bob        ┆ Smith       ┆ 30  │
+# │ Alice      ┆ Jones       ┆ 18  │
+# └────────────┴─────────────┴─────┘
+```
+
+## `unique`
+
+Keep the first row of each unique record. This is equivalent to `distinct` with all columns.
+
+```python
+from tabeline import DataFrame
+
+df = DataFrame(
+    given_name=["Alice", "Bob", "Alice", "Alice", "Bob"],
+    family_name=["Smith", "Smith", "Smith", "Jones", "Smith"],
+    age=[28, 30, 30, 18, 30],
+)
+
+df.unique()
+# shape: (4, 3)
+# ┌────────────┬─────────────┬─────┐
+# │ given_name ┆ family_name ┆ age │
+# │ ---        ┆ ---         ┆ --- │
+# │ str        ┆ str         ┆ i64 │
+# ╞════════════╪═════════════╪═════╡
+# │ Alice      ┆ Smith       ┆ 28  │
+# │ Bob        ┆ Smith       ┆ 30  │
+# │ Alice      ┆ Smith       ┆ 30  │
+# │ Alice      ┆ Jones       ┆ 18  │
+# └────────────┴─────────────┴─────┘
+```
