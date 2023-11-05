@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.356b1318.min.css">
@@ -454,6 +454,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#distinct" class="md-nav__link">
+    distinct
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unique" class="md-nav__link">
+    unique
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -695,6 +709,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#distinct" class="md-nav__link">
+    distinct
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unique" class="md-nav__link">
+    unique
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -773,6 +801,51 @@
 <span class="c1"># ├╌╌╌╌╌┼╌╌╌╌╌╌╌╌╌╌╌┤</span>
 <span class="c1"># │ 1   ┆ a         │</span>
 <span class="c1"># └─────┴───────────┘</span>
+</code></pre></div>
+<h2 id="distinct"><code>distinct</code></h2>
+<p>Keep the first row for each unique record in the columns whose names are listed.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span>
+    <span class="n">given_name</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Bob&quot;</span><span class="p">],</span>
+    <span class="n">family_name</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Smith&quot;</span><span class="p">,</span> <span class="s2">&quot;Smith&quot;</span><span class="p">,</span> <span class="s2">&quot;Smith&quot;</span><span class="p">,</span> <span class="s2">&quot;Jones&quot;</span><span class="p">,</span> <span class="s2">&quot;Smith&quot;</span><span class="p">],</span>
+    <span class="n">age</span><span class="o">=</span><span class="p">[</span><span class="mi">28</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">distinct</span><span class="p">(</span><span class="s2">&quot;given_name&quot;</span><span class="p">,</span> <span class="s2">&quot;family_name&quot;</span><span class="p">)</span>
+<span class="c1"># shape: (3, 3)</span>
+<span class="c1"># ┌────────────┬─────────────┬─────┐</span>
+<span class="c1"># │ given_name ┆ family_name ┆ age │</span>
+<span class="c1"># │ ---        ┆ ---         ┆ --- │</span>
+<span class="c1"># │ str        ┆ str         ┆ i64 │</span>
+<span class="c1"># ╞════════════╪═════════════╪═════╡</span>
+<span class="c1"># │ Alice      ┆ Smith       ┆ 28  │</span>
+<span class="c1"># │ Bob        ┆ Smith       ┆ 30  │</span>
+<span class="c1"># │ Alice      ┆ Jones       ┆ 18  │</span>
+<span class="c1"># └────────────┴─────────────┴─────┘</span>
+</code></pre></div>
+<h2 id="unique"><code>unique</code></h2>
+<p>Keep the first row of each unique record. This is equivalent to <code>distinct</code> with all columns.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span>
+    <span class="n">given_name</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Bob&quot;</span><span class="p">],</span>
+    <span class="n">family_name</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Smith&quot;</span><span class="p">,</span> <span class="s2">&quot;Smith&quot;</span><span class="p">,</span> <span class="s2">&quot;Smith&quot;</span><span class="p">,</span> <span class="s2">&quot;Jones&quot;</span><span class="p">,</span> <span class="s2">&quot;Smith&quot;</span><span class="p">],</span>
+    <span class="n">age</span><span class="o">=</span><span class="p">[</span><span class="mi">28</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">30</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="c1"># shape: (4, 3)</span>
+<span class="c1"># ┌────────────┬─────────────┬─────┐</span>
+<span class="c1"># │ given_name ┆ family_name ┆ age │</span>
+<span class="c1"># │ ---        ┆ ---         ┆ --- │</span>
+<span class="c1"># │ str        ┆ str         ┆ i64 │</span>
+<span class="c1"># ╞════════════╪═════════════╪═════╡</span>
+<span class="c1"># │ Alice      ┆ Smith       ┆ 28  │</span>
+<span class="c1"># │ Bob        ┆ Smith       ┆ 30  │</span>
+<span class="c1"># │ Alice      ┆ Smith       ┆ 30  │</span>
+<span class="c1"># │ Alice      ┆ Jones       ┆ 18  │</span>
+<span class="c1"># └────────────┴─────────────┴─────┘</span>
 </code></pre></div>
 
 

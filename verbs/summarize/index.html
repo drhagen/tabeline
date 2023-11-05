@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.356b1318.min.css">
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#summarization" class="md-skip">
+        <a href="#reducing-subframes" class="md-skip">
           Skip to content
         </a>
       
@@ -682,7 +682,7 @@
                   
 
 
-<h1 id="summarization">Summarization</h1>
+<h1 id="reducing-subframes">Reducing subframes</h1>
 <h2 id="summarize"><code>summarize</code></h2>
 <p>Reduce each subframe to a single row. This operation can only be applied to a data frame with at least one group level. The result has one column for each group column name and one column for each named argument. The name of the argument becomes the column name and the value of the argument must be an expression that evaluates to a scalar. That scalar will be the value of the cell for each summarized subframe. The last group level is dropped.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span>

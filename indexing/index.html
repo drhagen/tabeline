@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.4b4a2bd9.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.356b1318.min.css">
@@ -617,6 +617,19 @@
     df[row_index: slice | Sequence[int], column_index: str]
   </a>
   
+    <nav class="md-nav" aria-label="df[row_index: slice | Sequence[int], column_index: str]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#array" class="md-nav__link">
+    Array
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -698,6 +711,19 @@
     df[row_index: slice | Sequence[int], column_index: str]
   </a>
   
+    <nav class="md-nav" aria-label="df[row_index: slice | Sequence[int], column_index: str]">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#array" class="md-nav__link">
+    Array
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -738,8 +764,8 @@
 </code></pre></div>
 <h2 id="dfrow_index-int-column_index-slice-sequencestr"><code>df[row_index: int, column_index: slice | Sequence[str]]</code></h2>
 <p>If only the row index is a scalar, indexing returns a <code>tabeline.Record</code>. Functionally, a <code>Record</code> is an ordered dict.</p>
-<p>A <code>Record</code> can be iterated over or indexed further. Each key is a string, and each value is a Python type, <code>bool</code>, <code>int</code>, <code>float</code>, or <code>str</code>.</p>
-<p>Only a <code>slice(None)</code> (i.e. <code>:</code>, all columns) is the only slice allowed. Sliced <code>str</code> ranges are not supported. To select a subset of columns, list them as a sequence of strings.</p>
+<p>A <code>Record</code> can be iterated over or indexed further. Each key is a string, and each value is a Python type, <code>bool</code>, <code>int</code>, <code>float</code>, <code>str</code>, or <code>None</code>. The underlying data types are lost when a <code>Record</code> is created.</p>
+<p>A <code>slice(None)</code> (i.e. <code>:</code>, all columns) is the only slice allowed. Sliced <code>str</code> ranges are not supported. To select a subset of columns, list them as a sequence of strings.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span>
 
 <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span>
@@ -752,7 +778,7 @@
 <span class="k">assert</span> <span class="n">df</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:][</span><span class="s2">&quot;book&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;The Two Towers&quot;</span>
 </code></pre></div>
 <h2 id="dfrow_index-slice-sequenceint-column_index-str"><code>df[row_index: slice | Sequence[int], column_index: str]</code></h2>
-<p>If only the column index is a scalar, indexing returns a <code>tabeline.Array</code>. Functionally, it is a list. All values are the same type, <code>bool</code>, <code>int</code>, <code>float</code>, or <code>str</code>.</p>
+<p>If only the column index is a scalar, indexing returns a <code>tabeline.Array</code>. Functionally, an <code>Array</code> is a list.</p>
 <p>Normal <code>slice</code>s are permitted on the row index and behave as expected. Selecting specific rows with a sequennce of integers is also allowed.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span>
 
@@ -765,6 +791,85 @@
 <span class="k">assert</span> <span class="n">df</span><span class="p">[:,</span> <span class="s2">&quot;word_count&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">Array</span><span class="p">(</span><span class="mi">95356</span><span class="p">,</span> <span class="mi">187790</span><span class="p">,</span> <span class="mi">156198</span><span class="p">,</span> <span class="mi">137115</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">df</span><span class="p">[:,</span> <span class="s2">&quot;word_count&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">156198</span>
 </code></pre></div>
+<h3 id="array"><code>Array</code></h3>
+<p>Each <code>Array</code> has a given data type that restricts the possible values that the elements may have. The data type can be accessed via the <code>Array.data_type</code> attribute, which returns a member of the <code>tabeline.DataType</code> enum. All the elements in a given <code>Array</code> are instances of that type or are null. Tabeline currently has no scalar values so getting a lone instance of the data type in Python is not possible. Extracting a single element from an <code>Array</code> or <code>DataFrame</code> returns an object with one of these basic Python types: <code>bool</code>, <code>int</code>, <code>float</code>, <code>str</code>, or <code>None</code>.</p>
+<p>The possible data types are listed below. The <code>in</code> column in the table below indicate which Python type is converted to that data type. The <code>out</code> column indicates with Python type is returned when extracting a value from that data type.</p>
+<table>
+<thead>
+<tr>
+<th>DataType</th>
+<th>in</th>
+<th>out</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Boolean</td>
+<td>bool</td>
+<td>bool</td>
+</tr>
+<tr>
+<td>Integer8</td>
+<td></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Integer16</td>
+<td></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Integer32</td>
+<td></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Integer64</td>
+<td>int</td>
+<td>int</td>
+</tr>
+<tr>
+<td>Whole8</td>
+<td></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Whole16</td>
+<td></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Whole32</td>
+<td></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Whole64</td>
+<td></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Float32</td>
+<td></td>
+<td>float</td>
+</tr>
+<tr>
+<td>Float64</td>
+<td>float</td>
+<td>float</td>
+</tr>
+<tr>
+<td>String</td>
+<td>str</td>
+<td>str</td>
+</tr>
+<tr>
+<td>Nothing</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <h2 id="dfrow_index-slice-sequenceint-column_index-slice-sequencestr"><code>df[row_index: slice | Sequence[int], column_index: slice | Sequence[str]]</code></h2>
 <p>Slicing both the row index and the column index returns another <code>tabeline.DataFrame</code>.</p>
 <p>The resulting <code>DataFrame</code> has no group levels regardless of the parent.</p>

@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.356b1318.min.css">
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#grouping" class="md-skip">
+        <a href="#changing-group-levels" class="md-skip">
           Skip to content
         </a>
       
@@ -696,8 +696,8 @@
                   
 
 
-<h1 id="grouping">Grouping</h1>
-<p><code>group_by</code> is not so much a verb as it is a preposition. <code>group_by</code> does not change the contents or orders of any rows or columns, but it changes the context of subsequent verbs. All rows which have the same values in all group_by columns are members of the same subframe. Subsequent verbs act as if they are applied each subframe individually. So in <code>filter</code> or <code>mutate</code>, an expression containing <code>max</code> or <code>mean</code> will apply only to the rows in each subframe. </p>
+<h1 id="changing-group-levels">Changing group levels</h1>
+<p><code>group_by</code> is not so much a verb as it is a preposition. <code>group_by</code> does not change the contents or orders of any rows or columns, but it changes the context of subsequent verbs. All rows which have the same values in all <code>group_by</code> columns are members of the same subframe. Subsequent verbs act as if they are applied each subframe individually. So in <code>filter</code> or <code>mutate</code>, an expression containing <code>max</code> or <code>mean</code> will apply only to the rows in each subframe. </p>
 <p>Tabeline is different from all popular data grammar libraries in how it handles groups. An instance of <code>DataFrame</code> has group levels. Each invocation of <code>group_by</code> adds one group level, which can contain any number of columns names by which to group. The flattened list of group names from all levels can be accessed via the <code>group_names</code> property.</p>
 <h2 id="group_by"><code>group_by</code></h2>
 <p>Add a set of column names as a new group level. The column names must exist, and they must not be previously grouped.</p>

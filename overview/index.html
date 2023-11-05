@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.4b4a2bd9.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.356b1318.min.css">
@@ -1071,6 +1071,7 @@
 <h2 id="functions">Functions</h2>
 <p>These are the operators and functions available in the string expressions.</p>
 <h3 id="operators">Operators</h3>
+<p>If either operand is null, the result is null.</p>
 <ul>
 <li><code>x + y</code>: <code>x</code> plus <code>y</code> or, if strings, <code>x</code> concatenated to <code>y</code></li>
 <li><code>x - y</code>: <code>x</code> minus <code>y</code></li>
@@ -1080,7 +1081,7 @@
 <li><code>x ** y</code>: <code>x</code> to the power of <code>y</code></li>
 </ul>
 <h3 id="numeric-to-numeric-broadcast">Numeric to numeric broadcast</h3>
-<p>The functions in this section mathematical operations on numbers. If these functions receive scalar inputs, they return a scalar. If they receive any array inputs, any scalars are interpreted as constant vectors and an array is returned.</p>
+<p>The functions in this section mathematical operations on numbers. If these functions receive scalar inputs, they return a scalar. If they receive any array inputs, any scalars are interpreted as constant vectors and an array is returned. For each null element, the result is null.</p>
 <ul>
 <li><code>abs(x)</code>: Absolute value of <code>x</code></li>
 <li><code>sqrt(x)</code>: Square root of <code>x</code></li>
@@ -1099,12 +1100,13 @@
 <li><code>ceil(x)</code>: <code>x</code> rounded up to the nearest integer</li>
 </ul>
 <h3 id="numeric-to-boolean-broadcast">Numeric to boolean broadcast</h3>
+<p>For each null element, the result is null.</p>
 <ul>
 <li><code>is_nan(x)</code>: True if <code>x</code> value is a floating point <code>NaN</code></li>
 <li><code>is_finite(x)</code>: True if <code>x</code> value is a floating point finite number</li>
 </ul>
 <h3 id="casting-broadcast">Casting broadcast</h3>
-<p>The functions in this section convert values from one type to another. These are completely dependent on the behavior of the Polars <a href="https://pola-rs.github.io/polars/py-polars/html/reference/expressions/api/polars.Expr.cast.html"><code>cast</code></a> function.</p>
+<p>The functions in this section convert values from one type to another. These are completely dependent on the behavior of the Polars <a href="https://pola-rs.github.io/polars/py-polars/html/reference/expressions/api/polars.Expr.cast.html"><code>cast</code></a> function. Nulls are preserved.</p>
 <ul>
 <li><code>to_boolean(x)</code>: Convert <code>x</code> from a boolean, a float, or an integer, to a boolean</li>
 <li><code>to_integer(x)</code>: Convert <code>x</code> from a boolean, a float, or an integer to an integer or parse a string as an integer</li>
@@ -1113,13 +1115,14 @@
 </ul>
 <h3 id="other-broadcast">Other broadcast</h3>
 <ul>
+<li><code>is_null(x)</code>: True if <code>x</code> is null. This is one of the few functions that returns a non-null value on null inputs.</li>
 <li><code>if_else(condition, true_value, false_value)</code>: If <code>condition</code> is true, return <code>true_value</code>, otherwise return <code>false_value</code>.</li>
 </ul>
 <h3 id="numeric-to-numeric-reduction">Numeric to numeric reduction</h3>
-<p>The functions in this section consume an entire column of numbers and to produce a scalar number.</p>
+<p>The functions in this section consume an entire column of numbers and to produce a scalar number. If any element is null, the result is null.</p>
 <ul>
 <li><code>std(x)</code>: Population standard deviation of <code>x</code></li>
-<li><code>var(x)</code>: Population variacne of <code>x</code></li>
+<li><code>var(x)</code>: Population variance of <code>x</code></li>
 <li><code>max(x)</code>: Maximum of <code>x</code></li>
 <li><code>min(x)</code>: Minimum of <code>x</code></li>
 <li><code>sum(x)</code>: Sum of <code>x</code></li>
@@ -1131,13 +1134,13 @@
 <li><code>interp(x, xp, fp)</code>: Linearly interpolate <code>fp</code> over <code>xp</code> at <code>x</code>; typically, <code>x</code> is a float literal</li>
 </ul>
 <h3 id="boolean-to-boolean-reduction">Boolean to boolean reduction</h3>
-<p>The functions in this section consume an entire column of booleans and to produce a scalar boolean.</p>
+<p>The functions in this section consume an entire column of booleans and to produce a scalar boolean. These follow <a href="https://en.wikipedia.org/wiki/Three-valued_logic#Kleene_and_Priest_logics">Kleene logic</a> with respect to null.</p>
 <ul>
 <li><code>any(x)</code>: True if any of <code>x</code> are true</li>
 <li><code>all(x)</code>: True is all of <code>x</code> are true</li>
 </ul>
 <h3 id="any-to-any-reduction">Any to any reduction</h3>
-<p>The functions in this section consume an entire column of anything and to produce a scalar of that type.</p>
+<p>The functions in this section consume an entire column of anything and to produce a scalar of that type. These treat nulls as normal values.</p>
 <ul>
 <li><code>first(x)</code>: The first value of <code>x</code></li>
 <li><code>last(x)</code>: The last value of <code>x</code></li>

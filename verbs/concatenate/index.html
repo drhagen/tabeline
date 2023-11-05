@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.5">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.4.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.6a10b989.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4b4a2bd9.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.356b1318.min.css">
@@ -79,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#concatenating" class="md-skip">
+        <a href="#concatenating-multiple-data-frames" class="md-skip">
           Skip to content
         </a>
       
@@ -696,7 +696,7 @@
                   
 
 
-<h1 id="concatenating">Concatenating</h1>
+<h1 id="concatenating-multiple-data-frames">Concatenating multiple data frames</h1>
 <p>The <code>concatenate_rows</code> and <code>concatenate_columns</code> functions are not really verbs in the data grammar, but are more like conjunctions. They are the only operations that take an arbitrary number of data frames as arguments. As such, they are genuine Python functions importable from <code>tabeline</code>, not methods of <code>DataFrame</code>.</p>
 <h2 id="concatenate_rows"><code>concatenate_rows</code></h2>
 <p>Concatenate the rows of the given data frames into a single data frame. The data frames must have the same columns, in the same order. Typically, only data frames without grouping are concatenated, but concatenation will be allowed if all group levels are identical. In other libraries, this operation may be called "row binding" or "vertical stacking".</p>
@@ -722,7 +722,7 @@
 </code></pre></div>
 <h2 id="concatenate_columns"><code>concatenate_columns</code></h2>
 <p>Concatenate the columns of the given data frames into a single data frame. All data frames must have the same number of rows. No columns may be duplicated. No group levels may be present. In other libraries, this operation may be called "column binding" or "horizontal stacking".</p>
-<p>This is one of the most dangerous operations in Tabeline. Often, <a href="../join/#inner_join"><code>inner_join</code></a> is a safer choice than <code>concatenate_columns</code>. Joining on key columns ensures that the data is correctly matched even if the row order is mixed up. If you find yourself dropping duplicate</p>
+<p>This is one of the most dangerous operations in Tabeline. Often, <a href="../join/#inner_join"><code>inner_join</code></a> is a safer choice than <code>concatenate_columns</code>. Joining on key columns ensures that the data is correctly matched even if the row order is mixed up.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">tabeline</span> <span class="kn">import</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">concatenate_columns</span>
 
 <span class="n">study1</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">study</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">subject</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">])</span>
