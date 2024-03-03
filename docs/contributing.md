@@ -37,16 +37,14 @@ This will try to test with all compatible Python versions that `nox` can find. T
 poetry run nox -s test-3.9 test_pandas-3.9
 ```
 
-It is good to run the tests locally before making a PR, but it is not necessary to have all Python versions run. It is rare for a failure to appear in a single version, and the CI will catch it anyway. 
+It is good to run the tests locally before making a PR, but it is not necessary to have all Python versions run. It is rare for a failure to appear in a single version, and the CI will catch it anyway.
 
 ## Code quality
 
-Tabeline uses Black, isort, and Flake8 to ensure a minimum standard of code quality. The code quality commands are encapsulated with Nox:
+Tabeline uses Ruff to ensure a minimum standard of code quality. The code quality commands are encapsulated with Nox:
 
 ```shell
-poetry run nox -s black
-poetry run nox -s isort
-poetry run nox -s flake8
+poetry run nox -s lint
 ```
 
 ## Generating the docs
