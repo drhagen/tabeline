@@ -27,18 +27,13 @@ pandas = { version = "^2.0", optional = true }
 pyarrow = { version = "^14.0", optional = true }
 
 [tool.poetry.dev-dependencies]
-nox_poetry = "^1.0.2"
-
-# Converters
-pyarrow = "^14.0.0"
-pandas = "^2.0"
+nox_poetry = "^1.0.3"
 
 # Test
-pytest = "^7.4"
+pytest = "^8"
 pytest-cov = "*"
 
 # Lint
-black = ">=23.10"
 ruff = "^0.1"
 
 # Docs
