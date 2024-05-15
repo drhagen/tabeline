@@ -1,3 +1,7 @@
+---
+icon: material/swap-vertical
+---
+
 # Row reordering
 
 The `sort` and `cluster` verbs change the order of rows. The individual rows are unchanged.

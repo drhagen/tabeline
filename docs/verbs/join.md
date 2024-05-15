@@ -1,3 +1,7 @@
+---
+icon: material/set-center
+---
+
 # Joining two data frames
 
 The `inner_join`, `outer_join`,  and `left_join` verbs perform the classic table join operations.

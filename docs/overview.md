@@ -1,3 +1,7 @@
+---
+icon: material/table-of-contents
+---
+
 # Overview
 
 This is an index of the main functionality available in Tabeline. Each constructor and verb has a link to more detailed documentation. The expression functions do not yet have detailed documentation, but should be self-explanatory.

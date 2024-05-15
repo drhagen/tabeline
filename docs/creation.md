@@ -1,3 +1,7 @@
+---
+icon: material/tree
+---
+
 # Creating a data frame
 
 The central class of Tabeline is `tabeline.DataFrame`. There is little to do with Tabeline other than constructing a `DataFrame` and invoking methods on it to get a different `DataFrame`.

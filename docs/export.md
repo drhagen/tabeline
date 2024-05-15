@@ -1,3 +1,7 @@
+---
+icon: material/export
+---
+
 # Export
 
 `DataFrame`s can be converted into various other formats. These mostly mirror the [creation methods](creation.md).
@@ -5,7 +9,7 @@
 
 ## `to_dict()`
 
-Convert to dictionary of columns. Each key of the dictionary is a column name, and each value is an `Array` of the column's values. 
+Convert to dictionary of columns. Each key of the dictionary is a column name, and each value is an `Array` of the column's values.
 
 ```python
 from tabeline import DataFrame

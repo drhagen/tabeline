@@ -1,3 +1,7 @@
+---
+icon: material/filter-remove
+---
+
 # Row dropping
 
 The `filter`, `slice0`, `slice1`, `distinct`, and `unique` verbs change which rows are present. The relative order of the rows is unchanged.

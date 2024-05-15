@@ -1,3 +1,7 @@
+---
+icon: material/table-column-plus-after
+---
+
 # Creating new columns
 
 The `mutate` and `transmute` verbs create new columns based on expressions of existing columns. The number of rows is unchanged.
