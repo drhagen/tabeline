@@ -1,3 +1,7 @@
+---
+icon: material/code-brackets
+---
+
 # Indexing
 
 Indexing is the use of the `df[..., ...]` syntax to extract values from the data frame. Two arguments are always required, the row index followed by the column index. The returned type depends on which arguments are scalars or slices. This operator ignores any group levels that may be present.
@@ -89,7 +93,7 @@ The possible data types are listed below. The `in` column in the table below ind
 Slicing both the row index and the column index returns another `tabeline.DataFrame`.
 
 The resulting `DataFrame` has no group levels regardless of the parent.
-    
+
 ```python
 from tabeline import DataFrame
 

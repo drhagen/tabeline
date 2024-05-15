@@ -1,3 +1,7 @@
+---
+icon: material/swap-horizontal
+---
+
 # Column dropping and reordering
 
 The `select`, `deselect`, and `rename` verbs change which columns are present in the data frame, their order, and what names they have. The content of the columns is unchanged.

@@ -1,3 +1,7 @@
+---
+icon: material/table-multiple
+---
+
 # Concatenating multiple data frames
 
 The `concatenate_rows` and `concatenate_columns` functions are not really verbs in the data grammar, but are more like conjunctions. They are the only operations that take an arbitrary number of data frames as arguments. As such, they are genuine Python functions importable from `tabeline`, not methods of `DataFrame`.

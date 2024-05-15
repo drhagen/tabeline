@@ -1,3 +1,7 @@
+---
+icon: material/table-pivot
+---
+
 # Pivoting between wide and tall formats
 
 The `spread` and `gather` verbs reshape a data frame between long format and wide format of data representation.

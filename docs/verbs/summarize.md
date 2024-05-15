@@ -1,3 +1,7 @@
+---
+icon: material/arrow-collapse-all
+---
+
 # Reducing subframes
 
 ## `summarize`

@@ -1,8 +1,12 @@
+---
+icon: material/home
+---
+
 # Tabeline
 
 Tabeline is a data frame and data grammar library. You write the expressions in strings and supply them to methods on the `DataFrame` class, like `df.filter("t <= 24")`. The  strings are parsed by Parsita and converted into Polars for execution.
 
-Tabeline draws inspiration from [dplyr](https://dplyr.tidyverse.org/), the data grammar of R's tidyverse. The `filter`, `mutate`, `group_by`, and `summarize` methods should all feel familiar. But Tabeline is as proper a Python library as can be, using methods instead of pipe operators. 
+Tabeline draws inspiration from [dplyr](https://dplyr.tidyverse.org/), the data grammar of R's tidyverse. The `filter`, `mutate`, `group_by`, and `summarize` methods should all feel familiar. But Tabeline is as proper a Python library as can be, using methods instead of pipe operators.
 
 Tabeline uses Polars under the hood, but adds a lot of handling of edge cases from Polars, which otherwise result in crashes or behavior that is not type stable.
 
@@ -20,7 +24,7 @@ pip install tabeline
 from tabeline import DataFrame
 
 # Construct a data frame using clean syntax
-# from_csv, from_pandas, and from_polars are also available 
+# from_csv, from_pandas, and from_polars are also available
 df = DataFrame(
     id=[0, 0, 0, 0, 1, 1, 1, 1, 1],
     t=[0, 6, 12, 24, 0, 6, 12, 24, 48],
