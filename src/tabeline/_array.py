@@ -80,7 +80,7 @@ class Array(Sequence, Generic[Element]):
         return Array(pl.Series(values=array))
 
     def to_numpy(self) -> np.ndarray:
-        return self._series.to_numpy(use_pyarrow=False)
+        return self._series.to_numpy()
 
     def __len__(self) -> int:
         return len(self._series)
