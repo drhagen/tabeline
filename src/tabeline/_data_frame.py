@@ -152,7 +152,7 @@ class DataFrame:
             group_names = self.group_names
             if len(group_names) == 0:
                 # Polars chokes on empty groups
-                return DataFrame(self._df.select(pl.all().take(indexes)), self.group_levels)
+                return DataFrame(self._df.select(pl.all().gather(indexes)), self.group_levels)
             else:
                 # There is no easy way to slice by groups in Polars. Using
                 # `take` on a group causes the sliced columns to be a column of
@@ -169,13 +169,13 @@ class DataFrame:
                     # Polars is not type stable when exploding no elements on a
                     # grouped data frame, so just drop all rows.
                     # https://github.com/pola-rs/polars/issues/6723
-                    new_df = self._df.select(pl.all().take(indexes))
+                    new_df = self._df.select(pl.all().gather(indexes))
                 else:
                     new_df = (
                         self._df.lazy()
                         .with_columns(pl.int_range(0, pl.len()).alias("_index"))
                         .group_by(list(group_names), maintain_order=True)
-                        .agg(pl.all().take(indexes))
+                        .agg(pl.all().gather(indexes))
                         .explode(non_group_columns)
                         .sort("_index")
                         .drop("_index")
