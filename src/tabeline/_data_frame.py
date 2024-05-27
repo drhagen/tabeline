@@ -173,7 +173,7 @@ class DataFrame:
                 else:
                     new_df = (
                         self._df.lazy()
-                        .with_columns(pl.int_range(0, pl.count()).alias("_index"))
+                        .with_columns(pl.int_range(0, pl.len()).alias("_index"))
                         .group_by(list(group_names), maintain_order=True)
                         .agg(pl.all().take(indexes))
                         .explode(non_group_columns)
@@ -248,7 +248,7 @@ class DataFrame:
             # Polars chokes on empty window columns
             return DataFrame(
                 self._df.lazy()
-                .with_columns(pl.int_range(0, pl.count()).alias("_index"))
+                .with_columns(pl.int_range(0, pl.len()).alias("_index"))
                 .with_columns(pl.min("_index").over(all_columns))
                 .select(pl.all().sort_by(["_index"]))
                 .drop("_index")
@@ -259,7 +259,7 @@ class DataFrame:
         else:
             return DataFrame(
                 self._df.lazy()
-                .with_columns(pl.int_range(0, pl.count()).alias("_index"))
+                .with_columns(pl.int_range(0, pl.len()).alias("_index"))
                 .with_columns(pl.min("_index").over(all_columns))
                 .select(pl.all().sort_by(["_index"]).over(list(self.group_names)))
                 .drop("_index")
@@ -512,9 +512,9 @@ class DataFrame:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_columns(pl.int_range(0, pl.count()).alias("_index1"))
+            .with_columns(pl.int_range(0, pl.len()).alias("_index1"))
             .join(
-                other._df.lazy().with_columns(pl.int_range(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.int_range(0, pl.len()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
                 how="inner",
@@ -543,9 +543,9 @@ class DataFrame:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_columns(pl.int_range(0, pl.count()).alias("_index1"))
+            .with_columns(pl.int_range(0, pl.len()).alias("_index1"))
             .join(
-                other._df.lazy().with_columns(pl.int_range(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.int_range(0, pl.len()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
                 how="left",
@@ -575,9 +575,9 @@ class DataFrame:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_columns(pl.int_range(0, pl.count()).alias("_index1"))
+            .with_columns(pl.int_range(0, pl.len()).alias("_index1"))
             .join(
-                other._df.lazy().with_columns(pl.int_range(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.int_range(0, pl.len()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
                 coalesce=True,
