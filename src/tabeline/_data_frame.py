@@ -641,7 +641,7 @@ class DataFrame:
                 # but are in Tabeline.
                 return self.column_names == other.column_names
 
-            return self._df.frame_equal(other._df)
+            return self._df.equals(other._df)
 
         return NotImplemented
 

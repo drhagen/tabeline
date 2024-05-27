@@ -142,7 +142,7 @@ def test_from_none(elements):
 
     series = pl.Series(values=elements)
     assert expected == Array.from_polars(series)
-    assert series.series_equal(expected.to_polars())
+    assert series.equals(expected.to_polars())
 
 
 @pytest.mark.parametrize("elements", [[], [None, None, None]])
@@ -156,7 +156,7 @@ def test_from_all_nones(elements):
 
     series = pl.Series(values=elements, dtype=pl.Null)
     assert expected == Array.from_polars(series)
-    assert series.series_equal(expected.to_polars())
+    assert series.equals(expected.to_polars())
 
 
 def test_str_repr():
