@@ -141,12 +141,17 @@ class DataFrame:
         self._df.write_csv(str(path))
 
     def slice0(self, indexes: list[int], /) -> DataFrame:
-        # Negative indexes are not supported by Polars, so they are not
-        # supported in Tabeline.
+        # Negative indexes don't make sense with on-based indexing, so they are
+        # disallowed everywhere. This only catches non-positive indexes. Indexes
+        # too large will be caught by Polars.
+        for index in indexes:
+            if index >= self.height or index < 0:
+                raise IndexOutOfRangeError(index, self.height, one_indexed=False)
+
         if self.width == 0:
             for index in indexes:
-                if index >= self.height or index < 0:
-                    raise IndexOutOfRangeError(index, self.height)
+                if index >= self.height:
+                    raise IndexOutOfRangeError(index, self.height, one_indexed=False)
             return DataFrame(self._df, self.group_levels, len(indexes))
         else:
             group_names = self.group_names
@@ -185,6 +190,13 @@ class DataFrame:
                 return DataFrame(new_df, self.group_levels)
 
     def slice1(self, indexes: list[int], /) -> DataFrame:
+        # Negative indexes don't make sense with on-based indexing, so they are
+        # disallowed everywhere. This only catches non-positive indexes. Indexes
+        # too large will be caught by Polars.
+        for index in indexes:
+            if index <= 0:
+                raise IndexOutOfRangeError(index, self.height, one_indexed=True)
+
         return self.slice0([index - 1 for index in indexes])
 
     def filter(self, predicate: str, /) -> DataFrame:

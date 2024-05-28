@@ -58,12 +58,14 @@ class RowlessDataFrameError(TabelineError):
 
 
 class IndexOutOfRangeError(TabelineError):
-    def __init__(self, index: int, length: int):
+    def __init__(self, index: int, length: int, *, one_indexed: bool):
         self.index = index
         self.length = length
+        self.one_indexed = one_indexed
 
     def __str__(self) -> str:
-        return f"Cannot index element {self.index} from data frame with {self.length} rows"
+        base_string = "one" if self.one_indexed else "zero"
+        return f"Cannot get index {self.index} ({base_string}-based) from data frame with {self.length} rows"
 
 
 class UnmatchedColumnsError(TabelineError):
