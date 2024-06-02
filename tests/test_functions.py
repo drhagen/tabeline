@@ -242,7 +242,15 @@ def test_quantile():
 
 @pytest.mark.parametrize(
     "values",
-    [[True, True, False], [-1, -1, 2], ["aa", "aa", "bb"], [None, None, 1], [None, None, None]],
+    [
+        [True, True, False],
+        [-1, -1, 2],
+        ["aa", "aa", "bb"],
+        [None, None, 1],
+        # Polars bug causes error when all values are None returned from map_groups
+        # https://github.com/pola-rs/polars/issues/15260
+        xfail_param([None, None, None]),
+    ],
 )
 def test_same(values):
     df = DataFrame(a=[0, 0, 1], x=values)
