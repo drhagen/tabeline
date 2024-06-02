@@ -560,6 +560,7 @@ class DataFrame:
                 other._df.lazy().with_columns(pl.int_range(0, pl.len()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
+                coalesce=True,
                 how="left",
             )
             .sort(["_index1", "_index2"])
