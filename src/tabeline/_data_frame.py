@@ -580,7 +580,8 @@ class DataFrame:
                 other._df.lazy().with_columns(pl.int_range(0, pl.count()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
-                how="outer",
+                coalesce=True,
+                how="full",
             )
             .sort(["_index1", "_index2"])
             .drop(["_index1", "_index2"])
