@@ -44,8 +44,9 @@ def test_numeric_operators(left, right, operator, comparer):
 @pytest.mark.parametrize(
     ("operator", "comparer"),
     [
-        ("==", operator.eq),
-        ("!=", operator.ne),
+        # Polars defines NaNs as equal
+        ("==", lambda x, y: math.isnan(x) and math.isnan(y) or operator.eq(x, y)),
+        ("!=", lambda x, y: not (math.isnan(x) and math.isnan(y)) and operator.ne(x, y)),
         # Polars defines NaNs as the largest floating point values
         (">=", lambda x, y: math.isnan(x) or operator.ge(x, y)),
         ("<=", lambda x, y: math.isnan(y) or operator.le(x, y)),
