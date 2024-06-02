@@ -8,4 +8,4 @@ def assert_data_frame_equal(
 ) -> None:
     assert left.shape == right.shape
     assert left.group_levels == right.group_levels
-    assert_frame_equal(left._df, right._df, check_dtype=False, rtol=reltol, atol=abstol)
+    assert_frame_equal(left._df, right._df, check_dtypes=False, rtol=reltol, atol=abstol)
