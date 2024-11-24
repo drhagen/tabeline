@@ -7,8 +7,6 @@ from polars.testing import assert_series_equal
 
 from tabeline import Array, DataType
 
-from ._xfail import xfail_param
-
 # Skip some types, otherwise there are too many tests
 numeric_types = [
     DataType.Integer8,
@@ -119,9 +117,7 @@ def test_incompatible_type():
         _ = Array(0, 1, 2, data_type=DataType.String)
 
 
-@pytest.mark.parametrize(
-    "elements", [xfail_param([]), [0], [0, 1, 2], [True, False, True], ["a", "b", "c"]]
-)
+@pytest.mark.parametrize("elements", [[], [0], [0, 1, 2], [True, False, True], ["a", "b", "c"]])
 def test_from(elements):
     expected = Array(*elements)
 
@@ -146,7 +142,7 @@ def test_from_none(elements):
 
     series = pl.Series(values=elements)
     assert expected == Array.from_polars(series)
-    assert series.series_equal(expected.to_polars())
+    assert series.equals(expected.to_polars())
 
 
 @pytest.mark.parametrize("elements", [[], [None, None, None]])
@@ -160,7 +156,7 @@ def test_from_all_nones(elements):
 
     series = pl.Series(values=elements, dtype=pl.Null)
     assert expected == Array.from_polars(series)
-    assert series.series_equal(expected.to_polars())
+    assert series.equals(expected.to_polars())
 
 
 def test_str_repr():

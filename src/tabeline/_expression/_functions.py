@@ -52,9 +52,9 @@ def polars_interp(args):
 
 built_in_functions: list[Function[Any, Any]] = [
     # Constant
-    Function("n", lambda: pl.count()),  # https://stackoverflow.com/a/71644903/1485877
-    Function("row_index0", lambda: pl.int_range(0, pl.count())),
-    Function("row_index1", lambda: pl.int_range(1, pl.count() + 1)),
+    Function("n", lambda: pl.len()),  # https://stackoverflow.com/a/71644903/1485877
+    Function("row_index0", lambda: pl.int_range(0, pl.len())),
+    Function("row_index1", lambda: pl.int_range(1, pl.len() + 1)),
     # Numeric -> numeric elementwise
     Function("abs", lambda x: x.abs()),
     Function("sqrt", lambda x: x.sqrt()),

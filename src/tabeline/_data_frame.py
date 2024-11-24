@@ -141,18 +141,23 @@ class DataFrame:
         self._df.write_csv(str(path))
 
     def slice0(self, indexes: list[int], /) -> DataFrame:
-        # Negative indexes are not supported by Polars, so they are not
-        # supported in Tabeline.
+        # Negative indexes don't make sense with on-based indexing, so they are
+        # disallowed everywhere. This only catches non-positive indexes. Indexes
+        # too large will be caught by Polars.
+        for index in indexes:
+            if index >= self.height or index < 0:
+                raise IndexOutOfRangeError(index, self.height, one_indexed=False)
+
         if self.width == 0:
             for index in indexes:
-                if index >= self.height or index < 0:
-                    raise IndexOutOfRangeError(index, self.height)
+                if index >= self.height:
+                    raise IndexOutOfRangeError(index, self.height, one_indexed=False)
             return DataFrame(self._df, self.group_levels, len(indexes))
         else:
             group_names = self.group_names
             if len(group_names) == 0:
                 # Polars chokes on empty groups
-                return DataFrame(self._df.select(pl.all().take(indexes)), self.group_levels)
+                return DataFrame(self._df.select(pl.all().gather(indexes)), self.group_levels)
             else:
                 # There is no easy way to slice by groups in Polars. Using
                 # `take` on a group causes the sliced columns to be a column of
@@ -169,13 +174,13 @@ class DataFrame:
                     # Polars is not type stable when exploding no elements on a
                     # grouped data frame, so just drop all rows.
                     # https://github.com/pola-rs/polars/issues/6723
-                    new_df = self._df.select(pl.all().take(indexes))
+                    new_df = self._df.select(pl.all().gather(indexes))
                 else:
                     new_df = (
                         self._df.lazy()
-                        .with_columns(pl.int_range(0, pl.count()).alias("_index"))
+                        .with_columns(pl.int_range(0, pl.len()).alias("_index"))
                         .group_by(list(group_names), maintain_order=True)
-                        .agg(pl.all().take(indexes))
+                        .agg(pl.all().gather(indexes))
                         .explode(non_group_columns)
                         .sort("_index")
                         .drop("_index")
@@ -185,6 +190,13 @@ class DataFrame:
                 return DataFrame(new_df, self.group_levels)
 
     def slice1(self, indexes: list[int], /) -> DataFrame:
+        # Negative indexes don't make sense with on-based indexing, so they are
+        # disallowed everywhere. This only catches non-positive indexes. Indexes
+        # too large will be caught by Polars.
+        for index in indexes:
+            if index <= 0:
+                raise IndexOutOfRangeError(index, self.height, one_indexed=True)
+
         return self.slice0([index - 1 for index in indexes])
 
     def filter(self, predicate: str, /) -> DataFrame:
@@ -248,7 +260,7 @@ class DataFrame:
             # Polars chokes on empty window columns
             return DataFrame(
                 self._df.lazy()
-                .with_columns(pl.int_range(0, pl.count()).alias("_index"))
+                .with_columns(pl.int_range(0, pl.len()).alias("_index"))
                 .with_columns(pl.min("_index").over(all_columns))
                 .select(pl.all().sort_by(["_index"]))
                 .drop("_index")
@@ -259,7 +271,7 @@ class DataFrame:
         else:
             return DataFrame(
                 self._df.lazy()
-                .with_columns(pl.int_range(0, pl.count()).alias("_index"))
+                .with_columns(pl.int_range(0, pl.len()).alias("_index"))
                 .with_columns(pl.min("_index").over(all_columns))
                 .select(pl.all().sort_by(["_index"]).over(list(self.group_names)))
                 .drop("_index")
@@ -450,7 +462,7 @@ class DataFrame:
         assert_legal_columns([key, value], self.column_names, self.group_names)
 
         df = self._df.pivot(
-            index=list(self.group_names), columns=key, values=value, aggregate_function=None
+            index=list(self.group_names), on=key, values=value, aggregate_function=None
         )
 
         return DataFrame(df, self.group_levels[:-1])
@@ -459,8 +471,8 @@ class DataFrame:
         column_set = set(columns)
         all_columns = [column for column in self.column_names if column not in column_set]
 
-        df = self._df.melt(
-            id_vars=all_columns, value_vars=list(columns), variable_name=key, value_name=value
+        df = self._df.unpivot(
+            index=all_columns, on=list(columns), variable_name=key, value_name=value
         )
 
         return DataFrame(df, self.group_levels).group_by(key)
@@ -512,9 +524,9 @@ class DataFrame:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_columns(pl.int_range(0, pl.count()).alias("_index1"))
+            .with_columns(pl.int_range(0, pl.len()).alias("_index1"))
             .join(
-                other._df.lazy().with_columns(pl.int_range(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.int_range(0, pl.len()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
                 how="inner",
@@ -543,11 +555,12 @@ class DataFrame:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_columns(pl.int_range(0, pl.count()).alias("_index1"))
+            .with_columns(pl.int_range(0, pl.len()).alias("_index1"))
             .join(
-                other._df.lazy().with_columns(pl.int_range(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.int_range(0, pl.len()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
+                coalesce=True,
                 how="left",
             )
             .sort(["_index1", "_index2"])
@@ -575,12 +588,13 @@ class DataFrame:
         joined_df = (
             # Polars does not order the output, so sort by original orders
             self._df.lazy()
-            .with_columns(pl.int_range(0, pl.count()).alias("_index1"))
+            .with_columns(pl.int_range(0, pl.len()).alias("_index1"))
             .join(
-                other._df.lazy().with_columns(pl.int_range(0, pl.count()).alias("_index2")),
+                other._df.lazy().with_columns(pl.int_range(0, pl.len()).alias("_index2")),
                 left_on=left_key_columns,
                 right_on=right_key_columns,
-                how="outer",
+                coalesce=True,
+                how="full",
             )
             .sort(["_index1", "_index2"])
             .drop(["_index1", "_index2"])
@@ -641,7 +655,7 @@ class DataFrame:
                 # but are in Tabeline.
                 return self.column_names == other.column_names
 
-            return self._df.frame_equal(other._df)
+            return self._df.equals(other._df)
 
         return NotImplemented
 

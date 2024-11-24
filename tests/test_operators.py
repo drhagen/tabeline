@@ -22,6 +22,9 @@ interesting_numbers = [1, 0, -5, 1.0, 0.0, -0.0, -15.3, math.inf, -math.inf, mat
     ],
 )
 def test_numeric_operators(left, right, operator, comparer):
+    if operator == "**" and right == -5 and isinstance(left, int):
+        pytest.xfail("Polars does not support integers to the power of a negative integer")
+
     df = DataFrame(left=[left], right=[right])
     actual = df.transmute(output=f"left {operator} right")
 
@@ -44,8 +47,9 @@ def test_numeric_operators(left, right, operator, comparer):
 @pytest.mark.parametrize(
     ("operator", "comparer"),
     [
-        ("==", operator.eq),
-        ("!=", operator.ne),
+        # Polars defines NaNs as equal
+        ("==", lambda x, y: math.isnan(x) and math.isnan(y) or operator.eq(x, y)),
+        ("!=", lambda x, y: not (math.isnan(x) and math.isnan(y)) and operator.ne(x, y)),
         # Polars defines NaNs as the largest floating point values
         (">=", lambda x, y: math.isnan(x) or operator.ge(x, y)),
         ("<=", lambda x, y: math.isnan(y) or operator.le(x, y)),
