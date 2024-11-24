@@ -132,6 +132,8 @@ def test_zero_argument_functions_on_rowless_data_frame_with_summarize(name, df):
     assert actual == expected
 
 
+# https://github.com/pola-rs/polars/issues/15257
+@pytest.mark.skip(reason="Polars does not allow operations on null")
 @pytest.mark.parametrize("name", one_argument_functions)
 @pytest.mark.parametrize(
     "df",
@@ -145,9 +147,6 @@ def test_zero_argument_functions_on_rowless_data_frame_with_summarize(name, df):
     ],
 )
 def test_one_argument_functions_on_rowless_data_frame_with_mutate(name, df):
-    if name in ("any", "all") and len(df.group_names) == 0:
-        pytest.xfail("Skip any and all because Polars has no concept of List[Nothing]")
-
     actual = df.mutate(x=f"{name}(a)")
     expected = df.mutate(x="1")
     assert actual == expected
