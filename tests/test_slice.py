@@ -1,4 +1,5 @@
 import pytest
+from polars.exceptions import OutOfBoundsError
 
 from tabeline import DataFrame
 from tabeline.exceptions import IndexOutOfRangeError
@@ -134,10 +135,10 @@ def test_slice_only_one_out_of_bounds():
     df = DataFrame(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group_by("x")
 
     # Cannot control what comes out of Polars when grouping, so check some kind of error
-    with pytest.raises(Exception):  # noqa: B017, PT011
+    with pytest.raises((IndexOutOfRangeError, OutOfBoundsError)):
         _ = df.slice0([1, 2])
 
-    with pytest.raises(Exception):  # noqa: B017, PT011
+    with pytest.raises((IndexOutOfRangeError, OutOfBoundsError)):
         _ = df.slice1([2, 3])
 
 
