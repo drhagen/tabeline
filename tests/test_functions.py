@@ -1,7 +1,6 @@
 import math
 
 import pytest
-from polars import PolarsPanicError
 
 from tabeline import DataFrame
 from tabeline.testing import assert_data_frame_equal
@@ -243,6 +242,21 @@ def test_quantile():
 @pytest.mark.parametrize(
     "values",
     [
+        [True, True],
+        [-1, -1],
+        ["aa", "aa"],
+        [None, None],
+    ],
+)
+def test_same(values):
+    df = DataFrame(x=values)
+    actual = df.mutate(x="same(x)")
+    assert actual == actual
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
         [True, True, False],
         [-1, -1, 2],
         ["aa", "aa", "bb"],
@@ -252,18 +266,28 @@ def test_quantile():
         xfail_param([None, None, None]),
     ],
 )
-def test_same(values):
+def test_same_group_by(values):
     df = DataFrame(a=[0, 0, 1], x=values)
     actual = df.group_by("a").summarize(x="same(x)")
     expected = DataFrame(a=[0, 1], x=values[1:])
     assert actual == expected
 
 
-@pytest.mark.parametrize("values", [[0, 1, 2], [0.0, 1.0, 2.0], ["a", "b", "c"], [1, None, 2]])
+@pytest.mark.parametrize("values", [[0, 1], [0.0, 1.0], ["a", "b"], [1, None]])
 def test_same_error(values):
+    df = DataFrame(x=values)
+    # BaseException because Polars eats the SameError and raises a PyO3 PanicException,
+    # which does not inherit from Exception and is not part of the Polars API.
+    with pytest.raises(BaseException):  # noqa: B017, PT011
+        _ = df.mutate(x="same(x)")
+
+
+@pytest.mark.parametrize("values", [[0, 1, 2], [0.0, 1.0, 2.0], ["a", "b", "c"], [1, None, 2]])
+def test_same_error_group_by(values):
     df = DataFrame(a=[0, 0, 1], x=values)
-    # PanicException because Polars eats the SameError
-    with pytest.raises(PolarsPanicError):
+    # BaseException because Polars eats the SameError and raises a PyO3 PanicException,
+    # which does not inherit from Exception and is not part of the Polars API.
+    with pytest.raises(BaseException):  # noqa: B017, PT011
         _ = df.group_by("a").summarize(x="same(x)")
 
 
