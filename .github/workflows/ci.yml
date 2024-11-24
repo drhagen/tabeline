@@ -7,15 +7,15 @@ on:
       - master
 
 env:
-  python-version: "3.10"
-  poetry-version: "1.7.1"
+  python-version: "3.9"
+  poetry-version: "1.8.4"
 
 jobs:
   test:
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
-    runs-on: ubuntu-22.04
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -42,14 +42,14 @@ jobs:
           if-no-files-found: error
   coverage:
     needs: test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Install Poetry
         run: pipx install poetry==${{ env.poetry-version }}
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.python-version }}
           cache: poetry
@@ -68,7 +68,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -84,7 +84,7 @@ jobs:
       - name: Run code quality checks
         run: poetry run nox -s lint
   poetry-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
