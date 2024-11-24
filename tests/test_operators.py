@@ -22,6 +22,9 @@ interesting_numbers = [1, 0, -5, 1.0, 0.0, -0.0, -15.3, math.inf, -math.inf, mat
     ],
 )
 def test_numeric_operators(left, right, operator, comparer):
+    if operator == "**" and right == -5 and isinstance(left, int):
+        pytest.xfail("Polars does not support integers to the power of a negative integer")
+
     df = DataFrame(left=[left], right=[right])
     actual = df.transmute(output=f"left {operator} right")
 
