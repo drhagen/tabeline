@@ -471,8 +471,8 @@ class DataFrame:
         column_set = set(columns)
         all_columns = [column for column in self.column_names if column not in column_set]
 
-        df = self._df.melt(
-            id_vars=all_columns, value_vars=list(columns), variable_name=key, value_name=value
+        df = self._df.unpivot(
+            index=all_columns, on=list(columns), variable_name=key, value_name=value
         )
 
         return DataFrame(df, self.group_levels).group_by(key)
