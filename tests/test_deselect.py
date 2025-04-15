@@ -47,12 +47,12 @@ def test_deselect_columns(
     expected_columns: list[str],
     test_columns: dict[str, Any],
 ):
-    df = DataFrame(**{name: full_columns[name] for name in input_columns})
+    df = DataFrame(**{name: test_columns[name] for name in input_columns})
     actual = df.deselect(*deselectors)
     if len(expected_columns) == 0:
         expected = DataFrame.columnless(height=df.height)
     else:
-        expected = DataFrame(**{name: full_columns[name] for name in expected_columns})
+        expected = DataFrame(**{name: test_columns[name] for name in expected_columns})
     assert actual == expected
 
 

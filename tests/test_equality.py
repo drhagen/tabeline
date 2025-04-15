@@ -1,3 +1,5 @@
+import math
+
 from tabeline import DataFrame
 
 
@@ -81,3 +83,19 @@ def test_grouped_data_frames_with_different_levels_are_not_equal():
         x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9]
     ).group_by("y")
     assert first != second
+
+
+def test_null_equal_to_null():
+    assert DataFrame(x=[0.0, 1.0, None]) == DataFrame(x=[0.0, 1.0, None])
+
+
+def test_nan_equal_to_nan():
+    assert DataFrame(x=[0.0, 1.0, math.nan]) == DataFrame(x=[0.0, 1.0, math.nan])
+
+
+def test_null_not_equal_to_nan():
+    assert DataFrame(x=[0.0, 1.0, None]) != DataFrame(x=[0.0, 1.0, math.nan])
+
+
+def test_value_not_equal_to_null():
+    assert DataFrame(x=[0.0, 1.0, None]) != DataFrame(x=[0.0, 1.0, 2.0])

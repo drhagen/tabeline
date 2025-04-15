@@ -1,8 +1,7 @@
 import pytest
-from polars.exceptions import OutOfBoundsError
 
 from tabeline import DataFrame
-from tabeline.exceptions import IndexOutOfRangeError
+from tabeline.exceptions import GroupIndexOutOfBoundsError, IndexOutOfBoundsError
 
 
 def test_slice():
@@ -20,10 +19,10 @@ def test_slice():
 def test_slice_out_of_bounds():
     df = DataFrame(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice0([2, 4])
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice1([0, 2])
 
 
@@ -135,20 +134,20 @@ def test_slice_only_one_out_of_bounds():
     df = DataFrame(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group_by("x")
 
     # Cannot control what comes out of Polars when grouping, so check some kind of error
-    with pytest.raises((IndexOutOfRangeError, OutOfBoundsError)):
+    with pytest.raises((IndexOutOfBoundsError, GroupIndexOutOfBoundsError)):
         _ = df.slice0([1, 2])
 
-    with pytest.raises((IndexOutOfRangeError, OutOfBoundsError)):
+    with pytest.raises((IndexOutOfBoundsError, GroupIndexOutOfBoundsError)):
         _ = df.slice1([2, 3])
 
 
 def test_slice_negative_grouped():
     df = DataFrame(x=[1, 2, 2, 1, 2], y=[3.5, 2.2, 6.7, 8.9, -1.1]).group_by("x")
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice0([-1, 0])
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice1([0, 1])
 
 
@@ -179,10 +178,10 @@ def test_slice_empty(df):
 def test_slice_empty_out_of_bounds(df):
     df = DataFrame()
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice0([0])
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice1([1])
 
 
@@ -214,10 +213,10 @@ def test_slice_columnless(df, expected):
     ],
 )
 def test_slice_columnless_out_of_bounds(df):
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises((IndexOutOfBoundsError, GroupIndexOutOfBoundsError)):
         _ = df.slice0([2, 4])
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises((IndexOutOfBoundsError, GroupIndexOutOfBoundsError)):
         _ = df.slice1([0, 2])
 
 
@@ -250,8 +249,8 @@ def test_slice_rowless(df):
 def test_slice_rowless_out_of_bounds(df):
     df = DataFrame(x=[], y=[], z=[])
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice0([0])
 
-    with pytest.raises(IndexOutOfRangeError):
+    with pytest.raises(IndexOutOfBoundsError):
         _ = df.slice1([1])

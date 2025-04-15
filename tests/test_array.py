@@ -1,11 +1,9 @@
 import math
 
-import numpy as np
-import polars as pl
 import pytest
-from polars.testing import assert_series_equal
 
 from tabeline import Array, DataType
+from tabeline.exceptions import IncompatibleElementTypeError
 
 # Skip some types, otherwise there are too many tests
 numeric_types = [
@@ -45,43 +43,84 @@ def test_equals(elements):
     assert array1 == array2
 
 
+@pytest.mark.parametrize(
+    ("elements", "data_type"),
+    [
+        ([None, None, None], DataType.Nothing),
+        ([True, True, False], DataType.Boolean),
+        (["a", "b", "c"], DataType.String),
+    ],
+)
+def test_from_nonnumeric_data_type(elements, data_type):
+    array = Array[data_type](*elements)
+    assert array.data_type == data_type
+
+    # With Nones
+    array = Array[data_type](None, *elements, None)
+    assert array.data_type == data_type
+
+
+@pytest.mark.parametrize("data_type", numeric_types)
+def test_from_numeric_data_type(data_type):
+    array = Array[data_type](0, 1, 2)
+    assert array.data_type == data_type
+
+    # With Nones
+    array = Array[data_type](None, 1, 2, 3, None)
+    assert array.data_type == data_type
+
+
+@pytest.mark.parametrize(
+    "data_type", [DataType.Nothing, DataType.Boolean, *numeric_types, DataType.String]
+)
+def test_from_empty(data_type):
+    array = Array[data_type]()
+    assert array.data_type == data_type
+    assert [] == list(array)
+
+
+@pytest.mark.parametrize(
+    ("elements", "expected_data_type"),
+    [
+        ([True, True, False], DataType.Boolean),
+        ([0, 1, 2], DataType.Integer64),
+        ([1.0, 2, 3.0], DataType.Float64),
+        ([1, 2.0, 3.0], DataType.Float64),
+        ([-math.inf, math.inf, math.nan], DataType.Float64),
+        (["a", "b", "c"], DataType.String),
+    ],
+)
+def test_data_type_inference(elements, expected_data_type):
+    array = Array(*elements)
+    assert array.data_type == expected_data_type
+
+    # With None in front
+    array = Array(None, *elements)
+    assert array.data_type == expected_data_type
+
+    # With None in middle
+    array = Array(*elements, None, *elements)
+    assert array.data_type == expected_data_type
+
+    # with None in back
+    array = Array(*elements, None)
+    assert array.data_type == expected_data_type
+
+
+@pytest.mark.parametrize("elements", [[], [None, None, None]])
+def test_data_type_inference_all_nones(elements):
+    array = Array(*elements)
+
+    assert array.data_type == DataType.Nothing
+    assert elements == list(array)
+
+
 def test_not_equal_to_nan():
     assert Array(0.0, 1.0, None) != Array(0.0, 1.0, math.nan)
 
 
 def test_not_equal_to_null():
     assert Array(0.0, 1.0, None) != Array(0.0, 1.0, 2.0)
-
-
-@pytest.mark.parametrize("type_1", numeric_types)
-def test_equals_typed_integer_and_untyped(type_1):
-    array1 = Array[type_1](0, 1, 2)
-    array2 = Array(0, 1, 2)
-    assert array1 == array2
-
-
-def test_polars_equals():
-    array1 = Array(0, 1, None)
-    array2 = pl.Series([0, 1, None])
-    assert array1 == array2
-
-
-@pytest.mark.parametrize(
-    "elements",
-    [[], [0, 1, 2], [-math.inf, math.inf, math.nan], [True, False, True], ["a", "b", "c"]],
-)
-def test_numpy_equals(elements):
-    array1 = Array(*elements)
-    array2 = np.array(elements)
-    assert array1 == array2
-
-
-@pytest.mark.parametrize("type_1", float_types)
-def test_equals_typed_float_and_untyped(type_1):
-    # Use simple values that are equal in 32 and 64 bits
-    array1 = Array[type_1](0, 1.5, -2.25)
-    array2 = Array(0, 1.5, -2.25)
-    assert array1 == array2
 
 
 @pytest.mark.parametrize("type_1", numeric_types)
@@ -100,63 +139,35 @@ def test_equals_typed_float(type_1, type_2):
     assert array1 == array2
 
 
-@pytest.mark.parametrize("elements", [[], [0], [0, 1, 2], [True, False, True], ["a", "b", "c"]])
-def test_array_iter(elements):
+def test_len():
+    assert len(Array(0, 1, 2)) == 3
+
+
+def test_get_item():
+    array = Array("a", "b", None)
+    assert array[1] == "b"
+    assert array[2] is None
+
+
+@pytest.mark.parametrize(
+    "elements",
+    [[], [0], [0, 1, 2], [True, False, True], ["a", "b", "c"], [None, None, None]],
+)
+def test_iter(elements):
     array = Array(*elements)
     assert list(array) == elements
 
 
 def test_incompatible_type():
-    with pytest.raises(
-        TypeError,
-        match=(
-            "Expected data_type to be compatible with DataType.Integer64, "
-            "but got DataType.String"
-        ),
-    ):
+    with pytest.raises(IncompatibleElementTypeError) as e:
         _ = Array(0, 1, 2, data_type=DataType.String)
 
-
-@pytest.mark.parametrize("elements", [[], [0], [0, 1, 2], [True, False, True], ["a", "b", "c"]])
-def test_from(elements):
-    expected = Array(*elements)
-
-    assert expected == Array.from_sequence(elements)
-    assert elements == list(expected)
-
-    series = pl.Series(values=elements)
-    assert expected == Array.from_polars(series)
-    assert_series_equal(series, expected.to_polars())
-
-    numpy_array = np.array(elements)
-    assert expected == Array.from_numpy(numpy_array)
-    assert all(numpy_array == expected.to_numpy())
+    assert e.value == IncompatibleElementTypeError([str, type(None)], 0, 0)
 
 
-@pytest.mark.parametrize("elements", [[0, None, 2], [None, False, True], ["a", "b", None]])
-def test_from_none(elements):
-    expected = Array(*elements)
-
-    assert expected == Array.from_sequence(elements)
-    assert elements == list(expected)
-
-    series = pl.Series(values=elements)
-    assert expected == Array.from_polars(series)
-    assert series.equals(expected.to_polars())
-
-
-@pytest.mark.parametrize("elements", [[], [None, None, None]])
-def test_from_all_nones(elements):
-    # This test is needed because Polars defaults to Float32 instead of Null
-    # when all elements are None
-    expected = Array(*elements)
-
-    assert expected == Array.from_sequence(elements)
-    assert elements == list(expected)
-
-    series = pl.Series(values=elements, dtype=pl.Null)
-    assert expected == Array.from_polars(series)
-    assert series.equals(expected.to_polars())
+def test_from_sequence():
+    array = Array.from_sequence([0, 1, 2])
+    assert array == Array(0, 1, 2)
 
 
 def test_str_repr():

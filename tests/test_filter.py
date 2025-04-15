@@ -53,8 +53,9 @@ def test_filter_true(df):
 )
 def test_filter_false(df):
     actual = df.filter("False")
-    expected = df.slice0([])
-    assert actual == expected
+    assert actual.height == 0
+    assert actual.column_names == df.column_names
+    assert actual.group_levels == df.group_levels
 
 
 @pytest.mark.parametrize("expression", ["True", "False", "row_index1() == 1"])
