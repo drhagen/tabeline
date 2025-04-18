@@ -67,11 +67,17 @@ uv run mkdocs gh-deploy
 
 ## Making a release
 
-1. Tag
+1. Bump
+    1. Increment version in `Cargo.toml`
+    2. Run `cargo check` to update `Cargo.lock`
+    2. Commit with message "Bump version number to X.Y.Z"
+    3. Push commit to GitHub
+    4. Check CI to ensure all tests pass
+2. Tag
     1. Tag commit with "vX.Y.Z"
     2. Push tag to GitHub
     3. Wait for [build](https://github.com/drhagen/tabeline/actions/workflows/release.yml) to finish
     4. Check [PyPI](https://pypi.org/project/tabeline/) for good upload
-2. Document
+3. Document
     1. Create [GitHub release](https://github.com/drhagen/tabeline/releases) with name "Tabeline X.Y.Z" and major changes in body
     2. If appropriate, deploy updated docs
