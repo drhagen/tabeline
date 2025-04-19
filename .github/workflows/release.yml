@@ -67,15 +67,11 @@ jobs:
           merge-multiple: true
       - name: Check that the tag version matches the build version
         run: |
-          ls -al .
+          # Show all files to be uploaded
           ls -al dist
-          echo ${{ github.ref_name }}
           # Turn "v1.2.3" into "1.2.3"
           version="$(echo ${{ github.ref_name }} | cut -c 2-)"
-          echo $version
           # See if an sdist with that version was built
           test -f "dist/tabeline-${version}.tar.gz"
       - name: Upload distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
