@@ -92,16 +92,15 @@ def test_distinct_on_rowless(columns, df):
 
 
 @pytest.mark.parametrize(
-    ("df", "expected"),
+    "df",
     [
-        (DataFrame.columnless(height=6), DataFrame.columnless(height=1)),
-        (DataFrame.columnless(height=6).group_by(), DataFrame.columnless(height=1).group_by()),
-        (
-            DataFrame.columnless(height=6).group_by().group_by(),
-            DataFrame.columnless(height=1).group_by().group_by(),
-        ),
+        DataFrame.columnless(height=6),
+        DataFrame.columnless(height=6).group_by(),
+        DataFrame.columnless(height=6).group_by().group_by(),
     ],
 )
-def test_distinct_on_columnless(df, expected):
+def test_distinct_on_columnless(df):
     actual = df.distinct()
-    assert actual == expected
+    assert actual.height == 1
+    assert actual.width == 0
+    assert actual.group_levels == df.group_levels

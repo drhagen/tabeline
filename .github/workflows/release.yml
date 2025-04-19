@@ -5,29 +5,73 @@ on:
     tags:
       - 'v*'
 
-env:
-  python-version: "3.9"
-  poetry-version: "1.8.4"
-
 jobs:
+  wheels:
+    name: Build wheels
+    strategy:
+      matrix:
+        platform:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-13
+          - macos-15
+          - windows-2025
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: -o dist/ --release -i python3.10 -i python3.11 -i python3.12 -i python3.13
+          sccache: true
+      - name: Store wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-wheels-${{ matrix.platform }}
+          path: dist
+          if-no-files-found: error
+
+  sdist:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: -o dist/
+          sccache: true
+      - name: Store sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-sdist
+          path: dist
+        
   pypi-publish:
-    name: Publish release to PyPI
+    needs: [wheels, sdist]
     runs-on: ubuntu-24.04
     environment: release
     permissions:
       id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Install Poetry
-        run: pipx install poetry==${{ env.poetry-version }}
-      - name: Install Python
-        uses: actions/setup-python@v5
+      - name: Fetch dist artifacts
+        uses: actions/download-artifact@v4
         with:
-          python-version: ${{ env.python-version }}
-      - name: Build release with Poetry
-        run: poetry build
-      - name: Check that tag version and Poetry version match
-        run: '[[ "v$(poetry version --short)" == "${{ github.ref_name }}" ]]'
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+      - name: Check that the tag version matches the build version
+        run: |
+          # Show all files to be uploaded
+          ls -al dist
+          # Turn "v1.2.3" into "1.2.3"
+          version="$(echo ${{ github.ref_name }} | cut -c 2-)"
+          # See if an sdist with that version was built
+          test -f "dist/tabeline-${version}.tar.gz"
       - name: Upload distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

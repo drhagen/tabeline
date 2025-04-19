@@ -7,92 +7,111 @@ on:
       - master
 
 env:
-  python-version: "3.9"
-  poetry-version: "1.8.4"
+  uv-version: "0.6.14"
 
 jobs:
   test:
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-    runs-on: ubuntu-24.04
+        platform:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-13
+          - macos-15
+          - windows-2025
+        python:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Install Poetry
-        run: pipx install poetry==${{ env.poetry-version }}
-      - name: Install Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: poetry
-      - name: Install environment
-        run: poetry install
-      - name: Test with nox
-        run: >-
-          poetry run nox -s
-          test-${{ matrix.python-version }}
-          test_pandas-${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
+      - name: Build wheel
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: -o dist/ -i python${{ matrix.python }}
+          sccache: true
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.uv-version }}
+          enable-cache: true
+          cache-suffix: test
+      - name: Install dependencies
+        run: uv sync --locked --only-group nox
+      - name: Test
+        run: |
+          uv run --no-sync nox -s test-${{ matrix.python }} -- --use-dist
+      - name: Test Polars
+        run: |
+          uv run --no-sync nox -s test_polars-${{ matrix.python }} -- --use-dist
+      - name: Test Pandas
+        run: |
+          uv run --no-sync nox -s test_pandas-${{ matrix.python }} -- --use-dist
       - name: Store coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.python-version }}
+          name: coverage-${{ matrix.platform }}-${{ matrix.python }}
           path: .coverage.*
           include-hidden-files: true
           if-no-files-found: error
+
   coverage:
     needs: test
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Install Poetry
-        run: pipx install poetry==${{ env.poetry-version }}
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.python-version }}
-          cache: poetry
-      - name: Install environment
-        run: poetry install
       - name: Fetch coverage
         uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
           merge-multiple: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.uv-version }}
+          enable-cache: true
+          cache-suffix: coverage
+      - name: Install dependencies
+        run: uv sync --locked --only-group nox
       - name: Combine coverage and generate report
-        run: poetry run nox -s coverage
+        run: uv run --no-sync nox -s coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+
   lint:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Install Poetry
-        run: pipx install poetry==${{ env.poetry-version }}
-      - name: Install Python
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@65101d47ea8028ed0c98a1cdea8dd9182e9b5133
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.python-version }}
-          cache: poetry
-      - name: Install environment
-        run: poetry install
+          python-version-file: ".python-version"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.uv-version }}
+          enable-cache: true
+          cache-suffix: lint
+      - name: Install dependencies
+        run: uv sync --locked --only-group nox
       - name: Run code quality checks
-        run: poetry run nox -s lint
-  poetry-check:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-      - name: Install Poetry
-        run: pipx install poetry==${{ env.poetry-version }}
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.python-version }}
-      - name: Validate Poetry configuration and lockfile freshness
-        run: poetry lock --check
+        run: uv run --no-sync nox -s lint

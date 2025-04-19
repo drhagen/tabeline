@@ -53,5 +53,6 @@ def test_unique_rowless(df):
 )
 def test_unique_columnless(df):
     actual = df.unique()
-    expected = df.slice1([1])
-    assert actual == expected
+    assert actual.height == 1
+    assert actual.width == 0
+    assert actual.group_levels == df.group_levels

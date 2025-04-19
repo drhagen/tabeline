@@ -67,8 +67,9 @@ def test_summarize_empty(df):
 )
 def test_summarize_columnless(df):
     actual = df.summarize()
-    expected = df.slice0([0]).ungroup()
-    assert actual == expected
+    assert actual.height == 1
+    assert actual.column_names == ()
+    assert actual.group_levels == df.group_levels[:-1]
 
 
 @pytest.mark.parametrize(

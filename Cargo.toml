@@ -1,0 +1,15 @@
+[package]
+name = "tabeline"
+version = "0.6.0-alpha-1"
+edition = "2021"
+
+[lib]
+name = "_tabeline"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.23.3"
+arrow = { version = "54" }
+polars = { version = "0.46.0", features = ["lazy", "pivot", "csv", "abs", "log", "round_series", "trigonometry", "range", "dtype-i8", "dtype-i16", "dtype-u8", "dtype-u16"] }
+polars-arrow = { version = "0.46.0" }
+thiserror = "2"
