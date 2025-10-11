@@ -901,9 +901,9 @@ impl PyDataFrame {
         })
     }
 
-    fn to_pyarrow_record_batches(&self) -> PyResult<Vec<PyObject>> {
+    fn to_pyarrow_record_batches(&self) -> PyResult<Vec<Py<PyAny>>> {
         // Inspired by polars_python::dataframe::PyDataFrame::to_pandas
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let pyarrow = py.import("pyarrow")?;
 
             let rbs = self

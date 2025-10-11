@@ -8,10 +8,9 @@ name = "_tabeline"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.23.3"
+pyo3 = "0.26"
 arrow = { version = "56" }
 # WORKAROUND: dtype-array only needed to workaround Polars bug
 # https://github.com/pola-rs/polars/issues/24844
 polars = { version = "0.51.0", features = ["lazy", "pivot", "csv", "abs", "log", "round_series", "trigonometry", "range", "dtype-i8", "dtype-i16", "dtype-u8", "dtype-u16", "dtype-array"] }
 polars-arrow = { version = "0.51.0" }
-thiserror = "2"
