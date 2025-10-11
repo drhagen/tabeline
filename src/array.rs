@@ -203,7 +203,7 @@ impl PyArray {
     }
 
     #[pyo3(signature = ())]
-    fn to_pyarrow_array(&self) -> PyResult<PyObject> {
+    fn to_pyarrow_array(&self) -> PyResult<Py<PyAny>> {
         // Convert Column to contiguous Series
         let series = self
             .polars_column
@@ -215,7 +215,7 @@ impl PyArray {
         let array = series.to_arrow(0, CompatLevel::oldest());
         let field = series.field().to_arrow(CompatLevel::oldest());
 
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let pyarrow = py.import("pyarrow")?;
 
             let pyarrow_array = pyarrow_array_from_polars_arrow_array(&pyarrow, array, &field)?;

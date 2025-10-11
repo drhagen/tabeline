@@ -6,7 +6,7 @@ use pyo3::{exceptions::PyTypeError, prelude::*};
 #[derive(Debug)]
 pub struct IncompatibleTypeError {
     pub expected_type: DataType,
-    pub item: PyObject,
+    pub item: Py<PyAny>,
     pub location: usize,
 }
 
@@ -26,7 +26,7 @@ impl IncompatibleTypeError {
     #[new]
     pub fn __new__(
         expected_type: DataType,
-        item: PyObject,
+        item: Py<PyAny>,
         location: usize,
     ) -> PyClassInitializer<Self> {
         PyClassInitializer::from(Self {
