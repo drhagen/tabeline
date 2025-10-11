@@ -12,7 +12,7 @@ pub struct Trapz {
     pub y: Arc<Expression>,
 }
 
-fn compute_trapz(args: &mut [Column]) -> PolarsResult<Option<Column>> {
+fn compute_trapz(args: &mut [Column]) -> PolarsResult<Column> {
     let t = &args[0];
     let t = t.f64()?;
 
@@ -44,11 +44,11 @@ fn compute_trapz(args: &mut [Column]) -> PolarsResult<Option<Column>> {
 
     // Return null on null values in y
     if y.is_null().any() {
-        return Ok(Some(Column::new_scalar(
+        return Ok(Column::new_scalar(
             "".into(),
             Scalar::new(DataType::Float64, AnyValue::Null),
             1,
-        )));
+        ));
     }
 
     // Compute trapezoid rule
@@ -62,19 +62,22 @@ fn compute_trapz(args: &mut [Column]) -> PolarsResult<Option<Column>> {
         sum += (x1 - x0) * (y0 + y1);
     }
 
-    Ok(Some(Column::new_scalar(
+    Ok(Column::new_scalar(
         "".into(),
         Scalar::new(DataType::Float64, AnyValue::Float64(0.5 * sum)),
         1,
-    )))
+    ))
 }
 
 impl Function for Trapz {
     fn to_polars(&self) -> Expr {
         apply_multiple(
             compute_trapz,
-            &[self.t.to_polars(), self.y.to_polars()],
-            GetOutput::default(),
+            &[
+                self.t.to_polars().cast(DataType::Float64),
+                self.y.to_polars().cast(DataType::Float64),
+            ],
+            |_, fields| Ok(fields[0].clone()),
             true,
         )
     }

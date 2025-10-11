@@ -7,7 +7,7 @@ use polars::prelude::*;
 use super::Function;
 use crate::expression::Expression;
 
-fn interpolate(args: &mut [Column]) -> PolarsResult<Option<Column>> {
+fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
     let t = &args[0];
     let t = t.f64()?;
 
@@ -92,7 +92,7 @@ fn interpolate(args: &mut [Column]) -> PolarsResult<Option<Column>> {
         }
     }
 
-    Ok(Some(Column::new("".into(), result)))
+    Ok(Column::new("".into(), result))
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -111,7 +111,7 @@ impl Function for Interp {
                 self.ts.to_polars().cast(DataType::Float64),
                 self.ys.to_polars().cast(DataType::Float64),
             ],
-            GetOutput::default(),
+            |_, fields| Ok(fields[0].clone()),
             true,
         )
     }

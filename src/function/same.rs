@@ -7,7 +7,7 @@ use polars::prelude::*;
 use super::Function;
 use crate::expression::Expression;
 
-fn same(args: &mut [Column]) -> PolarsResult<Option<Column>> {
+fn same(args: &mut [Column]) -> PolarsResult<Column> {
     let column = &args[0];
 
     if column.n_unique()? == 1 {
@@ -22,7 +22,7 @@ fn same(args: &mut [Column]) -> PolarsResult<Option<Column>> {
 
         let col = Column::new_scalar("".into(), Scalar::new(column.dtype().clone(), val), 1);
 
-        Ok(Some(col))
+        Ok(col)
     } else {
         let unique_elements = column.unique()?;
         Err(PolarsError::ComputeError(
@@ -47,7 +47,7 @@ impl Function for Same {
         apply_multiple(
             same,
             &[self.argument.to_polars()],
-            GetOutput::default(),
+            |_, fields| Ok(fields[0].clone()),
             true,
         )
     }
