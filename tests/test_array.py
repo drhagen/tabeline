@@ -149,6 +149,12 @@ def test_get_item():
     assert array[2] is None
 
 
+def test_get_one_item():
+    # Polars behaves differently on single-element string arrays
+    array = Array("a")
+    assert array[0] == "a"
+
+
 @pytest.mark.parametrize(
     "elements",
     [[], [0], [0, 1, 2], [True, False, True], ["a", "b", "c"], [None, None, None]],
