@@ -40,12 +40,12 @@ Repository = "https://github.com/drhagen/tabeline"
 pandas = [
     "pandas == 2.*",
     "numpy",
-    "pyarrow == 19.*",
+    "pyarrow == 21.*",
 ]
 
 polars = [
     "polars == 1.*",
-    "pyarrow == 19.*",
+    "pyarrow == 21.*",
 ]
 
 [dependency-groups]
