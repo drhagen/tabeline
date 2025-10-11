@@ -3188,7 +3188,6 @@ dependencies = [
  "polars",
  "polars-arrow",
  "pyo3",
- "thiserror",
 ]
 
 [[package]]

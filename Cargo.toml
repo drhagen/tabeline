@@ -14,4 +14,3 @@ arrow = { version = "56" }
 # https://github.com/pola-rs/polars/issues/24844
 polars = { version = "0.51.0", features = ["lazy", "pivot", "csv", "abs", "log", "round_series", "trigonometry", "range", "dtype-i8", "dtype-i16", "dtype-u8", "dtype-u16", "dtype-array"] }
 polars-arrow = { version = "0.51.0" }
-thiserror = "2"
