@@ -14,7 +14,7 @@ pub struct Log {
 
 impl Function for Log {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().log(E)
+        self.argument.to_polars().log(Expr::from(E))
     }
 
     fn substitute(
@@ -46,7 +46,7 @@ pub struct Log2 {
 
 impl Function for Log2 {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().log(2.0)
+        self.argument.to_polars().log(Expr::from(2.0))
     }
 
     fn substitute(
@@ -78,7 +78,7 @@ pub struct Log10 {
 
 impl Function for Log10 {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().log(10.0)
+        self.argument.to_polars().log(Expr::from(10.0))
     }
 
     fn substitute(
