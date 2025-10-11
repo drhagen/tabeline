@@ -114,6 +114,8 @@ impl From<AnyValue<'_>> for PyScalar {
             AnyValue::Float32(value) => PyScalar::Float(value as f64),
             AnyValue::Float64(value) => PyScalar::Float(value),
             AnyValue::String(value) => PyScalar::String(value.to_owned()),
+            // WORKAROUND: Series.from_iter generates owned strings when given a list of length 1
+            AnyValue::StringOwned(value) => PyScalar::String(value.into()),
             any_value => panic!("Unsupported data type: {:?}", any_value.dtype()),
         }
     }
