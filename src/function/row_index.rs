@@ -11,12 +11,7 @@ pub struct RowIndex0 {}
 
 impl Function for RowIndex0 {
     fn to_polars(&self) -> Expr {
-        int_range(
-            Expr::Literal(LiteralValue::Int64(0)),
-            len(),
-            1,
-            DataType::Int64,
-        )
+        int_range(Expr::from(0i64), len(), 1, DataType::Int64)
     }
 
     fn substitute(&self, _substitutions: &HashMap<&str, Expression>) -> Box<dyn Function> {
@@ -38,8 +33,8 @@ pub struct RowIndex1 {}
 impl Function for RowIndex1 {
     fn to_polars(&self) -> Expr {
         int_range(
-            Expr::Literal(LiteralValue::Int64(0)),
-            len() + Expr::Literal(LiteralValue::Int64(1)),
+            Expr::from(0i64),
+            len() + Expr::from(1i64),
             1,
             DataType::Int64,
         )

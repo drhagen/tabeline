@@ -17,6 +17,17 @@ def test_trapz():
     assert_data_frames_equal(actual, expected, relative_tolerance=relative_tolerance)
 
 
+def test_trapz_integers():
+    df = DataFrame(
+        id=[0, 0, 0, 1, 1, 1],
+        t=[2, 4, 5, 10, 11, 14],
+        y=[0, 1, 1, 2, 3, None],
+    )
+    actual = df.group_by("id").summarize(q="trapz(t, y)")
+    expected = DataFrame(id=[0, 1], q=[2.0, None])
+    assert_data_frames_equal(actual, expected, relative_tolerance=relative_tolerance)
+
+
 def test_trapz_not_sorted():
     df = DataFrame(id=[1, 1, 1], t=[2, 5, 4], y=[0, 1, 1])
 

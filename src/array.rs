@@ -158,7 +158,8 @@ impl PyArray {
         let out_column = self
             .polars_column
             .slice(start as i64, stop - start)
-            .gather_every(step, 0);
+            .gather_every(step, 0)
+            .unwrap();
         PyArray {
             polars_column: out_column,
         }

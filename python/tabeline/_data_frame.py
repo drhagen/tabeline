@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Literal, overload
 from ._array import Array, Element
 from ._expression import parse_expression, to_py_expression
 from ._record import Record
-from ._tabeline import PyDataFrame, PyExpression
+from ._tabeline import PyArray, PyDataFrame, PyExpression
 from .exceptions import IncompatibleLengthError
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 def py_data_frame_from_dict(columns: dict[str, Sequence[Element]]) -> PyDataFrame:
-    cleaned_columns: list[tuple[str, Array]] = []
+    cleaned_columns: list[tuple[str, PyArray]] = []
     height: int | None = None
     for name, elements in columns.items():
         match elements:

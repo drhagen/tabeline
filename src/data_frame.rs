@@ -173,6 +173,7 @@ impl PyDataFrame {
             .clone()
             .lazy()
             .select([all()
+                .as_expr()
                 .slice(start as i64, (stop - start) as i64)
                 .gather_every(step, 0)])
             .collect()
@@ -187,7 +188,7 @@ impl PyDataFrame {
     fn slice0(&self, indexes: Vec<i64>, py: Python) -> PyResult<PyDataFrame> {
         // WORKAROUND: Polars accepts negative indexes with no way to disable
         // this.
-        // WORAROUND: Polars allows slicing a rowless data frame with non-empty
+        // WORKAROUND: Polars allows slicing a rowless data frame with non-empty
         // indexes.
         // The check that each index is in 1 to height blocks both.
         for &index in &indexes {
@@ -330,32 +331,27 @@ impl PyDataFrame {
         self.validate_column_names_exist_vec(&column_names, py)?;
         self.validate_group_names_not_used(&column_names, py)?;
 
-        if column_names.is_empty() {
-            // WORKAROUND: Polars chokes on empty sort columns
-            // Empty sort is a noop
-            Ok(self.clone())
-        } else {
-            let flattened_groups: Vec<&str> = self.iter_group_names().collect();
+        let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
-            let polars_columns = columns.iter().map(col).collect::<Vec<_>>();
+        let polars_columns = columns.iter().map(col).collect::<Vec<_>>();
 
-            let polars_expression = all()
-                .sort_by(polars_columns, Default::default())
-                .over(flattened_groups.as_slice());
+        let polars_expression = all()
+            .as_expr()
+            .sort_by(polars_columns, Default::default())
+            .over(flattened_groups.as_slice());
 
-            let sorted_df = self
-                .polars_data_frame
-                .clone()
-                .lazy()
-                .select(&[polars_expression])
-                .collect()
-                .unwrap();
+        let sorted_df = self
+            .polars_data_frame
+            .clone()
+            .lazy()
+            .select(&[polars_expression])
+            .collect()
+            .unwrap();
 
-            Ok(PyDataFrame {
-                polars_data_frame: sorted_df,
-                group_levels: self.group_levels.clone(),
-            })
-        }
+        Ok(PyDataFrame {
+            polars_data_frame: sorted_df,
+            group_levels: self.group_levels.clone(),
+        })
     }
 
     #[pyo3(signature = (columns, /))]
@@ -378,9 +374,10 @@ impl PyDataFrame {
             .with_column(arange(0.into(), len(), 1, DataType::Int32).alias("_index"))
             .with_column(col("_index").min().over(window_columns))
             .select(&[all()
+                .as_expr()
                 .sort_by([col("_index")], Default::default())
                 .over(flattened_groups.as_slice())])
-            .drop(["_index"])
+            .drop(cols(["_index"]))
             .collect()
             .unwrap();
 
@@ -698,11 +695,8 @@ impl PyDataFrame {
             .clone()
             .lazy()
             .unpivot(UnpivotArgsDSL {
-                index: unpivot_columns.into_iter().map(|c| c.into()).collect(),
-                on: consumed_column_names
-                    .into_iter()
-                    .map(|c| c.into())
-                    .collect(),
+                index: cols(unpivot_columns),
+                on: cols(consumed_column_names),
                 variable_name: Some(key.clone().into()),
                 value_name: Some(value.into()),
             })
@@ -739,7 +733,7 @@ impl PyDataFrame {
                     validation: JoinValidation::ManyToMany,
                     suffix: None,
                     slice: None,
-                    join_nulls: true,
+                    nulls_equal: true,
                     coalesce: JoinCoalesce::CoalesceColumns,
                     maintain_order: MaintainOrderJoin::LeftRight,
                 },
@@ -774,7 +768,7 @@ impl PyDataFrame {
                     validation: JoinValidation::ManyToMany,
                     suffix: None,
                     slice: None,
-                    join_nulls: true,
+                    nulls_equal: true,
                     coalesce: JoinCoalesce::CoalesceColumns,
                     maintain_order: MaintainOrderJoin::LeftRight,
                 },
@@ -809,7 +803,7 @@ impl PyDataFrame {
                     validation: JoinValidation::ManyToMany,
                     suffix: None,
                     slice: None,
-                    join_nulls: true,
+                    nulls_equal: true,
                     coalesce: JoinCoalesce::CoalesceColumns,
                     maintain_order: MaintainOrderJoin::LeftRight,
                 },
@@ -842,7 +836,7 @@ impl PyDataFrame {
             self.polars_data_frame
                 .clone()
                 .lazy()
-                .drop_no_validate([DUMMY_NAME])
+                .drop(cols([DUMMY_NAME]))
                 .collect()
                 .unwrap()
         )
@@ -1076,21 +1070,19 @@ impl PyDataFrame {
                 .collect();
             non_group_columns.push("_index");
 
-            let result = self
-                .polars_data_frame
-                .clone()
-                .lazy()
-                .with_column(arange(0.into(), len(), 1, DataType::Int32).alias("_index"))
-                .group_by_stable(flattened_groups)
-                .agg([
-                    all().gather(Expr::Literal(LiteralValue::Series(SpecialEq::new(
-                        Series::new("".into(), &indexes),
-                    )))),
-                ])
-                .explode(non_group_columns)
-                .sort(["_index"], Default::default())
-                .drop(["_index"])
-                .collect();
+            let result =
+                self.polars_data_frame
+                    .clone()
+                    .lazy()
+                    .with_column(arange(0.into(), len(), 1, DataType::Int32).alias("_index"))
+                    .group_by_stable(flattened_groups)
+                    .agg([all().as_expr().gather(Expr::Literal(LiteralValue::Series(
+                        SpecialEq::new(Series::new("".into(), &indexes)),
+                    )))])
+                    .explode(cols(non_group_columns))
+                    .sort(["_index"], Default::default())
+                    .drop(cols(["_index"]))
+                    .collect();
 
             match result {
                 Ok(polars_data_frame) => Ok(PyDataFrame {

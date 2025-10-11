@@ -7,7 +7,7 @@ use polars::prelude::*;
 use super::Function;
 use crate::expression::Expression;
 
-fn interpolate(args: &mut [Column]) -> PolarsResult<Option<Column>> {
+fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
     let t = &args[0];
     let t = t.f64()?;
 
@@ -92,7 +92,7 @@ fn interpolate(args: &mut [Column]) -> PolarsResult<Option<Column>> {
         }
     }
 
-    Ok(Some(Column::new("".into(), result)))
+    Ok(Column::new("".into(), result))
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -104,21 +104,16 @@ pub struct Interp {
 
 impl Function for Interp {
     fn to_polars(&self) -> Expr {
-        self.t
-            .to_polars()
-            .cast(DataType::Float64)
-            .apply_many(
-                interpolate,
-                &[
-                    self.ts.to_polars().cast(DataType::Float64),
-                    self.ys.to_polars().cast(DataType::Float64),
-                ],
-                GetOutput::default(),
-            )
-            // WORKAROUND: Use first instead of FunctionFlags::RETURNS_SCALAR
-            // because that is broken when returning a null
-            // https://github.com/pola-rs/polars/issues/20679
-            .first()
+        apply_multiple(
+            interpolate,
+            &[
+                self.t.to_polars().cast(DataType::Float64),
+                self.ts.to_polars().cast(DataType::Float64),
+                self.ys.to_polars().cast(DataType::Float64),
+            ],
+            |_, fields| Ok(fields[0].clone()),
+            true,
+        )
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, Expression>) -> Box<dyn Function> {
