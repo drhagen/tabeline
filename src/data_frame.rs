@@ -188,7 +188,7 @@ impl PyDataFrame {
     fn slice0(&self, indexes: Vec<i64>, py: Python) -> PyResult<PyDataFrame> {
         // WORKAROUND: Polars accepts negative indexes with no way to disable
         // this.
-        // WORAROUND: Polars allows slicing a rowless data frame with non-empty
+        // WORKAROUND: Polars allows slicing a rowless data frame with non-empty
         // indexes.
         // The check that each index is in 1 to height blocks both.
         for &index in &indexes {
@@ -331,33 +331,27 @@ impl PyDataFrame {
         self.validate_column_names_exist_vec(&column_names, py)?;
         self.validate_group_names_not_used(&column_names, py)?;
 
-        if column_names.is_empty() {
-            // WORKAROUND: Polars chokes on empty sort columns
-            // Empty sort is a noop
-            Ok(self.clone())
-        } else {
-            let flattened_groups: Vec<&str> = self.iter_group_names().collect();
+        let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
-            let polars_columns = columns.iter().map(col).collect::<Vec<_>>();
+        let polars_columns = columns.iter().map(col).collect::<Vec<_>>();
 
-            let polars_expression = all()
-                .as_expr()
-                .sort_by(polars_columns, Default::default())
-                .over(flattened_groups.as_slice());
+        let polars_expression = all()
+            .as_expr()
+            .sort_by(polars_columns, Default::default())
+            .over(flattened_groups.as_slice());
 
-            let sorted_df = self
-                .polars_data_frame
-                .clone()
-                .lazy()
-                .select(&[polars_expression])
-                .collect()
-                .unwrap();
+        let sorted_df = self
+            .polars_data_frame
+            .clone()
+            .lazy()
+            .select(&[polars_expression])
+            .collect()
+            .unwrap();
 
-            Ok(PyDataFrame {
-                polars_data_frame: sorted_df,
-                group_levels: self.group_levels.clone(),
-            })
-        }
+        Ok(PyDataFrame {
+            polars_data_frame: sorted_df,
+            group_levels: self.group_levels.clone(),
+        })
     }
 
     #[pyo3(signature = (columns, /))]
