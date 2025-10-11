@@ -71,13 +71,12 @@ fn compute_trapz(args: &mut [Column]) -> PolarsResult<Option<Column>> {
 
 impl Function for Trapz {
     fn to_polars(&self) -> Expr {
-        self.t
-            .to_polars()
-            .apply_many(compute_trapz, &[self.y.to_polars()], GetOutput::default())
-            // WORKAROUND: Use first instead of FunctionFlags::RETURNS_SCALAR
-            // because that is broken when returning a null
-            // https://github.com/pola-rs/polars/issues/20679
-            .first()
+        apply_multiple(
+            compute_trapz,
+            &[self.t.to_polars(), self.y.to_polars()],
+            GetOutput::default(),
+            true,
+        )
     }
 
     fn substitute(

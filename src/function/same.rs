@@ -7,7 +7,9 @@ use polars::prelude::*;
 use super::Function;
 use crate::expression::Expression;
 
-fn same(column: Column) -> PolarsResult<Option<Column>> {
+fn same(args: &mut [Column]) -> PolarsResult<Option<Column>> {
+    let column = &args[0];
+
     if column.n_unique()? == 1 {
         let val = match column.get(0) {
             Ok(value) => value.into_static(),
@@ -41,13 +43,13 @@ pub struct Same {
 
 impl Function for Same {
     fn to_polars(&self) -> Expr {
-        self.argument
-            .to_polars()
-            .apply(same, Default::default())
-            // WORKAROUND: Use first instead of FunctionFlags::RETURNS_SCALAR
-            // because that is broken when returning a null
-            // https://github.com/pola-rs/polars/issues/20679
-            .first()
+        // Use apply_multiple because it is the only function that accepts returns_scalar
+        apply_multiple(
+            same,
+            &[self.argument.to_polars()],
+            GetOutput::default(),
+            true,
+        )
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, Expression>) -> Box<dyn Function> {
