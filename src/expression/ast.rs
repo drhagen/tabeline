@@ -118,8 +118,8 @@ impl Expression {
             Expression::Mod { left, right } => left.to_polars() % right.to_polars(),
             Expression::Power { left, right } => left.to_polars().pow(right.to_polars()),
             Expression::Call { call } => call.to_polars(),
-            Expression::Equal { left, right } => left.to_polars().eq(right.to_polars()),
-            Expression::NotEqual { left, right } => left.to_polars().neq(right.to_polars()),
+            Expression::Equal { left, right } => left.to_polars().eq_missing(right.to_polars()),
+            Expression::NotEqual { left, right } => left.to_polars().neq_missing(right.to_polars()),
             Expression::GreaterThanOrEqual { left, right } => {
                 left.to_polars().gt_eq(right.to_polars())
             }
