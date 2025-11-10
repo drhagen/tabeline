@@ -11,10 +11,9 @@ jobs:
     strategy:
       matrix:
         platform:
-          # Compile against glibc<=2.28 so it can be installed on Pixi
-          # https://github.com/prefix-dev/pixi/blob/main/crates/pixi_default_versions/src/lib.rs
-          - ubuntu-18.04
-          - ubuntu-18.04-arm
+          # Compile against oldest available Ubuntu to get an older glibc
+          - ubuntu-22.04
+          - ubuntu-22.04-arm
           - macos-13
           - macos-15
           - windows-2025
