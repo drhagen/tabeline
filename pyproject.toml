@@ -51,7 +51,7 @@ polars = [
 
 [dependency-groups]
 nox = [
-    "nox",
+    "nox-uv == 0.6.*",
 ]
 
 test = [
