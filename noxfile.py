@@ -54,7 +54,7 @@ def _install_group_environment(s: Session, group: str):
     )
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13"])
+@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"])
 def test(s: Session):
     _install_test_environment(s, extras=[])
 
@@ -62,7 +62,7 @@ def test(s: Session):
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest")
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13"])
+@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"])
 def test_polars(s: Session):
     _install_test_environment(s, extras=["polars"])
 
@@ -70,7 +70,7 @@ def test_polars(s: Session):
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests/test_polars.py")
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13"])
+@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"])
 def test_pandas(s: Session):
     _install_test_environment(s, extras=["pandas"])
 
