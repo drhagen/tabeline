@@ -7,7 +7,11 @@ options.default_venv_backend = "uv"
 options.sessions = ["test", "test_polars", "test_pandas", "coverage", "lint"]
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"], uv_groups=["test"])
+@session(
+    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
+    uv_groups=["test"],
+    uv_no_install_project=True,
+)
 def test(s: Session):
     if "--use-dist" in s.posargs:
         s.run(
@@ -20,12 +24,19 @@ def test(s: Session):
             "--no-deps",
             "tabeline",
         )
+    else:
+        s.run("uv", "pip", "install", "--no-deps", "-e", ".")
 
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest")
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"], uv_groups=["test"], uv_extras=["polars"])
+@session(
+    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
+    uv_groups=["test"],
+    uv_extras=["polars"],
+    uv_no_install_project=True,
+)
 def test_polars(s: Session):
     if "--use-dist" in s.posargs:
         s.run(
@@ -38,12 +49,19 @@ def test_polars(s: Session):
             "--no-deps",
             "tabeline",
         )
+    else:
+        s.run("uv", "pip", "install", "--no-deps", "-e", ".")
 
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}.polars"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests/test_polars.py")
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"], uv_groups=["test"], uv_extras=["pandas"])
+@session(
+    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
+    uv_groups=["test"],
+    uv_extras=["pandas"],
+    uv_no_install_project=True,
+)
 def test_pandas(s: Session):
     if "--use-dist" in s.posargs:
         s.run(
@@ -56,6 +74,8 @@ def test_pandas(s: Session):
             "--no-deps",
             "tabeline",
         )
+    else:
+        s.run("uv", "pip", "install", "--no-deps", "-e", ".")
 
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}.pandas"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests/test_pandas.py")
