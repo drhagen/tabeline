@@ -7,12 +7,12 @@ options.default_venv_backend = "uv"
 options.sessions = ["test", "test_polars", "test_pandas", "coverage", "lint"]
 
 
-@session(
-    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
-    uv_groups=["test"],
-    uv_no_install_project=True,
-)
-def test(s: Session):
+def _install_project(s: Session):
+    # There is no way to cache the build of the project in CI without using the
+    # official Maturin action. So CI separately builds the dist/ wheel and then
+    # Nox installs the project from that wheel.
+    # Furthermore, uv does not build the project when using editable installs,
+    # so we have to explicitly build the project in editable mode by default.
     if "--use-dist" in s.posargs:
         s.run(
             "uv",
@@ -25,8 +25,16 @@ def test(s: Session):
             "tabeline",
         )
     else:
-        s.run("uv", "pip", "install", "--no-deps", "-e", ".")
+        s.run("uv", "pip", "install", "--no-deps", "--no-build", "-e", ".")
 
+
+@session(
+    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
+    uv_groups=["test"],
+    uv_no_install_project=True,
+)
+def test(s: Session):
+    _install_project(s)
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest")
 
@@ -38,20 +46,7 @@ def test(s: Session):
     uv_no_install_project=True,
 )
 def test_polars(s: Session):
-    if "--use-dist" in s.posargs:
-        s.run(
-            "uv",
-            "pip",
-            "install",
-            "--reinstall-package=tabeline",
-            "--no-index",
-            "--find-links=dist/",
-            "--no-deps",
-            "tabeline",
-        )
-    else:
-        s.run("uv", "pip", "install", "--no-deps", "-e", ".")
-
+    _install_project(s)
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}.polars"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests/test_polars.py")
 
@@ -63,20 +58,7 @@ def test_polars(s: Session):
     uv_no_install_project=True,
 )
 def test_pandas(s: Session):
-    if "--use-dist" in s.posargs:
-        s.run(
-            "uv",
-            "pip",
-            "install",
-            "--reinstall-package=tabeline",
-            "--no-index",
-            "--find-links=dist/",
-            "--no-deps",
-            "tabeline",
-        )
-    else:
-        s.run("uv", "pip", "install", "--no-deps", "-e", ".")
-
+    _install_project(s)
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}.pandas"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests/test_pandas.py")
 
