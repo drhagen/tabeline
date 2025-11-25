@@ -112,6 +112,8 @@ The functions in this section mathematical operations on numbers. If these funct
 * `arctan(x)`: Inverse tangent of `x`
 * `floor(x)`: `x` rounded down to the nearest integer
 * `ceil(x)`: `x` rounded up to the nearest integer
+* `pmax(x, y, ...)`: Element-wise maximum across columns
+* `pmin(x, y, ...)`: Element-wise minimum across columns
 
 ### Numeric to boolean broadcast
 
