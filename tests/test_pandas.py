@@ -48,3 +48,23 @@ def test_pandas_conversion_rowless():
     actual = df.to_pandas()
     assert actual.shape == (0, 3)
     assert tuple(actual.columns) == ("x", "y", "z")
+
+
+def test_dataframe_constructor_accepts_numpy():
+    # Use an unusual dtype to ensure that it is preserved
+    numpy_array = np.array([1, 2, 3], dtype=np.int16)
+    df = tb.DataFrame(x=numpy_array)
+
+    array = df[:, "x"]
+    assert array == tb.Array(1, 2, 3, data_type=tb.DataType.Integer16)
+    assert array.data_type == tb.DataType.Integer16
+
+
+def test_dataframe_from_dict_accepts_numpy():
+    # Use an unusual dtype to ensure that it is preserved
+    numpy_array = np.array([1, 2, 3], dtype=np.int16)
+    df = tb.DataFrame.from_dict({"x": numpy_array})
+
+    array = df[:, "x"]
+    assert array == tb.Array(1, 2, 3, data_type=tb.DataType.Integer16)
+    assert array.data_type == tb.DataType.Integer16
