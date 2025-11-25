@@ -24,7 +24,7 @@ fn collect_elements_of_given_type<T>(
     data_type: DataType,
 ) -> PyResult<Column>
 where
-    for<'py> T: FromPyObject<'py>,
+    for<'py> T: FromPyObject<'py, 'py>,
     Series: FromIterator<Option<T>>,
 {
     let converted_elements = elements
@@ -39,7 +39,7 @@ where
                     Err(_) => Err(PyErr::from_value(
                         IncompatibleTypeError {
                             expected_type: data_type,
-                            item: item.into(),
+                            item: item.clone().into(),
                             location: i,
                         }
                         .into_bound_py_any(elements.py())?,

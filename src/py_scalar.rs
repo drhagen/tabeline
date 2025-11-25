@@ -1,5 +1,5 @@
 use polars::prelude::AnyValue;
-use pyo3::{exceptions::PyTypeError, prelude::*, types::PyNone, IntoPyObjectExt};
+use pyo3::{exceptions::PyTypeError, prelude::*, types::PyNone, Borrowed, IntoPyObjectExt};
 use std::fmt::Display;
 
 /**
@@ -59,8 +59,10 @@ impl Display for PyScalar {
     }
 }
 
-impl<'py> FromPyObject<'py> for PyScalar {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+impl<'py> FromPyObject<'_, 'py> for PyScalar {
+    type Error = PyErr;
+
+    fn extract(ob: Borrowed<'_, 'py, PyAny>) -> PyResult<Self> {
         if let Ok(val) = ob.extract::<bool>() {
             return Ok(PyScalar::Bool(val));
         }
