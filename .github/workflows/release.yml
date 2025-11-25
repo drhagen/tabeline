@@ -21,8 +21,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
