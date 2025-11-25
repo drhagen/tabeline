@@ -14,7 +14,7 @@ jobs:
           # Compile against oldest available Ubuntu to get an older glibc
           - ubuntu-22.04
           - ubuntu-22.04-arm
-          - macos-13
+          - macos-15-intel
           - macos-15
           - windows-2025
     runs-on: ${{ matrix.platform }}
