@@ -12,6 +12,14 @@ from ._record import Record
 from ._tabeline import PyArray, PyDataFrame, PyExpression
 from .exceptions import IncompatibleLengthError
 
+try:
+    from numpy import ndarray
+except ImportError:
+
+    class ndarray:  # noqa: N801
+        pass
+
+
 if TYPE_CHECKING:
     import pandas as pd
     import polars as pl
@@ -24,6 +32,8 @@ def py_data_frame_from_dict(columns: dict[str, Sequence[Element]]) -> PyDataFram
         match elements:
             case Array():
                 array = elements._py_array
+            case ndarray():
+                array = Array.from_numpy(elements)._py_array
             case _:
                 array = Array.from_sequence(elements)._py_array
 
