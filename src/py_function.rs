@@ -311,6 +311,32 @@ pub mod functions {
     }
 
     #[pyfunction]
+    #[pyo3(signature = (arg, *args))]
+    fn pmax(arg: &PyExpression, args: Vec<pyo3::PyRef<PyExpression>>) -> PyExpression {
+        let mut arguments: Vec<Arc<Expression>> = vec![Arc::new(arg.expression.clone())];
+        arguments.extend(args.iter().map(|a| Arc::new(a.expression.clone())));
+
+        PyExpression {
+            expression: Expression::Call {
+                call: Arc::new(function::PMax { arguments }),
+            },
+        }
+    }
+
+    #[pyfunction]
+    #[pyo3(signature = (arg, *args))]
+    fn pmin(arg: &PyExpression, args: Vec<pyo3::PyRef<PyExpression>>) -> PyExpression {
+        let mut arguments: Vec<Arc<Expression>> = vec![Arc::new(arg.expression.clone())];
+        arguments.extend(args.iter().map(|a| Arc::new(a.expression.clone())));
+
+        PyExpression {
+            expression: Expression::Call {
+                call: Arc::new(function::PMin { arguments }),
+            },
+        }
+    }
+
+    #[pyfunction]
     #[pyo3(signature = (condition, then_branch, else_branch = None))]
     fn if_else(
         condition: &PyExpression,
