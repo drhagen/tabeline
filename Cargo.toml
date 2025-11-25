@@ -8,9 +8,10 @@ name = "_tabeline"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.26"
-arrow = { version = "56" }
-# WORKAROUND: dtype-array only needed to workaround Polars bug
-# https://github.com/pola-rs/polars/issues/24844
-polars = { version = "0.51.0", features = ["lazy", "pivot", "csv", "abs", "log", "round_series", "trigonometry", "range", "dtype-i8", "dtype-i16", "dtype-u8", "dtype-u16", "dtype-array"] }
-polars-arrow = { version = "0.51.0" }
+pyo3 = "0.27"
+arrow = { version = "57" }
+# WORKAROUND: moment, timezones, and polars-expr are only needed due to dependency bugs in Polars
+# https://github.com/pola-rs/polars/issues/25492
+polars = { version = "0.52.0", features = ["lazy", "pivot", "csv", "abs", "log", "round_series", "trigonometry", "range", "dtype-i8", "dtype-i16", "dtype-u8", "dtype-u16", "moment", "timezones"] }
+polars-expr = { version = "0.52.0", features = ["dtype-array"] }
+polars-arrow = { version = "0.52.0" }
