@@ -1,93 +1,76 @@
-from __future__ import annotations
-
 import platform
 
-from nox import Session, options, parametrize, session
+from nox import Session, options, parametrize
+from nox_uv import session
 
+options.default_venv_backend = "uv"
 options.sessions = ["test", "test_polars", "test_pandas", "coverage", "lint"]
 
 
-def _install_test_environment(s: Session, extras: list[str]):
-    extras = [f"--extra={extra}" for extra in extras]
-
+def _install_project(s: Session):
+    # There is no way to cache the build of the project in CI without using the
+    # official Maturin action. So CI separately builds the dist/ wheel and then
+    # Nox installs the project from that wheel.
+    # Furthermore, uv does not build the project when using editable installs,
+    # so we have to explicitly build the project in editable mode by default.
     if "--use-dist" in s.posargs:
-        s.run_install(
-            "uv",
-            "sync",
-            f"--python={s.virtualenv.location}",
-            "--no-default-groups",
-            "--group=test",
-            *extras,
-            "--no-install-project",
-            env={"UV_PROJECT_ENVIRONMENT": s.virtualenv.location},
-        )
-        s.run_install(
+        s.run(
             "uv",
             "pip",
             "install",
-            f"--python={s.virtualenv.location}",
+            "--reinstall-package=tabeline",
             "--no-index",
             "--find-links=dist/",
             "--no-deps",
             "tabeline",
-            env={"UV_PROJECT_ENVIRONMENT": s.virtualenv.location},
         )
     else:
-        s.run_install(
-            "uv",
-            "sync",
-            f"--python={s.virtualenv.location}",
-            "--no-default-groups",
-            "--group=test",
-            *extras,
-            env={"UV_PROJECT_ENVIRONMENT": s.virtualenv.location},
-        )
+        s.run("uv", "pip", "install", "--no-deps", "--no-build", "-e", ".")
 
 
-def _install_group_environment(s: Session, group: str):
-    s.run_install(
-        "uv",
-        "sync",
-        f"--python={s.virtualenv.location}",
-        f"--only-group={group}",
-        env={"UV_PROJECT_ENVIRONMENT": s.virtualenv.location},
-    )
-
-
-@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"])
+@session(
+    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
+    uv_groups=["test"],
+    uv_no_install_project=True,
+)
 def test(s: Session):
-    _install_test_environment(s, extras=[])
-
+    _install_project(s)
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest")
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"])
+@session(
+    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
+    uv_groups=["test"],
+    uv_extras=["polars"],
+    uv_no_install_project=True,
+)
 def test_polars(s: Session):
-    _install_test_environment(s, extras=["polars"])
-
+    _install_project(s)
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}.polars"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests/test_polars.py")
 
 
-@session(python=["3.10", "3.11", "3.12", "3.13", "3.14"])
+@session(
+    python=["3.10", "3.11", "3.12", "3.13", "3.14"],
+    uv_groups=["test"],
+    uv_extras=["pandas"],
+    uv_no_install_project=True,
+)
 def test_pandas(s: Session):
-    _install_test_environment(s, extras=["pandas"])
-
+    _install_project(s)
     coverage_file = f".coverage.{platform.machine()}.{platform.system()}.{s.python}.pandas"
     s.run("coverage", "run", "--data-file", coverage_file, "-m", "pytest", "tests/test_pandas.py")
 
 
-@session()
+@session(uv_only_groups=["test"])
 def coverage(s: Session):
-    _install_group_environment(s, "test")
-
     s.run("coverage", "combine")
     s.run("coverage", "html")
     s.run("coverage", "xml")
 
 
-@session()
+@session(uv_only_groups=["lint"])
 @parametrize(
     "command",
     [
@@ -97,15 +80,11 @@ def coverage(s: Session):
     ],
 )
 def lint(s: Session, command: list[str]):
-    _install_group_environment(s, "lint")
-
     s.run(*command, external=True)
 
 
-@session()
+@session(uv_only_groups=["lint"])
 def format(s: Session):
-    _install_group_environment(s, "lint")
-
     s.run("ruff", "check", ".", "--select", "I", "--select", "RUF022", "--fix")
     s.run("ruff", "format", ".")
     s.run("cargo", "fmt", external=True)
