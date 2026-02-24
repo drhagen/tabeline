@@ -64,8 +64,9 @@ def test_values_equal(value):
     + [DataType.Boolean, DataType.String, DataType.Nothing],
 )
 def test_null_equal_null(dtype_left, dtype_right):
-    if dtype_left == DataType.String or dtype_right == DataType.String:
-        pytest.skip("Polars will not compare strings to numbers")
+    string_vs_nonstring = (dtype_left == DataType.String) != (dtype_right == DataType.String)
+    if string_vs_nonstring and dtype_left != DataType.Nothing and dtype_right != DataType.Nothing:
+        pytest.skip("Polars will not compare strings to non-strings")
 
     df = DataFrame(a=Array[dtype_left](None), b=Array[dtype_right](None))
 
