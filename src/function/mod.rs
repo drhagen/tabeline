@@ -37,30 +37,76 @@ pub use trapz::Trapz;
 pub use trigonometry::{ArcCos, ArcSin, ArcTan, Cos, Sin, Tan};
 
 use crate::expression::Expression;
-use std::{collections::HashMap, fmt::Debug};
+use crate::typed_expression::{DataFrameType, Function, ValidationError};
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+use std::sync::Arc;
 
-pub trait Function: Debug + Sync + Send + FunctionClone {
-    fn to_polars(&self) -> polars::lazy::dsl::Expr;
-    fn substitute(&self, substitutions: &HashMap<&str, Expression>) -> Box<dyn Function>;
-    fn as_any(&self) -> &dyn std::any::Any;
-    fn equals(&self, other: &dyn Function) -> bool;
-}
+type FunctionValidator =
+    fn(Vec<Arc<Expression>>, &DataFrameType) -> Result<Arc<dyn Function>, ValidationError>;
 
-pub trait FunctionClone {
-    fn clone_box(&self) -> Box<dyn Function>;
-}
+static FUNCTION_REGISTRY: Lazy<HashMap<&'static str, FunctionValidator>> = Lazy::new(|| {
+    let mut map = HashMap::new();
 
-impl<T> FunctionClone for T
-where
-    T: 'static + Function + Clone,
-{
-    fn clone_box(&self) -> Box<dyn Function> {
-        Box::new(self.clone())
-    }
-}
+    map.insert("sqrt", Sqrt::validate as FunctionValidator);
+    map.insert("exp", Exp::validate as FunctionValidator);
+    map.insert("pow", Pow::validate as FunctionValidator);
+    map.insert("abs", Abs::validate as FunctionValidator);
+    map.insert("log", Log::validate as FunctionValidator);
+    map.insert("log2", Log2::validate as FunctionValidator);
+    map.insert("log10", Log10::validate as FunctionValidator);
+    map.insert("ceil", Ceil::validate as FunctionValidator);
+    map.insert("floor", Floor::validate as FunctionValidator);
+    map.insert("sin", Sin::validate as FunctionValidator);
+    map.insert("cos", Cos::validate as FunctionValidator);
+    map.insert("tan", Tan::validate as FunctionValidator);
+    map.insert("arcsin", ArcSin::validate as FunctionValidator);
+    map.insert("arccos", ArcCos::validate as FunctionValidator);
+    map.insert("arctan", ArcTan::validate as FunctionValidator);
+    map.insert("is_finite", IsFinite::validate as FunctionValidator);
+    map.insert("is_nan", IsNan::validate as FunctionValidator);
+    map.insert("is_null", IsNull::validate as FunctionValidator);
+    map.insert("to_boolean", ToBoolean::validate as FunctionValidator);
+    map.insert("to_float", ToFloat::validate as FunctionValidator);
+    map.insert("to_integer", ToInteger::validate as FunctionValidator);
+    map.insert("to_string", ToString::validate as FunctionValidator);
+    map.insert("if_else", IfElse::validate as FunctionValidator);
+    map.insert("interp", Interp::validate as FunctionValidator);
+    map.insert("first", First::validate as FunctionValidator);
+    map.insert("last", Last::validate as FunctionValidator);
+    map.insert("all", All::validate as FunctionValidator);
+    map.insert("any", Any::validate as FunctionValidator);
+    map.insert("n", N::validate as FunctionValidator);
+    map.insert("pmax", PMax::validate as FunctionValidator);
+    map.insert("pmin", PMin::validate as FunctionValidator);
+    map.insert("max", Max::validate as FunctionValidator);
+    map.insert("min", Min::validate as FunctionValidator);
+    map.insert("row_index0", RowIndex0::validate as FunctionValidator);
+    map.insert("row_index1", RowIndex1::validate as FunctionValidator);
+    map.insert("same", Same::validate as FunctionValidator);
+    map.insert("mean", Mean::validate as FunctionValidator);
+    map.insert("median", Median::validate as FunctionValidator);
+    map.insert("quantile", Quantile::validate as FunctionValidator);
+    map.insert("std", Std::validate as FunctionValidator);
+    map.insert("sum", Sum::validate as FunctionValidator);
+    map.insert("var", Var::validate as FunctionValidator);
+    map.insert("trapz", Trapz::validate as FunctionValidator);
 
-impl PartialEq for dyn Function {
-    fn eq(&self, other: &Self) -> bool {
-        self.equals(other)
-    }
+    map
+});
+
+pub fn validate_function(
+    name: &str,
+    arguments: Vec<Arc<Expression>>,
+    df_type: &DataFrameType,
+) -> Result<Arc<dyn Function>, ValidationError> {
+    let validator =
+        FUNCTION_REGISTRY
+            .get(name)
+            .ok_or_else(|| ValidationError::UnknownFunction {
+                name: name.to_string(),
+                available: FUNCTION_REGISTRY.keys().map(|&s| s.to_string()).collect(),
+            })?;
+
+    validator(arguments, df_type)
 }

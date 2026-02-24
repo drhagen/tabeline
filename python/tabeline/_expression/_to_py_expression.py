@@ -2,7 +2,7 @@ __all__ = ["to_py_expression"]
 
 from functools import singledispatch
 
-from .._tabeline import PyExpression, functions
+from .._tabeline import PyExpression
 from . import ast
 
 
@@ -78,7 +78,7 @@ def _(expression: ast.FloorDivide) -> PyExpression:
 
 @to_py_expression.register
 def _(expression: ast.Call) -> PyExpression:
-    return getattr(functions, expression.name)(*map(to_py_expression, expression.arguments))
+    return PyExpression.call(expression.name, [to_py_expression(arg) for arg in expression.arguments])
 
 
 @to_py_expression.register

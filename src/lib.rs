@@ -10,6 +10,7 @@ mod py_expression;
 mod py_function;
 mod py_scalar;
 mod testing;
+pub mod typed_expression;
 mod workarounds;
 
 pub use array::PyArray;
@@ -18,8 +19,11 @@ pub use data_frame::PyDataFrame;
 pub use data_type::DataType;
 pub use error::{
     ArraysNotEqualError, ColumnAlreadyExistsError, DataFramesNotEqualError, DuplicateColumnError,
-    GroupColumnError, GroupIndexOutOfBoundsError, HasGroupsError, IncompatibleTypeError,
-    IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError, RenameExistingError,
+    FilterTypeError, FunctionArgumentCountError, FunctionArgumentTypeError,
+    FunctionNotImplementedError, GroupColumnError, GroupIndexOutOfBoundsError, HasGroupsError,
+    IncomparableTypesError, IncompatibleLengthError, IncompatibleTypeError, IncompatibleTypesError,
+    IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError, NumericTypeNotSatisfiedError,
+    RenameExistingError, TypeMismatchError, UnknownFunctionError, UnknownVariableError,
     UnmatchedColumnsError, UnmatchedGroupLevelsError, UnmatchedHeightError,
 };
 pub use py_expression::PyExpression;
@@ -30,11 +34,14 @@ mod extension_module {
     #[pymodule_export]
     use super::{
         concatenate_columns, concatenate_rows, ArraysNotEqualError, ColumnAlreadyExistsError,
-        DataFramesNotEqualError, DataType, DuplicateColumnError, GroupColumnError,
-        GroupIndexOutOfBoundsError, HasGroupsError, IncompatibleTypeError, IndexOutOfBoundsError,
-        NoGroupsError, NonexistentColumnError, PyArray, PyDataFrame, PyExpression,
-        RenameExistingError, UnmatchedColumnsError, UnmatchedGroupLevelsError,
-        UnmatchedHeightError,
+        DataFramesNotEqualError, DataType, DuplicateColumnError, FilterTypeError,
+        FunctionArgumentCountError, FunctionArgumentTypeError, FunctionNotImplementedError,
+        GroupColumnError, GroupIndexOutOfBoundsError, HasGroupsError, IncomparableTypesError,
+        IncompatibleLengthError, IncompatibleTypeError, IncompatibleTypesError,
+        IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError,
+        NumericTypeNotSatisfiedError, PyArray, PyDataFrame, PyExpression, RenameExistingError,
+        TypeMismatchError, UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError,
+        UnmatchedGroupLevelsError, UnmatchedHeightError,
     };
 
     #[pymodule_export]

@@ -1,16 +1,13 @@
 use std::any::Any;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use polars::prelude::*;
 
-use super::Function;
 use crate::expression::Expression;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Trapz {
-    pub t: Arc<Expression>,
-    pub y: Arc<Expression>,
-}
+use crate::typed_expression::{
+    DataFrameType, ExpressionType, TypedExpression, Function, ValidationError,
+};
 
 fn compute_trapz(args: &mut [Column]) -> PolarsResult<Column> {
     let t = &args[0];
@@ -69,6 +66,51 @@ fn compute_trapz(args: &mut [Column]) -> PolarsResult<Column> {
     ))
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Trapz {
+    pub t: Arc<TypedExpression>,
+    pub y: Arc<TypedExpression>,
+    pub expression_type: ExpressionType,
+}
+
+impl Trapz {
+    pub fn validate(
+        arguments: Vec<Arc<Expression>>,
+        df_type: &DataFrameType,
+    ) -> Result<Arc<dyn Function>, ValidationError> {
+        let t = Arc::new(arguments[0].validate(df_type)?);
+        let y = Arc::new(arguments[1].validate(df_type)?);
+
+        let t_type = t.expression_type();
+        let y_type = y.expression_type();
+
+        // Both arguments must be numeric
+        if !t_type.data_type().is_numeric() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "trapz".to_string(),
+                parameter: "t".to_string(),
+                expected: "numeric type".to_string(),
+                actual: t_type.data_type(),
+            });
+        }
+        if !y_type.data_type().is_numeric() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "trapz".to_string(),
+                parameter: "y".to_string(),
+                expected: "numeric type".to_string(),
+                actual: y_type.data_type(),
+            });
+        }
+
+        // Result type is Float64 scalar (trapz is an aggregation)
+        Ok(Arc::new(Trapz {
+            t,
+            y,
+            expression_type: ExpressionType::Scalar(crate::data_type::DataType::Float64),
+        }) as Arc<dyn Function>)
+    }
+}
+
 impl Function for Trapz {
     fn to_polars(&self) -> Expr {
         apply_multiple(
@@ -82,14 +124,16 @@ impl Function for Trapz {
         )
     }
 
-    fn substitute(
-        &self,
-        substitutions: &std::collections::HashMap<&str, Expression>,
-    ) -> Box<dyn Function> {
-        Box::new(Trapz {
+    fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
+        Arc::new(Trapz {
             t: Arc::new(self.t.substitute(substitutions)),
             y: Arc::new(self.y.substitute(substitutions)),
+            expression_type: self.expression_type,
         })
+    }
+
+    fn expression_type(&self) -> ExpressionType {
+        self.expression_type
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -98,9 +142,13 @@ impl Function for Trapz {
 
     fn equals(&self, other: &dyn Function) -> bool {
         if let Some(other) = other.as_any().downcast_ref::<Trapz>() {
-            self.t == other.t && self.y == other.y
+            self.t == other.t && self.y == other.y && self.expression_type == other.expression_type
         } else {
             false
         }
+    }
+
+    fn name(&self) -> &'static str {
+        "trapz"
     }
 }

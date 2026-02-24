@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use pyo3::prelude::*;
+use pyo3::{prelude::*, IntoPyObjectExt};
 
 use crate::expression::Expression;
+use crate::typed_expression::{DataFrameType, TypedExpression};
 
 #[pyclass(frozen)]
 #[derive(Debug, Clone, PartialEq)]
@@ -51,6 +52,19 @@ impl PyExpression {
     fn variable(name: String) -> Self {
         Self {
             expression: Expression::Variable { name },
+        }
+    }
+
+    #[staticmethod]
+    fn call(name: String, arguments: Vec<PyExpression>) -> Self {
+        Self {
+            expression: Expression::Call {
+                name,
+                arguments: arguments
+                    .into_iter()
+                    .map(|e| Arc::new(e.expression))
+                    .collect(),
+            },
         }
     }
 
@@ -131,14 +145,6 @@ impl PyExpression {
         }
     }
 
-    // fn call(&self, function: PyFunction) -> Self {
-    //     Self {
-    //         expression: Expression::Call {
-    //             function: Arc::new(function),
-    //         },
-    //     }
-    // }
-
     fn equal(&self, other: &PyExpression) -> Self {
         Self {
             expression: Expression::Equal {
@@ -217,5 +223,100 @@ impl PyExpression {
                 right: Arc::new(other.expression.clone()),
             },
         }
+    }
+}
+
+impl PyExpression {
+    pub fn validate(&self, df_type: &DataFrameType, py: Python) -> PyResult<TypedExpression> {
+        use crate::error::*;
+        use crate::typed_expression::ValidationError;
+
+        self.expression.validate(df_type).map_err(|e| match e {
+            ValidationError::UnknownVariable { name, available } => PyErr::from_value(
+                UnknownVariableError { name, available }
+                    .into_bound_py_any(py)
+                    .unwrap(),
+            ),
+            ValidationError::IncompatibleTypes {
+                operation,
+                left_type,
+                right_type,
+            } => PyErr::from_value(
+                IncompatibleTypesError {
+                    operation,
+                    left_type,
+                    right_type,
+                }
+                .into_bound_py_any(py)
+                .unwrap(),
+            ),
+            ValidationError::IncomparableTypes {
+                left_type,
+                right_type,
+            } => PyErr::from_value(
+                IncomparableTypesError {
+                    left_type,
+                    right_type,
+                }
+                .into_bound_py_any(py)
+                .unwrap(),
+            ),
+            ValidationError::FunctionArgumentType {
+                function,
+                parameter,
+                expected,
+                actual,
+            } => PyErr::from_value(
+                FunctionArgumentTypeError {
+                    function,
+                    parameter,
+                    expected,
+                    actual,
+                }
+                .into_bound_py_any(py)
+                .unwrap(),
+            ),
+            ValidationError::FunctionArgumentCount {
+                function,
+                expected,
+                actual,
+            } => PyErr::from_value(
+                FunctionArgumentCountError {
+                    function,
+                    expected,
+                    actual,
+                }
+                .into_bound_py_any(py)
+                .unwrap(),
+            ),
+            ValidationError::TypeMismatch {
+                operation,
+                expected,
+                actual,
+            } => PyErr::from_value(
+                TypeMismatchError {
+                    operation,
+                    expected,
+                    actual,
+                }
+                .into_bound_py_any(py)
+                .unwrap(),
+            ),
+            ValidationError::NumericTypeNotSatisfied { operation, actual } => PyErr::from_value(
+                NumericTypeNotSatisfiedError { operation, actual }
+                    .into_bound_py_any(py)
+                    .unwrap(),
+            ),
+            ValidationError::FunctionNotImplemented { function } => PyErr::from_value(
+                FunctionNotImplementedError { function }
+                    .into_bound_py_any(py)
+                    .unwrap(),
+            ),
+            ValidationError::UnknownFunction { name, available } => PyErr::from_value(
+                UnknownFunctionError { name, available }
+                    .into_bound_py_any(py)
+                    .unwrap(),
+            ),
+        })
     }
 }

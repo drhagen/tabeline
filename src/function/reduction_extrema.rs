@@ -4,12 +4,30 @@ use std::sync::Arc;
 
 use polars::prelude::*;
 
-use super::Function;
 use crate::expression::Expression;
+use crate::typed_expression::{
+    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Max {
-    pub argument: Arc<Expression>,
+    pub argument: Arc<TypedExpression>,
+    pub expression_type: ExpressionType,
+}
+
+impl Max {
+    pub fn validate(
+        arguments: Vec<Arc<Expression>>,
+        df_type: &DataFrameType,
+    ) -> Result<Arc<dyn Function>, ValidationError> {
+        let typed_arg = arguments[0].validate(df_type)?;
+        let arg_type = typed_arg.expression_type();
+
+        Ok(Arc::new(Max {
+            argument: Arc::new(typed_arg),
+            expression_type: arg_type,
+        }))
+    }
 }
 
 impl Function for Max {
@@ -17,10 +35,15 @@ impl Function for Max {
         self.argument.to_polars().max()
     }
 
-    fn substitute(&self, substitutions: &HashMap<&str, Expression>) -> Box<dyn Function> {
-        Box::new(Max {
+    fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
+        Arc::new(Max {
             argument: Arc::new(self.argument.substitute(substitutions)),
+            expression_type: self.expression_type,
         })
+    }
+
+    fn expression_type(&self) -> ExpressionType {
+        self.expression_type
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -29,16 +52,36 @@ impl Function for Max {
 
     fn equals(&self, other: &dyn Function) -> bool {
         if let Some(other) = other.as_any().downcast_ref::<Max>() {
-            self.argument == other.argument
+            self.argument == other.argument && self.expression_type == other.expression_type
         } else {
             false
         }
+    }
+
+    fn name(&self) -> &'static str {
+        "max"
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Min {
-    pub argument: Arc<Expression>,
+    pub argument: Arc<TypedExpression>,
+    pub expression_type: ExpressionType,
+}
+
+impl Min {
+    pub fn validate(
+        arguments: Vec<Arc<Expression>>,
+        df_type: &DataFrameType,
+    ) -> Result<Arc<dyn Function>, ValidationError> {
+        let typed_arg = arguments[0].validate(df_type)?;
+        let arg_type = typed_arg.expression_type();
+
+        Ok(Arc::new(Min {
+            argument: Arc::new(typed_arg),
+            expression_type: arg_type,
+        }))
+    }
 }
 
 impl Function for Min {
@@ -46,10 +89,15 @@ impl Function for Min {
         self.argument.to_polars().min()
     }
 
-    fn substitute(&self, substitutions: &HashMap<&str, Expression>) -> Box<dyn Function> {
-        Box::new(Min {
+    fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
+        Arc::new(Min {
             argument: Arc::new(self.argument.substitute(substitutions)),
+            expression_type: self.expression_type,
         })
+    }
+
+    fn expression_type(&self) -> ExpressionType {
+        self.expression_type
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -58,9 +106,13 @@ impl Function for Min {
 
     fn equals(&self, other: &dyn Function) -> bool {
         if let Some(other) = other.as_any().downcast_ref::<Min>() {
-            self.argument == other.argument
+            self.argument == other.argument && self.expression_type == other.expression_type
         } else {
             false
         }
+    }
+
+    fn name(&self) -> &'static str {
+        "min"
     }
 }

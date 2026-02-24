@@ -5,6 +5,7 @@ use crate::testing::ArrayDifference;
 #[pyclass(frozen, eq, extends=PyException)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArraysNotEqualError {
+    #[pyo3(get)]
     pub differences: Vec<ArrayDifference>,
 }
 

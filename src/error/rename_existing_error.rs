@@ -3,7 +3,9 @@ use pyo3::{exceptions::PyException, prelude::*};
 #[pyclass(frozen, eq, extends=PyException)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RenameExistingError {
+    #[pyo3(get)]
     pub old_column: String,
+    #[pyo3(get)]
     pub new_column: String,
 }
 

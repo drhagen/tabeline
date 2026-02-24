@@ -4,8 +4,10 @@ use std::sync::Arc;
 
 use polars::prelude::*;
 
-use super::Function;
 use crate::expression::Expression;
+use crate::typed_expression::{
+    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+};
 
 fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
     let t = &args[0];
@@ -97,9 +99,66 @@ fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Interp {
-    pub t: Arc<Expression>,
-    pub ts: Arc<Expression>,
-    pub ys: Arc<Expression>,
+    pub t: Arc<TypedExpression>,
+    pub ts: Arc<TypedExpression>,
+    pub ys: Arc<TypedExpression>,
+    pub expression_type: ExpressionType,
+}
+
+impl Interp {
+    pub fn validate(
+        arguments: Vec<Arc<Expression>>,
+        df_type: &DataFrameType,
+    ) -> Result<Arc<dyn Function>, ValidationError> {
+        let t = Arc::new(arguments[0].validate(df_type)?);
+        let ts = Arc::new(arguments[1].validate(df_type)?);
+        let ys = Arc::new(arguments[2].validate(df_type)?);
+
+        let t_type = t.expression_type();
+        let ts_type = ts.expression_type();
+        let ys_type = ys.expression_type();
+
+        // All arguments must be numeric
+        if !t_type.data_type().is_numeric() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "interp".to_string(),
+                parameter: "t".to_string(),
+                expected: "numeric type".to_string(),
+                actual: t_type.data_type(),
+            });
+        }
+        if !ts_type.data_type().is_numeric() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "interp".to_string(),
+                parameter: "ts".to_string(),
+                expected: "numeric type".to_string(),
+                actual: ts_type.data_type(),
+            });
+        }
+        if !ys_type.data_type().is_numeric() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "interp".to_string(),
+                parameter: "ys".to_string(),
+                expected: "numeric type".to_string(),
+                actual: ys_type.data_type(),
+            });
+        }
+
+        // Result type is Float64 and preserves shape of input t
+        Ok(Arc::new(Interp {
+            t,
+            ts,
+            ys,
+            expression_type: match t_type {
+                ExpressionType::Scalar(_) => {
+                    ExpressionType::Scalar(crate::data_type::DataType::Float64)
+                }
+                ExpressionType::Array(_) => {
+                    ExpressionType::Array(crate::data_type::DataType::Float64)
+                }
+            },
+        }))
+    }
 }
 
 impl Function for Interp {
@@ -116,12 +175,17 @@ impl Function for Interp {
         )
     }
 
-    fn substitute(&self, substitutions: &HashMap<&str, Expression>) -> Box<dyn Function> {
-        Box::new(Interp {
+    fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
+        Arc::new(Interp {
             t: Arc::new(self.t.substitute(substitutions)),
             ts: Arc::new(self.ts.substitute(substitutions)),
             ys: Arc::new(self.ys.substitute(substitutions)),
+            expression_type: self.expression_type,
         })
+    }
+
+    fn expression_type(&self) -> ExpressionType {
+        self.expression_type
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -130,9 +194,16 @@ impl Function for Interp {
 
     fn equals(&self, other: &dyn Function) -> bool {
         if let Some(other) = other.as_any().downcast_ref::<Interp>() {
-            self.t == other.t && self.ts == other.ts && self.ys == other.ys
+            self.t == other.t
+                && self.ts == other.ts
+                && self.ys == other.ys
+                && self.expression_type == other.expression_type
         } else {
             false
         }
+    }
+
+    fn name(&self) -> &'static str {
+        "interp"
     }
 }

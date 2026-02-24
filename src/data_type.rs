@@ -88,3 +88,39 @@ impl From<DataType> for PolarsDataType {
         }
     }
 }
+
+impl DataType {
+    /// Check if this type is numeric (can participate in arithmetic operations)
+    /// Note: Nothing (null) is considered numeric because it propagates through operations
+    pub fn is_numeric(self) -> bool {
+        matches!(
+            self,
+            DataType::Integer8
+                | DataType::Integer16
+                | DataType::Integer32
+                | DataType::Integer64
+                | DataType::Whole8
+                | DataType::Whole16
+                | DataType::Whole32
+                | DataType::Whole64
+                | DataType::Float32
+                | DataType::Float64
+                | DataType::Nothing
+        )
+    }
+
+    /// Check if this type is an integer (signed or unsigned)
+    pub fn is_integer(self) -> bool {
+        matches!(
+            self,
+            DataType::Integer8
+                | DataType::Integer16
+                | DataType::Integer32
+                | DataType::Integer64
+                | DataType::Whole8
+                | DataType::Whole16
+                | DataType::Whole32
+                | DataType::Whole64
+        )
+    }
+}

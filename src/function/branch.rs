@@ -1,16 +1,71 @@
 use std::any::Any;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use polars::prelude::*;
 
-use super::Function;
+use crate::data_type::DataType;
 use crate::expression::Expression;
+use crate::typed_expression::{
+    DataFrameType, ExpressionType, TypedExpression, Function, ValidationError,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct IfElse {
-    pub condition: Arc<Expression>,
-    pub then_branch: Arc<Expression>,
-    pub else_branch: Arc<Expression>,
+    pub condition: Arc<TypedExpression>,
+    pub then_branch: Arc<TypedExpression>,
+    pub else_branch: Arc<TypedExpression>,
+    pub expression_type: ExpressionType,
+}
+
+impl IfElse {
+    pub fn validate(
+        arguments: Vec<Arc<Expression>>,
+        df_type: &DataFrameType,
+    ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() < 2 || arguments.len() > 3 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "if_else".to_string(),
+                expected: 3,
+                actual: arguments.len(),
+            });
+        }
+
+        let condition = Arc::new(arguments[0].validate(df_type)?);
+        let then_branch = Arc::new(arguments[1].validate(df_type)?);
+        let else_branch = if arguments.len() == 3 {
+            Arc::new(arguments[2].validate(df_type)?)
+        } else {
+            Arc::new(Expression::NullLiteral.validate(df_type)?)
+        };
+
+        let condition_type = condition.expression_type();
+        let then_type = then_branch.expression_type();
+        let else_type = else_branch.expression_type();
+
+        // Condition must be boolean (Nothing is allowed and propagates)
+        if condition_type.data_type() != DataType::Boolean
+            && condition_type.data_type() != DataType::Nothing
+        {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "ifelse".to_string(),
+                parameter: "condition".to_string(),
+                expected: "Boolean or Nothing".to_string(),
+                actual: condition_type.data_type(),
+            });
+        }
+
+        // Then and else branches must have compatible types
+        let result_type =
+            crate::typed_expression::promote_expression_types(then_type, else_type, "ifelse")?;
+
+        Ok(Arc::new(IfElse {
+            condition,
+            then_branch,
+            else_branch,
+            expression_type: result_type,
+        }))
+    }
 }
 
 impl Function for IfElse {
@@ -22,15 +77,17 @@ impl Function for IfElse {
         )
     }
 
-    fn substitute(
-        &self,
-        substitutions: &std::collections::HashMap<&str, Expression>,
-    ) -> Box<dyn Function> {
-        Box::new(IfElse {
+    fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
+        Arc::new(IfElse {
             condition: Arc::new(self.condition.substitute(substitutions)),
             then_branch: Arc::new(self.then_branch.substitute(substitutions)),
             else_branch: Arc::new(self.else_branch.substitute(substitutions)),
+            expression_type: self.expression_type,
         })
+    }
+
+    fn expression_type(&self) -> ExpressionType {
+        self.expression_type
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -42,8 +99,13 @@ impl Function for IfElse {
             self.condition == other.condition
                 && self.then_branch == other.then_branch
                 && self.else_branch == other.else_branch
+                && self.expression_type == other.expression_type
         } else {
             false
         }
+    }
+
+    fn name(&self) -> &'static str {
+        "ifelse"
     }
 }
