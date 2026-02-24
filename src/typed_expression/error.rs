@@ -12,6 +12,7 @@ pub enum ValidationError {
         right_type: DataType,
     },
     IncomparableTypes {
+        operation: String,
         left_type: DataType,
         right_type: DataType,
     },
@@ -34,9 +35,6 @@ pub enum ValidationError {
     NumericTypeNotSatisfied {
         operation: String,
         actual: DataType,
-    },
-    FunctionNotImplemented {
-        function: String,
     },
     UnknownFunction {
         name: String,

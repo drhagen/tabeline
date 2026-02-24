@@ -21,6 +21,14 @@ impl Std {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 1 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "std".to_string(),
+                expected: 1,
+                actual: arguments.len(),
+            });
+        }
+
         let argument = Arc::new(arguments[0].validate(df_type)?);
         let arg_type = argument.expression_type();
 
@@ -91,6 +99,14 @@ impl Var {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 1 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "var".to_string(),
+                expected: 1,
+                actual: arguments.len(),
+            });
+        }
+
         let argument = Arc::new(arguments[0].validate(df_type)?);
         let arg_type = argument.expression_type();
 
@@ -161,6 +177,14 @@ impl Sum {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 1 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "sum".to_string(),
+                expected: 1,
+                actual: arguments.len(),
+            });
+        }
+
         let argument = Arc::new(arguments[0].validate(df_type)?);
         let arg_type = argument.expression_type();
 
@@ -230,6 +254,14 @@ impl Mean {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 1 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "mean".to_string(),
+                expected: 1,
+                actual: arguments.len(),
+            });
+        }
+
         let argument = Arc::new(arguments[0].validate(df_type)?);
         let arg_type = argument.expression_type();
 
@@ -300,6 +332,14 @@ impl Median {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 1 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "median".to_string(),
+                expected: 1,
+                actual: arguments.len(),
+            });
+        }
+
         let argument = Arc::new(arguments[0].validate(df_type)?);
         let arg_type = argument.expression_type();
 
@@ -371,6 +411,14 @@ impl Quantile {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 2 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "quantile".to_string(),
+                expected: 2,
+                actual: arguments.len(),
+            });
+        }
+
         let argument = Arc::new(arguments[0].validate(df_type)?);
         let quantile = Arc::new(arguments[1].validate(df_type)?);
 

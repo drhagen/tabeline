@@ -22,6 +22,14 @@ impl PMax {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.is_empty() {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "pmax".to_string(),
+                expected: 1,
+                actual: 0,
+            });
+        }
+
         let mut typed_args = Vec::new();
         let mut result_type: Option<ExpressionType> = None;
 
@@ -117,6 +125,14 @@ impl PMin {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.is_empty() {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "pmin".to_string(),
+                expected: 1,
+                actual: 0,
+            });
+        }
+
         let mut typed_args = Vec::new();
         let mut result_type: Option<ExpressionType> = None;
 

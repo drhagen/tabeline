@@ -1,6 +1,6 @@
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, TypedExpression, Function, ValidationError,
+    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 use polars::prelude::*;
 use std::any::Any;

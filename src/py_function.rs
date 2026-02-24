@@ -331,9 +331,7 @@ pub mod functions {
                 arguments: vec![
                     Arc::new(condition.expression.clone()),
                     Arc::new(then_branch.expression.clone()),
-                    Arc::new(
-                        else_branch.map_or(Expression::NullLiteral, |e| e.expression.clone()),
-                    ),
+                    Arc::new(else_branch.map_or(Expression::NullLiteral, |e| e.expression.clone())),
                 ],
             },
         }

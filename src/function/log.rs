@@ -7,7 +7,7 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, TypedExpression, Function, ValidationError,
+    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 
 macro_rules! impl_log_function {

@@ -86,9 +86,9 @@ impl Expression {
                 let typed_content = content.validate(df_type)?;
                 let expression_type = typed_content.expression_type();
 
-                // Not only works with boolean types
+                // Not only works with boolean types (Nothing is allowed and propagates)
                 let data_type = expression_type.data_type();
-                if data_type != DataType::Boolean {
+                if data_type != DataType::Boolean && data_type != DataType::Nothing {
                     return Err(ValidationError::TypeMismatch {
                         operation: "~_".to_string(),
                         expected: DataType::Boolean,
@@ -304,7 +304,7 @@ fn validate_comparison<F>(
     left: &Expression,
     right: &Expression,
     df_type: &DataFrameType,
-    _operation: &str,
+    operation: &str,
     constructor: F,
 ) -> Result<TypedExpression, ValidationError>
 where
@@ -319,6 +319,7 @@ where
     // Check that types are comparable
     if !types_are_comparable(left_type.data_type(), right_type.data_type()) {
         return Err(ValidationError::IncomparableTypes {
+            operation: operation.to_string(),
             left_type: left_type.data_type(),
             right_type: right_type.data_type(),
         });
@@ -351,8 +352,8 @@ where
     let left_type = typed_left.expression_type();
     let right_type = typed_right.expression_type();
 
-    // Both operands must be Boolean
-    if left_type.data_type() != DataType::Boolean {
+    // Both operands must be Boolean (Nothing is allowed and propagates)
+    if left_type.data_type() != DataType::Boolean && left_type.data_type() != DataType::Nothing {
         return Err(ValidationError::TypeMismatch {
             operation: operation.to_string(),
             expected: DataType::Boolean,
@@ -360,7 +361,7 @@ where
         });
     }
 
-    if right_type.data_type() != DataType::Boolean {
+    if right_type.data_type() != DataType::Boolean && right_type.data_type() != DataType::Nothing {
         return Err(ValidationError::TypeMismatch {
             operation: operation.to_string(),
             expected: DataType::Boolean,

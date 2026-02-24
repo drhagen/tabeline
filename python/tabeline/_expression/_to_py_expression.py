@@ -78,7 +78,9 @@ def _(expression: ast.FloorDivide) -> PyExpression:
 
 @to_py_expression.register
 def _(expression: ast.Call) -> PyExpression:
-    return PyExpression.call(expression.name, [to_py_expression(arg) for arg in expression.arguments])
+    return PyExpression.call(
+        expression.name, [to_py_expression(arg) for arg in expression.arguments]
+    )
 
 
 @to_py_expression.register

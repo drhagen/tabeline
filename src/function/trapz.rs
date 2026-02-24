@@ -6,7 +6,7 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, TypedExpression, Function, ValidationError,
+    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 
 fn compute_trapz(args: &mut [Column]) -> PolarsResult<Column> {
@@ -78,6 +78,14 @@ impl Trapz {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 2 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "trapz".to_string(),
+                expected: 2,
+                actual: arguments.len(),
+            });
+        }
+
         let t = Arc::new(arguments[0].validate(df_type)?);
         let y = Arc::new(arguments[1].validate(df_type)?);
 

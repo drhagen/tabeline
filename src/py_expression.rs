@@ -251,10 +251,12 @@ impl PyExpression {
                 .unwrap(),
             ),
             ValidationError::IncomparableTypes {
+                operation,
                 left_type,
                 right_type,
             } => PyErr::from_value(
                 IncomparableTypesError {
+                    operation,
                     left_type,
                     right_type,
                 }
@@ -304,11 +306,6 @@ impl PyExpression {
             ),
             ValidationError::NumericTypeNotSatisfied { operation, actual } => PyErr::from_value(
                 NumericTypeNotSatisfiedError { operation, actual }
-                    .into_bound_py_any(py)
-                    .unwrap(),
-            ),
-            ValidationError::FunctionNotImplemented { function } => PyErr::from_value(
-                FunctionNotImplementedError { function }
                     .into_bound_py_any(py)
                     .unwrap(),
             ),

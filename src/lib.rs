@@ -19,12 +19,12 @@ pub use data_frame::PyDataFrame;
 pub use data_type::DataType;
 pub use error::{
     ArraysNotEqualError, ColumnAlreadyExistsError, DataFramesNotEqualError, DuplicateColumnError,
-    FilterTypeError, FunctionArgumentCountError, FunctionArgumentTypeError,
-    FunctionNotImplementedError, GroupColumnError, GroupIndexOutOfBoundsError, HasGroupsError,
-    IncomparableTypesError, IncompatibleLengthError, IncompatibleTypeError, IncompatibleTypesError,
-    IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError, NumericTypeNotSatisfiedError,
-    RenameExistingError, TypeMismatchError, UnknownFunctionError, UnknownVariableError,
-    UnmatchedColumnsError, UnmatchedGroupLevelsError, UnmatchedHeightError,
+    FilterTypeError, FunctionArgumentCountError, FunctionArgumentTypeError, GroupColumnError,
+    GroupIndexOutOfBoundsError, HasGroupsError, IncomparableTypesError, IncompatibleLengthError,
+    IncompatibleTypeError, IncompatibleTypesError, IndexOutOfBoundsError, NoGroupsError,
+    NonexistentColumnError, NumericTypeNotSatisfiedError, RenameExistingError, TypeMismatchError,
+    UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError, UnmatchedGroupLevelsError,
+    UnmatchedHeightError,
 };
 pub use py_expression::PyExpression;
 use pyo3::prelude::*;
@@ -35,12 +35,12 @@ mod extension_module {
     use super::{
         concatenate_columns, concatenate_rows, ArraysNotEqualError, ColumnAlreadyExistsError,
         DataFramesNotEqualError, DataType, DuplicateColumnError, FilterTypeError,
-        FunctionArgumentCountError, FunctionArgumentTypeError, FunctionNotImplementedError,
-        GroupColumnError, GroupIndexOutOfBoundsError, HasGroupsError, IncomparableTypesError,
+        FunctionArgumentCountError, FunctionArgumentTypeError, GroupColumnError,
+        GroupIndexOutOfBoundsError, HasGroupsError, IncomparableTypesError,
         IncompatibleLengthError, IncompatibleTypeError, IncompatibleTypesError,
-        IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError,
-        NumericTypeNotSatisfiedError, PyArray, PyDataFrame, PyExpression, RenameExistingError,
-        TypeMismatchError, UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError,
+        IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError, NumericTypeNotSatisfiedError,
+        PyArray, PyDataFrame, PyExpression, RenameExistingError, TypeMismatchError,
+        UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError,
         UnmatchedGroupLevelsError, UnmatchedHeightError,
     };
 

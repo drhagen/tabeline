@@ -34,6 +34,8 @@ impl DataFrameType {
     }
 
     pub fn column_names(&self) -> Vec<String> {
-        self.columns.keys().cloned().collect()
+        let mut names: Vec<String> = self.columns.keys().cloned().collect();
+        names.sort();
+        names
     }
 }

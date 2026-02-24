@@ -19,6 +19,14 @@ impl Any {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 1 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "any".to_string(),
+                expected: 1,
+                actual: arguments.len(),
+            });
+        }
+
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
@@ -83,6 +91,14 @@ impl All {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 1 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "all".to_string(),
+                expected: 1,
+                actual: arguments.len(),
+            });
+        }
+
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 

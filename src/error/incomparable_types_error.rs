@@ -5,6 +5,8 @@ use pyo3::{exceptions::PyTypeError, prelude::*};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IncomparableTypesError {
     #[pyo3(get)]
+    pub operation: String,
+    #[pyo3(get)]
     pub left_type: DataType,
     #[pyo3(get)]
     pub right_type: DataType,
@@ -16,16 +18,24 @@ impl<'py> IntoPyObject<'py> for IncomparableTypesError {
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        py.get_type::<IncomparableTypesError>()
-            .call1((self.left_type, self.right_type))
+        py.get_type::<IncomparableTypesError>().call1((
+            self.operation,
+            self.left_type,
+            self.right_type,
+        ))
     }
 }
 
 #[pymethods]
 impl IncomparableTypesError {
     #[new]
-    pub fn __new__(left_type: DataType, right_type: DataType) -> PyClassInitializer<Self> {
+    pub fn __new__(
+        operation: String,
+        left_type: DataType,
+        right_type: DataType,
+    ) -> PyClassInitializer<Self> {
         PyClassInitializer::from(Self {
+            operation,
             left_type,
             right_type,
         })
@@ -33,8 +43,8 @@ impl IncomparableTypesError {
 
     pub fn __str__(&self) -> PyResult<String> {
         Ok(format!(
-            "Cannot compare types {} and {}",
-            self.left_type, self.right_type
+            "Cannot compare {} and {} in operation `{}`",
+            self.left_type, self.right_type, self.operation
         ))
     }
 }

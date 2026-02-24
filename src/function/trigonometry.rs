@@ -6,7 +6,7 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, TypedExpression, Function, ValidationError,
+    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 
 // Helper macro to reduce boilerplate for single-argument numeric functions

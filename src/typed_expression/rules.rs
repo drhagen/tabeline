@@ -125,12 +125,6 @@ pub fn types_are_comparable(left: DataType, right: DataType) -> bool {
             Boolean,
         ) => true,
 
-        // Strings only comparable with strings
-        (String, String) => true,
-
-        // Booleans comparable with booleans
-        (Boolean, Boolean) => true,
-
         // Everything else is not comparable
         _ => false,
     }

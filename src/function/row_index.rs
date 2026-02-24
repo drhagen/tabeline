@@ -61,7 +61,7 @@ impl Function for RowIndex0 {
     }
 
     fn name(&self) -> &'static str {
-        "row_index_0"
+        "row_index0"
     }
 }
 
@@ -122,6 +122,6 @@ impl Function for RowIndex1 {
     }
 
     fn name(&self) -> &'static str {
-        "row_index_1"
+        "row_index1"
     }
 }

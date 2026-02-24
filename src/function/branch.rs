@@ -7,7 +7,7 @@ use polars::prelude::*;
 use crate::data_type::DataType;
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, TypedExpression, Function, ValidationError,
+    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -48,7 +48,7 @@ impl IfElse {
             && condition_type.data_type() != DataType::Nothing
         {
             return Err(ValidationError::FunctionArgumentType {
-                function: "ifelse".to_string(),
+                function: "if_else".to_string(),
                 parameter: "condition".to_string(),
                 expected: "Boolean or Nothing".to_string(),
                 actual: condition_type.data_type(),
@@ -57,7 +57,7 @@ impl IfElse {
 
         // Then and else branches must have compatible types
         let result_type =
-            crate::typed_expression::promote_expression_types(then_type, else_type, "ifelse")?;
+            crate::typed_expression::promote_expression_types(then_type, else_type, "if_else")?;
 
         Ok(Arc::new(IfElse {
             condition,
@@ -106,6 +106,6 @@ impl Function for IfElse {
     }
 
     fn name(&self) -> &'static str {
-        "ifelse"
+        "if_else"
     }
 }

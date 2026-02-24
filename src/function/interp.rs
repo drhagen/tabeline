@@ -110,6 +110,14 @@ impl Interp {
         arguments: Vec<Arc<Expression>>,
         df_type: &DataFrameType,
     ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 3 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "interp".to_string(),
+                expected: 3,
+                actual: arguments.len(),
+            });
+        }
+
         let t = Arc::new(arguments[0].validate(df_type)?);
         let ts = Arc::new(arguments[1].validate(df_type)?);
         let ys = Arc::new(arguments[2].validate(df_type)?);
