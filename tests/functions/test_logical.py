@@ -1,6 +1,7 @@
 import pytest
 
 from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
 
 
@@ -52,3 +53,39 @@ def test_all_broadcast():
     actual = df.group_by("id").mutate(x="all(x)").ungroup()
     expected = DataFrame(id=[1, 1, 1, 2, 2, 2], x=[False] * 3 + [None] * 3)
     assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        ([1, 2, 3], DataType.Integer64),
+        (["a", "b", "c"], DataType.String),
+    ],
+)
+def test_any_rejects_non_boolean(values, expected_type):
+    df = DataFrame(x=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y="any(x)")
+
+    error = exc_info.value
+    assert error.function == "any"
+    assert error.actual == expected_type
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        ([1, 2, 3], DataType.Integer64),
+        (["a", "b", "c"], DataType.String),
+    ],
+)
+def test_all_rejects_non_boolean(values, expected_type):
+    df = DataFrame(x=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y="all(x)")
+
+    error = exc_info.value
+    assert error.function == "all"
+    assert error.actual == expected_type

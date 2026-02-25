@@ -31,7 +31,7 @@ impl First {
 
         Ok(Arc::new(First {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }
@@ -93,7 +93,7 @@ impl Last {
 
         Ok(Arc::new(Last {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }

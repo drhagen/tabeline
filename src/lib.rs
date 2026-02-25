@@ -22,9 +22,9 @@ pub use error::{
     FilterTypeError, FunctionArgumentCountError, FunctionArgumentTypeError, GroupColumnError,
     GroupIndexOutOfBoundsError, HasGroupsError, IncomparableTypesError, IncompatibleLengthError,
     IncompatibleTypeError, IncompatibleTypesError, IndexOutOfBoundsError, NoGroupsError,
-    NonexistentColumnError, NumericTypeNotSatisfiedError, RenameExistingError, TypeMismatchError,
-    UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError, UnmatchedGroupLevelsError,
-    UnmatchedHeightError,
+    NonexistentColumnError, NumericTypeNotSatisfiedError, RenameExistingError, SummarizeTypeError,
+    TypeMismatchError, UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError,
+    UnmatchedGroupLevelsError, UnmatchedHeightError,
 };
 pub use py_expression::PyExpression;
 use pyo3::prelude::*;
@@ -39,8 +39,8 @@ mod extension_module {
         GroupIndexOutOfBoundsError, HasGroupsError, IncomparableTypesError,
         IncompatibleLengthError, IncompatibleTypeError, IncompatibleTypesError,
         IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError, NumericTypeNotSatisfiedError,
-        PyArray, PyDataFrame, PyExpression, RenameExistingError, TypeMismatchError,
-        UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError,
+        PyArray, PyDataFrame, PyExpression, RenameExistingError, SummarizeTypeError,
+        TypeMismatchError, UnknownFunctionError, UnknownVariableError, UnmatchedColumnsError,
         UnmatchedGroupLevelsError, UnmatchedHeightError,
     };
 

@@ -1,6 +1,7 @@
 import pytest
 
-from tabeline import DataFrame
+from tabeline import DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
 
 relative_tolerance = 1e-12
@@ -44,3 +45,32 @@ def test_trapz_with_nulls():
     # which does not inherit from Exception and is not part of the Polars API.
     with pytest.raises(BaseException):  # noqa: B017, PT011
         _ = df.group_by("id").summarize(y="trapz(t, y)")
+
+
+def test_trapz_rejects_one_arg():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y="trapz(x)")
+
+    error = exc_info.value
+    assert error.function == "trapz"
+    assert error.expected == 2
+    assert error.actual == 1
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_trapz_rejects_non_numeric(values, expected_type):
+    df = DataFrame(x=values, y=[1, 2, 3])
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(z="trapz(x, y)")
+
+    assert exc_info.value.function == "trapz"
+    assert exc_info.value.actual == expected_type

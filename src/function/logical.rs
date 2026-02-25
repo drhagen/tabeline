@@ -42,7 +42,7 @@ impl Any {
 
         Ok(Arc::new(Any {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }
@@ -114,7 +114,7 @@ impl All {
 
         Ok(Arc::new(All {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }

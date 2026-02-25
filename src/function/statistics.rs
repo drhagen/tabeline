@@ -200,7 +200,7 @@ impl Sum {
 
         Ok(Arc::new(Sum {
             argument,
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }

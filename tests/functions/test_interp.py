@@ -3,6 +3,7 @@ from math import inf, nan
 import pytest
 
 from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
 
 relative_tolerance = 1e-12
@@ -107,3 +108,32 @@ def test_interp_with_nulls():
     # which does not inherit from Exception and is not part of the Polars API.
     with pytest.raises(BaseException):  # noqa: B017, PT011
         _ = df.group_by("id").summarize(y="interp(2.5, ts, ys)")
+
+
+def test_interp_rejects_two_args():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y="interp(x, x)")
+
+    error = exc_info.value
+    assert error.function == "interp"
+    assert error.expected == 3
+    assert error.actual == 2
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_interp_rejects_non_numeric(values, expected_type):
+    df = DataFrame(x=values, y=[1, 2, 3], z=[4, 5, 6])
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(w="interp(x, y, z)")
+
+    assert exc_info.value.function == "interp"
+    assert exc_info.value.actual == expected_type

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DataFrameType {
-    columns: HashMap<String, DataType>,
+    columns: HashMap<String, ExpressionType>,
 }
 
 impl DataFrameType {
@@ -19,17 +19,17 @@ impl DataFrameType {
         let mut columns = HashMap::new();
         for (name, array) in df.iter_columns() {
             let dtype = DataType::from(array.polars_column.dtype());
-            columns.insert(name.to_string(), dtype);
+            columns.insert(name.to_string(), ExpressionType::Array(dtype));
         }
         DataFrameType { columns }
     }
 
     pub fn column_expression_type(&self, name: &str) -> Option<ExpressionType> {
-        self.columns.get(name).map(|dt| ExpressionType::Array(*dt))
+        self.columns.get(name).copied()
     }
 
-    pub fn with_column(mut self, name: String, data_type: DataType) -> Self {
-        self.columns.insert(name, data_type);
+    pub fn with_column(mut self, name: String, expression_type: ExpressionType) -> Self {
+        self.columns.insert(name, expression_type);
         self
     }
 

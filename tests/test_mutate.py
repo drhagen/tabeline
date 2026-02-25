@@ -1,7 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
-from tabeline.exceptions import GroupColumnError
+from tabeline.exceptions import GroupColumnError, UnknownFunctionError, UnknownVariableError
 
 
 def test_mutate():
@@ -122,3 +122,23 @@ def test_mutate_columnless(df):
 def test_mutate_rowless(expression, df):
     actual = df.mutate(**expression)
     assert actual == df
+
+
+def test_mutate_unknown_variable():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(UnknownVariableError) as exc_info:
+        df.mutate(z="unknown + 1")
+
+    assert exc_info.value.name == "unknown"
+
+
+def test_mutate_unknown_function():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(UnknownFunctionError) as exc_info:
+        df.mutate(y="bogus(x)")
+
+    error = exc_info.value
+    assert error.name == "bogus"
+    assert len(error.available) > 0

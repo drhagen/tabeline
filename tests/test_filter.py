@@ -1,6 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
+from tabeline.exceptions import UnknownVariableError
 
 
 def test_filter():
@@ -103,3 +104,14 @@ def test_filter_columnless(df, expected):
 def test_filter_rowless(expression, df):
     actual = df.filter(expression)
     assert actual == df
+
+
+def test_filter_unknown_variable():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(UnknownVariableError) as exc_info:
+        df.filter("y > 0")
+
+    error = exc_info.value
+    assert error.name == "y"
+    assert "x" in error.available

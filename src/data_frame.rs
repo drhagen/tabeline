@@ -6,10 +6,10 @@ use crate::data_type::DataType;
 use crate::error::{
     ColumnAlreadyExistsError, DuplicateColumnError, FilterTypeError, GroupColumnError,
     HasGroupsError, IncompatibleLengthError, IndexOutOfBoundsError, NoGroupsError,
-    NonexistentColumnError, RenameExistingError,
+    NonexistentColumnError, RenameExistingError, SummarizeTypeError,
 };
 use crate::py_scalar::PyScalar;
-use crate::typed_expression::{DataFrameType, TypedExpression};
+use crate::typed_expression::{DataFrameType, ExpressionType, TypedExpression};
 use crate::workarounds::{dummy_column, prepend_dummy_column};
 use crate::{GroupIndexOutOfBoundsError, PyExpression};
 use polars::datatypes::DataType as PolarsDataType;
@@ -524,10 +524,7 @@ impl PyDataFrame {
         let mut typed_mutators = Vec::new();
         for (column, expression) in &mutators {
             let typed_expression = expression.validate(&df_type, py)?;
-            df_type = df_type.with_column(
-                column.clone(),
-                typed_expression.expression_type().data_type(),
-            );
+            df_type = df_type.with_column(column.clone(), typed_expression.expression_type());
             typed_mutators.push((column.clone(), typed_expression));
         }
 
@@ -565,10 +562,7 @@ impl PyDataFrame {
         let mut typed_mutators = Vec::new();
         for (column, expression) in &mutators {
             let typed_expression = expression.validate(&df_type, py)?;
-            df_type = df_type.with_column(
-                column.clone(),
-                typed_expression.expression_type().data_type(),
-            );
+            df_type = df_type.with_column(column.clone(), typed_expression.expression_type());
             typed_mutators.push((column.clone(), typed_expression));
         }
 
@@ -644,7 +638,18 @@ impl PyDataFrame {
         let mut typed_columns = Vec::new();
         for (name, column) in &columns {
             let typed = column.validate(&df_type, py)?;
-            df_type = df_type.with_column(name.clone(), typed.expression_type().data_type());
+
+            // Assert that each expression is scalar (a reduction)
+            if let ExpressionType::Array(_) = typed.expression_type() {
+                return Err(PyErr::from_value(
+                    SummarizeTypeError {
+                        column: name.clone(),
+                    }
+                    .into_bound_py_any(py)?,
+                ));
+            }
+
+            df_type = df_type.with_column(name.clone(), typed.expression_type());
             typed_columns.push((name.clone(), typed));
         }
 

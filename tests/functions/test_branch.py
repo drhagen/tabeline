@@ -1,6 +1,7 @@
 import pytest
 
-from tabeline import DataFrame
+from tabeline import DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 
 
 def test_if_else():
@@ -47,3 +48,34 @@ def test_if_else_on_rowless_data_frame_with_mutate(default, df):
     actual = df.mutate(x=f"if_else(a!=0, a{default})")
     expected = df.mutate(x="1")
     assert actual == expected
+
+
+def test_if_else_rejects_one_arg():
+    df = DataFrame(x=[True, False, True])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y="if_else(x)")
+
+    error = exc_info.value
+    assert error.function == "if_else"
+    assert error.expected == 3
+    assert error.actual == 1
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        ([1, 2, 3], DataType.Integer64),
+        (["a", "b", "c"], DataType.String),
+    ],
+)
+def test_if_else_condition_must_be_boolean(values, expected_type):
+    df = DataFrame(x=values, y=[4, 5, 6])
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(z="if_else(x, y, 0)")
+
+    error = exc_info.value
+    assert error.function == "if_else"
+    assert error.parameter == "condition"
+    assert error.actual == expected_type

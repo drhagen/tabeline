@@ -2,7 +2,8 @@ import math
 
 import pytest
 
-from tabeline import DataFrame
+from tabeline import DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 
 
 def test_pmax():
@@ -157,3 +158,57 @@ def test_pmin_single_argument_with_expression():
     actual = df.transmute(result="pmin(x * 2)")
     expected = DataFrame(result=[2.0, 10.0, 6.0, 4.0])
     assert actual == expected
+
+
+def test_pmax_rejects_zero_args():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y="pmax()")
+
+    error = exc_info.value
+    assert error.function == "pmax"
+
+
+def test_pmin_rejects_zero_args():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y="pmin()")
+
+    error = exc_info.value
+    assert error.function == "pmin"
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_pmax_rejects_non_numeric(values, expected_type):
+    df = DataFrame(x=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y="pmax(x)")
+
+    assert exc_info.value.function == "pmax"
+    assert exc_info.value.actual == expected_type
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_pmin_rejects_non_numeric(values, expected_type):
+    df = DataFrame(x=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y="pmin(x)")
+
+    assert exc_info.value.function == "pmin"
+    assert exc_info.value.actual == expected_type

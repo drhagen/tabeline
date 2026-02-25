@@ -33,7 +33,7 @@ impl Max {
 
         Ok(Arc::new(Max {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }
@@ -95,7 +95,7 @@ impl Min {
 
         Ok(Arc::new(Min {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }

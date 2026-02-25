@@ -113,18 +113,6 @@ pub fn types_are_comparable(left: DataType, right: DataType) -> bool {
             | Float32 | Float64,
         ) => true,
 
-        // Booleans can be compared with numeric types (Polars allows this)
-        (
-            Boolean,
-            Integer8 | Integer16 | Integer32 | Integer64 | Whole8 | Whole16 | Whole32 | Whole64
-            | Float32 | Float64,
-        )
-        | (
-            Integer8 | Integer16 | Integer32 | Integer64 | Whole8 | Whole16 | Whole32 | Whole64
-            | Float32 | Float64,
-            Boolean,
-        ) => true,
-
         // Everything else is not comparable
         _ => false,
     }

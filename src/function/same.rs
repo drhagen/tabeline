@@ -62,7 +62,7 @@ impl Same {
 
         Ok(Arc::new(Same {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
 }
