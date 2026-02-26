@@ -29,9 +29,7 @@ def test_arithmetic_rejects_non_numeric_operand(expression, operation, values, e
     with pytest.raises(NumericTypeNotSatisfiedError) as exc_info:
         df.mutate(z=expression)
 
-    error = exc_info.value
-    assert error.operation == operation
-    assert error.actual == expected_type
+    assert exc_info.value == NumericTypeNotSatisfiedError(operation, expected_type)
 
 
 @pytest.mark.parametrize(
@@ -61,7 +59,4 @@ def test_comparison_rejects_incomparable_types(
     with pytest.raises(IncomparableTypesError) as exc_info:
         df.filter(expression)
 
-    error = exc_info.value
-    assert error.operation == operation
-    assert error.left_type == left_type
-    assert error.right_type == right_type
+    assert exc_info.value == IncomparableTypesError(operation, left_type, right_type)

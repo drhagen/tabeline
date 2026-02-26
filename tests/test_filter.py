@@ -119,8 +119,7 @@ def test_filter_rejects_non_boolean(expression, expected_type):
     with pytest.raises(FilterTypeError) as exc_info:
         df.filter(expression)
 
-    error = exc_info.value
-    assert error.actual_type == expected_type
+    assert exc_info.value == FilterTypeError(expected_type)
 
 
 def test_filter_unknown_variable():
@@ -129,6 +128,4 @@ def test_filter_unknown_variable():
     with pytest.raises(UnknownVariableError) as exc_info:
         df.filter("y > 0")
 
-    error = exc_info.value
-    assert error.name == "y"
-    assert "x" in error.available
+    assert exc_info.value == UnknownVariableError("y", ["x"])

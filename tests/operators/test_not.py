@@ -17,7 +17,4 @@ def test_not_rejects_non_boolean(values, expected_type):
     with pytest.raises(TypeMismatchError) as exc_info:
         df.filter("~x")
 
-    error = exc_info.value
-    assert error.operation == "~_"
-    assert error.expected == DataType.Boolean
-    assert error.actual == expected_type
+    assert exc_info.value == TypeMismatchError("~_", DataType.Boolean, expected_type)

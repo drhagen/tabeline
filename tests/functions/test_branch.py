@@ -61,10 +61,7 @@ def test_if_else_rejects_one_arg():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="if_else(x)")
 
-    error = exc_info.value
-    assert error.function == "if_else"
-    assert error.expected == 2
-    assert error.actual == 1
+    assert exc_info.value == FunctionArgumentCountError("if_else", 2, 1)
 
 
 @pytest.mark.parametrize(
@@ -80,10 +77,9 @@ def test_if_else_condition_must_be_boolean(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(z="if_else(x, y, 0)")
 
-    error = exc_info.value
-    assert error.function == "if_else"
-    assert error.parameter == "condition"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "if_else", "condition", "Boolean or Nothing", expected_type
+    )
 
 
 def test_if_else_rejects_incompatible_branch_types():
@@ -92,10 +88,9 @@ def test_if_else_rejects_incompatible_branch_types():
     with pytest.raises(IncompatibleTypesError) as exc_info:
         df.mutate(y="if_else(x, 1, 'hello')")
 
-    error = exc_info.value
-    assert error.operation == "if_else"
-    assert error.left_type == DataType.Integer64
-    assert error.right_type == DataType.String
+    assert exc_info.value == IncompatibleTypesError(
+        "if_else", DataType.Integer64, DataType.String
+    )
 
 
 def test_if_else_broadcasts_on_array_condition():

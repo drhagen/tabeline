@@ -120,10 +120,7 @@ def test_quantile_rejects_one_arg():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="quantile(x)")
 
-    error = exc_info.value
-    assert error.function == "quantile"
-    assert error.expected == 2
-    assert error.actual == 1
+    assert exc_info.value == FunctionArgumentCountError("quantile", 2, 1)
 
 
 @pytest.mark.parametrize(
@@ -139,10 +136,9 @@ def test_quantile_rejects_non_numeric_argument(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="quantile(x, 0.5)")
 
-    error = exc_info.value
-    assert error.function == "quantile"
-    assert error.parameter == "argument"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "quantile", "argument", "numeric type", expected_type
+    )
 
 
 @pytest.mark.parametrize(
@@ -158,7 +154,6 @@ def test_quantile_rejects_non_numeric_quantile(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="quantile(x, q)")
 
-    error = exc_info.value
-    assert error.function == "quantile"
-    assert error.parameter == "quantile"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "quantile", "quantile", "numeric type", expected_type
+    )

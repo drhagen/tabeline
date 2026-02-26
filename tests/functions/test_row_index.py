@@ -10,10 +10,7 @@ def test_row_index0_rejects_any_args():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="row_index0(x)")
 
-    error = exc_info.value
-    assert error.function == "row_index0"
-    assert error.expected == 0
-    assert error.actual == 1
+    assert exc_info.value == FunctionArgumentCountError("row_index0", 0, 1)
 
 
 def test_row_index1_rejects_any_args():
@@ -22,7 +19,4 @@ def test_row_index1_rejects_any_args():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="row_index1(x)")
 
-    error = exc_info.value
-    assert error.function == "row_index1"
-    assert error.expected == 0
-    assert error.actual == 1
+    assert exc_info.value == FunctionArgumentCountError("row_index1", 0, 1)

@@ -166,10 +166,7 @@ def test_pmax_rejects_zero_args():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="pmax()")
 
-    error = exc_info.value
-    assert error.function == "pmax"
-    assert error.expected == 1
-    assert error.actual == 0
+    assert exc_info.value == FunctionArgumentCountError("pmax", 1, 0)
 
 
 def test_pmin_rejects_zero_args():
@@ -178,10 +175,7 @@ def test_pmin_rejects_zero_args():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="pmin()")
 
-    error = exc_info.value
-    assert error.function == "pmin"
-    assert error.expected == 1
-    assert error.actual == 0
+    assert exc_info.value == FunctionArgumentCountError("pmin", 1, 0)
 
 
 @pytest.mark.parametrize(
@@ -197,9 +191,9 @@ def test_pmax_rejects_non_numeric(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="pmax(x)")
 
-    error = exc_info.value
-    assert error.function == "pmax"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "pmax", "argument", "numeric type", expected_type
+    )
 
 
 @pytest.mark.parametrize(
@@ -215,6 +209,6 @@ def test_pmin_rejects_non_numeric(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="pmin(x)")
 
-    error = exc_info.value
-    assert error.function == "pmin"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "pmin", "argument", "numeric type", expected_type
+    )

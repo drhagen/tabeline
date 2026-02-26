@@ -17,10 +17,7 @@ def test_and_rejects_non_boolean_left_operand(values, expected_type):
     with pytest.raises(TypeMismatchError) as exc_info:
         df.filter("x & y")
 
-    error = exc_info.value
-    assert error.operation == "and"
-    assert error.expected == DataType.Boolean
-    assert error.actual == expected_type
+    assert exc_info.value == TypeMismatchError("and", DataType.Boolean, expected_type)
 
 
 @pytest.mark.parametrize(
@@ -36,7 +33,4 @@ def test_and_rejects_non_boolean_right_operand(values, expected_type):
     with pytest.raises(TypeMismatchError) as exc_info:
         df.filter("x & y")
 
-    error = exc_info.value
-    assert error.operation == "and"
-    assert error.expected == DataType.Boolean
-    assert error.actual == expected_type
+    assert exc_info.value == TypeMismatchError("and", DataType.Boolean, expected_type)

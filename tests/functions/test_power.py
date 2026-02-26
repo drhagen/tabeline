@@ -40,10 +40,7 @@ def test_pow_rejects_one_arg():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="pow(x)")
 
-    error = exc_info.value
-    assert error.function == "pow"
-    assert error.expected == 2
-    assert error.actual == 1
+    assert exc_info.value == FunctionArgumentCountError("pow", 2, 1)
 
 
 @pytest.mark.parametrize(
@@ -59,10 +56,9 @@ def test_pow_rejects_non_numeric_base(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="pow(x, 2)")
 
-    error = exc_info.value
-    assert error.function == "pow"
-    assert error.parameter == "base"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "pow", "base", "numeric type", expected_type
+    )
 
 
 @pytest.mark.parametrize(
@@ -78,7 +74,6 @@ def test_pow_rejects_non_numeric_exponent(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(z="pow(x, y)")
 
-    error = exc_info.value
-    assert error.function == "pow"
-    assert error.parameter == "exponent"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "pow", "exponent", "numeric type", expected_type
+    )

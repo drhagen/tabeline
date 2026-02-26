@@ -48,10 +48,7 @@ def test_one_arg_function_rejects_zero_args(function):
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y=f"{function}()")
 
-    error = exc_info.value
-    assert error.function == function
-    assert error.expected == 1
-    assert error.actual == 0
+    assert exc_info.value == FunctionArgumentCountError(function, 1, 0)
 
 
 @pytest.mark.parametrize(
@@ -98,10 +95,7 @@ def test_one_arg_function_rejects_two_args(function):
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y=f"{function}(x, x)")
 
-    error = exc_info.value
-    assert error.function == function
-    assert error.expected == 1
-    assert error.actual == 2
+    assert exc_info.value == FunctionArgumentCountError(function, 1, 2)
 
 
 @pytest.mark.parametrize(
@@ -145,5 +139,6 @@ def test_numeric_function_rejects_non_numeric(function, values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y=f"{function}(x)")
 
-    assert exc_info.value.function == function
-    assert exc_info.value.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        function, "argument", "numeric type", expected_type
+    )

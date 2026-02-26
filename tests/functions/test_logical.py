@@ -68,9 +68,9 @@ def test_any_rejects_non_boolean(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="any(x)")
 
-    error = exc_info.value
-    assert error.function == "any"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "any", "argument", "Boolean or Nothing", expected_type
+    )
 
 
 @pytest.mark.parametrize(
@@ -86,6 +86,6 @@ def test_all_rejects_non_boolean(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="all(x)")
 
-    error = exc_info.value
-    assert error.function == "all"
-    assert error.actual == expected_type
+    assert exc_info.value == FunctionArgumentTypeError(
+        "all", "argument", "Boolean or Nothing", expected_type
+    )

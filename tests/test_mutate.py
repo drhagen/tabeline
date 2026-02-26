@@ -130,9 +130,7 @@ def test_mutate_unknown_variable():
     with pytest.raises(UnknownVariableError) as exc_info:
         df.mutate(z="unknown + 1")
 
-    error = exc_info.value
-    assert error.name == "unknown"
-    assert "x" in error.available
+    assert exc_info.value == UnknownVariableError("unknown", ["x"])
 
 
 def test_mutate_unknown_function():

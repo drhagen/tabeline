@@ -10,7 +10,4 @@ def test_n_rejects_any_args():
     with pytest.raises(FunctionArgumentCountError) as exc_info:
         df.mutate(y="n(x)")
 
-    error = exc_info.value
-    assert error.function == "n"
-    assert error.expected == 0
-    assert error.actual == 1
+    assert exc_info.value == FunctionArgumentCountError("n", 0, 1)
