@@ -3,7 +3,11 @@ import math
 import pytest
 
 from tabeline import DataFrame, DataType
-from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
+from tabeline.exceptions import (
+    FunctionArgumentCountError,
+    FunctionArgumentTypeError,
+    IncompatibleTypesError,
+)
 from tabeline.testing import assert_data_frames_equal
 
 absolute_tolerance = 1e-6
@@ -55,5 +59,26 @@ def test_pow_rejects_non_numeric_base(values, expected_type):
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="pow(x, 2)")
 
-    assert exc_info.value.function == "pow"
-    assert exc_info.value.actual == expected_type
+    error = exc_info.value
+    assert error.function == "pow"
+    assert error.parameter == "base"
+    assert error.actual == expected_type
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_pow_rejects_non_numeric_exponent(values, expected_type):
+    df = DataFrame(x=[1, 2, 3], y=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(z="pow(x, y)")
+
+    error = exc_info.value
+    assert error.function == "pow"
+    assert error.parameter == "exponent"
+    assert error.actual == expected_type

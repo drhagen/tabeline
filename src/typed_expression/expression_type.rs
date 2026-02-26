@@ -13,4 +13,15 @@ impl ExpressionType {
             ExpressionType::Array(dt) => dt,
         }
     }
+
+    pub fn with_data_type(self, dt: DataType) -> ExpressionType {
+        match self {
+            ExpressionType::Scalar(_) => ExpressionType::Scalar(dt),
+            ExpressionType::Array(_) => ExpressionType::Array(dt),
+        }
+    }
+
+    pub fn to_float(self) -> ExpressionType {
+        self.with_data_type(self.data_type().to_float())
+    }
 }

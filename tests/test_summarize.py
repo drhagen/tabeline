@@ -94,7 +94,8 @@ def test_summarize_rejects_non_scalar():
     with pytest.raises(SummarizeTypeError) as exc_info:
         df.group_by("x").summarize(z="y")
 
-    assert exc_info.value.column == "z"
+    error = exc_info.value
+    assert error.column == "z"
 
 
 def test_summarize_unknown_variable():
@@ -103,7 +104,10 @@ def test_summarize_unknown_variable():
     with pytest.raises(UnknownVariableError) as exc_info:
         df.group_by("x").summarize(z="max(unknown)")
 
-    assert exc_info.value.name == "unknown"
+    error = exc_info.value
+    assert error.name == "unknown"
+    assert "x" in error.available
+    assert "y" in error.available
 
 
 def test_summarize_unknown_function():

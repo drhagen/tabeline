@@ -76,9 +76,12 @@ impl Expression {
                     });
                 }
 
+                // Upcast unsigned types to signed (negation of unsigned is invalid)
+                let result_type = expression_type.with_data_type(data_type.to_signed());
+
                 Ok(TypedExpression::Negative {
                     content: Arc::new(typed_content),
-                    expression_type,
+                    expression_type: result_type,
                 })
             }
 
@@ -138,7 +141,7 @@ impl Expression {
                     TypedExpression::TrueDivide {
                         left: Arc::new(l),
                         right: Arc::new(r),
-                        expression_type: et,
+                        expression_type: et.to_float(),
                     }
                 })
             }

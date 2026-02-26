@@ -17,5 +17,6 @@ def test_positive_rejects_non_numeric(values, expected_type):
     with pytest.raises(NumericTypeNotSatisfiedError) as exc_info:
         df.mutate(y="+x")
 
-    assert exc_info.value.operation == "+_"
-    assert exc_info.value.actual == expected_type
+    error = exc_info.value
+    assert error.operation == "+_"
+    assert error.actual == expected_type

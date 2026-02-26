@@ -123,4 +123,25 @@ impl DataType {
                 | DataType::Whole64
         )
     }
+
+    /// Convert integer types to Float64, leaving float types unchanged.
+    pub fn to_float(self) -> DataType {
+        if self.is_integer() {
+            DataType::Float64
+        } else {
+            self
+        }
+    }
+
+    /// Convert unsigned integer types to their signed counterpart of the same size.
+    /// Returns the type unchanged if already signed or not an integer.
+    pub fn to_signed(self) -> DataType {
+        match self {
+            DataType::Whole8 => DataType::Integer8,
+            DataType::Whole16 => DataType::Integer16,
+            DataType::Whole32 => DataType::Integer32,
+            DataType::Whole64 => DataType::Integer64,
+            other => other,
+        }
+    }
 }

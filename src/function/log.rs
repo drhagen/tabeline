@@ -45,7 +45,7 @@ macro_rules! impl_log_function {
 
                 Ok(Arc::new($name {
                     argument: Arc::new(typed_arg),
-                    expression_type: arg_type,
+                    expression_type: arg_type.to_float(),
                 }))
             }
         }

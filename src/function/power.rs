@@ -42,7 +42,7 @@ impl Sqrt {
 
         Ok(Arc::new(Sqrt {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: arg_type.to_float(),
         }))
     }
 }
@@ -113,7 +113,7 @@ impl Exp {
 
         Ok(Arc::new(Exp {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type,
+            expression_type: arg_type.to_float(),
         }))
     }
 }
@@ -200,14 +200,17 @@ impl Pow {
         Ok(Arc::new(Pow {
             base: Arc::new(typed_base),
             exponent: Arc::new(typed_exponent),
-            expression_type: result_type,
+            expression_type: result_type.to_float(),
         }))
     }
 }
 
 impl Function for Pow {
     fn to_polars(&self) -> Expr {
-        self.base.to_polars().pow(self.exponent.to_polars())
+        self.base
+            .to_polars()
+            .pow(self.exponent.to_polars())
+            .cast(polars::datatypes::DataType::from(self.expression_type.data_type()))
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

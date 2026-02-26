@@ -31,6 +31,15 @@ impl Max {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
+        if !arg_type.data_type().is_numeric() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "max".to_string(),
+                parameter: "argument".to_string(),
+                expected: "numeric type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
         Ok(Arc::new(Max {
             argument: Arc::new(typed_arg),
             expression_type: ExpressionType::Scalar(arg_type.data_type()),
@@ -92,6 +101,15 @@ impl Min {
 
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
+
+        if !arg_type.data_type().is_numeric() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "min".to_string(),
+                parameter: "argument".to_string(),
+                expected: "numeric type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
 
         Ok(Arc::new(Min {
             argument: Arc::new(typed_arg),

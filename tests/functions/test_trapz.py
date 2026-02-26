@@ -66,11 +66,32 @@ def test_trapz_rejects_one_arg():
         ([True, False, True], DataType.Boolean),
     ],
 )
-def test_trapz_rejects_non_numeric(values, expected_type):
+def test_trapz_rejects_non_numeric_independent_argument(values, expected_type):
     df = DataFrame(x=values, y=[1, 2, 3])
 
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(z="trapz(x, y)")
 
-    assert exc_info.value.function == "trapz"
-    assert exc_info.value.actual == expected_type
+    error = exc_info.value
+    assert error.function == "trapz"
+    assert error.parameter == "t"
+    assert error.actual == expected_type
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_trapz_rejects_non_numeric_dependent_argument(values, expected_type):
+    df = DataFrame(x=[1, 2, 3], y=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(z="trapz(x, y)")
+
+    error = exc_info.value
+    assert error.function == "trapz"
+    assert error.parameter == "y"
+    assert error.actual == expected_type

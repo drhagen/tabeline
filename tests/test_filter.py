@@ -1,7 +1,7 @@
 import pytest
 
-from tabeline import DataFrame
-from tabeline.exceptions import UnknownVariableError
+from tabeline import DataFrame, DataType
+from tabeline.exceptions import FilterTypeError, UnknownVariableError
 
 
 def test_filter():
@@ -104,6 +104,23 @@ def test_filter_columnless(df, expected):
 def test_filter_rowless(expression, df):
     actual = df.filter(expression)
     assert actual == df
+
+
+@pytest.mark.parametrize(
+    ("expression", "expected_type"),
+    [
+        ("x + 1", DataType.Integer64),
+        ("x", DataType.Integer64),
+    ],
+)
+def test_filter_rejects_non_boolean(expression, expected_type):
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(FilterTypeError) as exc_info:
+        df.filter(expression)
+
+    error = exc_info.value
+    assert error.actual_type == expected_type
 
 
 def test_filter_unknown_variable():

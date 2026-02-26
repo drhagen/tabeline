@@ -133,11 +133,32 @@ def test_quantile_rejects_one_arg():
         ([True, False, True], DataType.Boolean),
     ],
 )
-def test_quantile_rejects_non_numeric(values, expected_type):
+def test_quantile_rejects_non_numeric_argument(values, expected_type):
     df = DataFrame(x=values)
 
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(y="quantile(x, 0.5)")
 
-    assert exc_info.value.function == "quantile"
-    assert exc_info.value.actual == expected_type
+    error = exc_info.value
+    assert error.function == "quantile"
+    assert error.parameter == "argument"
+    assert error.actual == expected_type
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_quantile_rejects_non_numeric_quantile(values, expected_type):
+    df = DataFrame(x=[1, 2, 3], q=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y="quantile(x, q)")
+
+    error = exc_info.value
+    assert error.function == "quantile"
+    assert error.parameter == "quantile"
+    assert error.actual == expected_type

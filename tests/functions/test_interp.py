@@ -129,11 +129,51 @@ def test_interp_rejects_two_args():
         ([True, False, True], DataType.Boolean),
     ],
 )
-def test_interp_rejects_non_numeric(values, expected_type):
+def test_interp_rejects_non_numeric_first_arg(values, expected_type):
     df = DataFrame(x=values, y=[1, 2, 3], z=[4, 5, 6])
 
     with pytest.raises(FunctionArgumentTypeError) as exc_info:
         df.mutate(w="interp(x, y, z)")
 
-    assert exc_info.value.function == "interp"
-    assert exc_info.value.actual == expected_type
+    error = exc_info.value
+    assert error.function == "interp"
+    assert error.parameter == "t"
+    assert error.actual == expected_type
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_interp_rejects_non_numeric_second_arg(values, expected_type):
+    df = DataFrame(x=[1, 2, 3], y=values, z=[4, 5, 6])
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(w="interp(x, y, z)")
+
+    error = exc_info.value
+    assert error.function == "interp"
+    assert error.parameter == "ts"
+    assert error.actual == expected_type
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_interp_rejects_non_numeric_third_arg(values, expected_type):
+    df = DataFrame(x=[1, 2, 3], y=[4, 5, 6], z=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(w="interp(x, y, z)")
+
+    error = exc_info.value
+    assert error.function == "interp"
+    assert error.parameter == "ys"
+    assert error.actual == expected_type

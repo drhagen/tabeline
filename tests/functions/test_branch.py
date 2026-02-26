@@ -1,7 +1,12 @@
 import pytest
 
 from tabeline import DataFrame, DataType
-from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
+from tabeline.exceptions import (
+    FunctionArgumentCountError,
+    FunctionArgumentTypeError,
+    IncompatibleTypesError,
+    SummarizeTypeError,
+)
 
 
 def test_if_else():
@@ -58,7 +63,7 @@ def test_if_else_rejects_one_arg():
 
     error = exc_info.value
     assert error.function == "if_else"
-    assert error.expected == 3
+    assert error.expected == 2
     assert error.actual == 1
 
 
@@ -79,3 +84,22 @@ def test_if_else_condition_must_be_boolean(values, expected_type):
     assert error.function == "if_else"
     assert error.parameter == "condition"
     assert error.actual == expected_type
+
+
+def test_if_else_rejects_incompatible_branch_types():
+    df = DataFrame(x=[True, False, True])
+
+    with pytest.raises(IncompatibleTypesError) as exc_info:
+        df.mutate(y="if_else(x, 1, 'hello')")
+
+    error = exc_info.value
+    assert error.operation == "if_else"
+    assert error.left_type == DataType.Integer64
+    assert error.right_type == DataType.String
+
+
+def test_if_else_broadcasts_on_array_condition():
+    df = DataFrame(x=[1, 1, 2, 2], y=[10, 20, 30, 40])
+
+    with pytest.raises(SummarizeTypeError):
+        df.group_by("x").summarize(z="if_else(y > 15, 1, 0)")

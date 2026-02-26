@@ -26,7 +26,7 @@ impl IfElse {
         if arguments.len() < 2 || arguments.len() > 3 {
             return Err(ValidationError::FunctionArgumentCount {
                 function: "if_else".to_string(),
-                expected: 3,
+                expected: 2,
                 actual: arguments.len(),
             });
         }
@@ -58,6 +58,13 @@ impl IfElse {
         // Then and else branches must have compatible types
         let result_type =
             crate::typed_expression::promote_expression_types(then_type, else_type, "if_else")?;
+
+        // If condition is Array, result must be Array regardless of branch shapes
+        let result_type = if matches!(condition_type, ExpressionType::Array(_)) {
+            ExpressionType::Array(result_type.data_type())
+        } else {
+            result_type
+        };
 
         Ok(Arc::new(IfElse {
             condition,
