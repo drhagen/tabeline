@@ -5,7 +5,6 @@ import pytest
 from tabeline import Array, DataFrame, DataType
 from tabeline.testing import assert_data_frames_equal
 
-from .._xfail import xfail_param
 from ._types import float_data_types, integer_data_types, whole_data_types
 
 absolute_tolerance = 1e-6
@@ -72,17 +71,17 @@ def test_multiply_float(left, right, answer, dtype):
 @pytest.mark.parametrize(
     ("left_dtype", "right_dtype", "answer_dtype"),
     [
-        xfail_param(DataType.Whole8, DataType.Integer8, DataType.Integer8),
+        (DataType.Whole8, DataType.Integer8, DataType.Integer8),
         (DataType.Whole8, DataType.Integer64, DataType.Integer64),
         (DataType.Whole8, DataType.Float32, DataType.Float32),
         (DataType.Whole8, DataType.Float64, DataType.Float64),
-        xfail_param(DataType.Whole64, DataType.Integer8, DataType.Integer8),
-        xfail_param(DataType.Whole64, DataType.Integer64, DataType.Integer64),
-        xfail_param(DataType.Whole64, DataType.Float32, DataType.Float32),
+        (DataType.Whole64, DataType.Integer8, DataType.Integer64),
+        (DataType.Whole64, DataType.Integer64, DataType.Integer64),
+        (DataType.Whole64, DataType.Float32, DataType.Float32),
         (DataType.Whole64, DataType.Float64, DataType.Float64),
         (DataType.Integer8, DataType.Float32, DataType.Float32),
         (DataType.Integer8, DataType.Float64, DataType.Float64),
-        xfail_param(DataType.Integer64, DataType.Float32, DataType.Float32),
+        (DataType.Integer64, DataType.Float32, DataType.Float32),
         (DataType.Integer64, DataType.Float64, DataType.Float64),
         (DataType.Float32, DataType.Float64, DataType.Float64),
     ],

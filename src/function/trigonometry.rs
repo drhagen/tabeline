@@ -43,9 +43,11 @@ macro_rules! impl_trig_function {
                     });
                 }
 
+                let result_type = arg_type.to_float();
+                let cast_arg = typed_arg.cast_if_needed(result_type.data_type());
                 Ok(Arc::new($name {
-                    argument: Arc::new(typed_arg),
-                    expression_type: arg_type.to_float(),
+                    argument: Arc::new(cast_arg),
+                    expression_type: result_type,
                 }))
             }
         }

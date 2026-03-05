@@ -109,6 +109,19 @@ impl DataType {
         )
     }
 
+    /// Check if this type is a whole number (unsigned integer)
+    pub fn is_whole(self) -> bool {
+        matches!(
+            self,
+            DataType::Whole8 | DataType::Whole16 | DataType::Whole32 | DataType::Whole64
+        )
+    }
+
+    /// Check if this type is a floating point number
+    pub fn is_float(self) -> bool {
+        matches!(self, DataType::Float32 | DataType::Float64)
+    }
+
     /// Check if this type is an integer (signed or unsigned)
     pub fn is_integer(self) -> bool {
         matches!(
@@ -130,6 +143,19 @@ impl DataType {
             DataType::Float64
         } else {
             self
+        }
+    }
+
+    /// Promote two types to a float type for binary float operations.
+    /// Returns Float32 if either operand is Float32 and neither is Float64.
+    /// Returns Float64 otherwise (including when both are integers).
+    pub fn promote_to_float(self, other: DataType) -> DataType {
+        if self == DataType::Float64 || other == DataType::Float64 {
+            DataType::Float64
+        } else if self == DataType::Float32 || other == DataType::Float32 {
+            DataType::Float32
+        } else {
+            DataType::Float64
         }
     }
 

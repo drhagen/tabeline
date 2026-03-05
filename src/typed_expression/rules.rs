@@ -72,17 +72,20 @@ pub fn promote_numeric_types(
         (Whole32, Whole8 | Whole16) | (Whole8 | Whole16, Whole32) => Ok(Whole32),
         (Whole16, Whole8) | (Whole8, Whole16) => Ok(Whole16),
 
-        // Mixed signed/unsigned - promote to signed with enough bits
+        // Mixed signed/unsigned - promote to signed at the larger byte size
         (Integer64, Whole8 | Whole16 | Whole32 | Whole64)
         | (Whole8 | Whole16 | Whole32 | Whole64, Integer64) => Ok(Integer64),
         (Integer32, Whole8 | Whole16 | Whole32) | (Whole8 | Whole16 | Whole32, Integer32) => {
             Ok(Integer32)
         }
+        (Integer32, Whole64) | (Whole64, Integer32) => Ok(Integer64),
         (Integer16, Whole8 | Whole16) | (Whole8 | Whole16, Integer16) => Ok(Integer16),
-        (Integer8, Whole8) | (Whole8, Integer8) => Ok(Integer16), // Need 16 bits for safety
-        // Smaller signed with larger unsigned - promote to largest signed
-        (Integer8 | Integer16 | Integer32, Whole16 | Whole32 | Whole64)
-        | (Whole16 | Whole32 | Whole64, Integer8 | Integer16 | Integer32) => Ok(Integer64),
+        (Integer16, Whole32) | (Whole32, Integer16) => Ok(Integer32),
+        (Integer16, Whole64) | (Whole64, Integer16) => Ok(Integer64),
+        (Integer8, Whole8) | (Whole8, Integer8) => Ok(Integer8),
+        (Integer8, Whole16) | (Whole16, Integer8) => Ok(Integer16),
+        (Integer8, Whole32) | (Whole32, Integer8) => Ok(Integer32),
+        (Integer8, Whole64) | (Whole64, Integer8) => Ok(Integer64),
 
         // Incompatible types
         _ => Err(ValidationError::IncompatibleTypes {

@@ -40,9 +40,11 @@ impl Sqrt {
             });
         }
 
+        let result_type = arg_type.to_float();
+        let cast_arg = typed_arg.cast_if_needed(result_type.data_type());
         Ok(Arc::new(Sqrt {
-            argument: Arc::new(typed_arg),
-            expression_type: arg_type.to_float(),
+            argument: Arc::new(cast_arg),
+            expression_type: result_type,
         }))
     }
 }
@@ -111,9 +113,11 @@ impl Exp {
             });
         }
 
+        let result_type = arg_type.to_float();
+        let cast_arg = typed_arg.cast_if_needed(result_type.data_type());
         Ok(Arc::new(Exp {
-            argument: Arc::new(typed_arg),
-            expression_type: arg_type.to_float(),
+            argument: Arc::new(cast_arg),
+            expression_type: result_type,
         }))
     }
 }
@@ -194,23 +198,38 @@ impl Pow {
             });
         }
 
-        let result_type =
+        let promoted_type =
             crate::typed_expression::promote_expression_types(base_type, exponent_type, "pow")?;
 
+        // Cast both operands to the promoted type
+        let promoted_dt = promoted_type.data_type();
+        let typed_base = typed_base.cast_if_needed(promoted_dt);
+        let typed_exponent = typed_exponent.cast_if_needed(promoted_dt);
+
+        // Apply power type rules: anything ** whole preserves type, otherwise float
+        let exponent_dt = typed_exponent.expression_type().data_type();
+        let expression_type = if exponent_dt.is_whole() {
+            promoted_type
+        } else {
+            let float_dt = typed_base
+                .expression_type()
+                .data_type()
+                .promote_to_float(exponent_dt);
+            promoted_type.with_data_type(float_dt)
+        };
+
+        let result_dt = expression_type.data_type();
         Ok(Arc::new(Pow {
-            base: Arc::new(typed_base),
-            exponent: Arc::new(typed_exponent),
-            expression_type: result_type.to_float(),
+            base: Arc::new(typed_base.cast_if_needed(result_dt)),
+            exponent: Arc::new(typed_exponent.cast_if_needed(result_dt)),
+            expression_type,
         }))
     }
 }
 
 impl Function for Pow {
     fn to_polars(&self) -> Expr {
-        self.base
-            .to_polars()
-            .pow(self.exponent.to_polars())
-            .cast(polars::datatypes::DataType::from(self.expression_type.data_type()))
+        self.base.to_polars().pow(self.exponent.to_polars())
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

@@ -53,12 +53,19 @@ impl PMax {
                 }
             });
 
-            typed_args.push(Arc::new(typed_arg));
+            typed_args.push(typed_arg);
         }
+
+        let result_type = result_type.unwrap();
+        let result_dt = result_type.data_type();
+        let typed_args = typed_args
+            .into_iter()
+            .map(|arg| Arc::new(arg.cast_if_needed(result_dt)))
+            .collect();
 
         Ok(Arc::new(PMax {
             arguments: typed_args,
-            expression_type: result_type.unwrap(),
+            expression_type: result_type,
         }) as Arc<dyn Function>)
     }
 }
@@ -156,12 +163,19 @@ impl PMin {
                 }
             });
 
-            typed_args.push(Arc::new(typed_arg));
+            typed_args.push(typed_arg);
         }
+
+        let result_type = result_type.unwrap();
+        let result_dt = result_type.data_type();
+        let typed_args = typed_args
+            .into_iter()
+            .map(|arg| Arc::new(arg.cast_if_needed(result_dt)))
+            .collect();
 
         Ok(Arc::new(PMin {
             arguments: typed_args,
-            expression_type: result_type.unwrap(),
+            expression_type: result_type,
         }) as Arc<dyn Function>)
     }
 }

@@ -1,3 +1,4 @@
+use crate::data_type::DataType;
 use crate::typed_expression::{ExpressionType, Function};
 use std::sync::Arc;
 
@@ -111,12 +112,50 @@ pub enum TypedExpression {
         right: Arc<TypedExpression>,
         expression_type: ExpressionType,
     },
+    Cast {
+        content: Arc<TypedExpression>,
+        expression_type: ExpressionType,
+    },
 }
 
 impl TypedExpression {
-    pub fn expression_type(&self) -> ExpressionType {
-        use crate::data_type::DataType;
+    pub fn is_literal(&self) -> bool {
+        match self {
+            TypedExpression::NullLiteral
+            | TypedExpression::BooleanLiteral { .. }
+            | TypedExpression::IntegerLiteral { .. }
+            | TypedExpression::FloatLiteral { .. }
+            | TypedExpression::StringLiteral { .. } => true,
+            // Negated or positive literals (e.g. -2.5 parses as Negative(FloatLiteral))
+            TypedExpression::Negative { content, .. }
+            | TypedExpression::Positive { content, .. } => content.is_literal(),
+            _ => false,
+        }
+    }
 
+    /// Returns true if this expression is a float literal (including negated float literals).
+    pub fn is_float_literal(&self) -> bool {
+        match self {
+            TypedExpression::FloatLiteral { .. } => true,
+            TypedExpression::Negative { content, .. }
+            | TypedExpression::Positive { content, .. } => content.is_float_literal(),
+            _ => false,
+        }
+    }
+
+    pub fn cast_if_needed(self, target: DataType) -> TypedExpression {
+        let current = self.expression_type();
+        if current.data_type() == target {
+            self
+        } else {
+            TypedExpression::Cast {
+                content: Arc::new(self),
+                expression_type: current.with_data_type(target),
+            }
+        }
+    }
+
+    pub fn expression_type(&self) -> ExpressionType {
         match self {
             // Literals have fixed types
             TypedExpression::NullLiteral => ExpressionType::Scalar(DataType::Nothing),
@@ -182,6 +221,9 @@ impl TypedExpression {
             TypedExpression::Or {
                 expression_type, ..
             } => *expression_type,
+            TypedExpression::Cast {
+                expression_type, ..
+            } => *expression_type,
         }
     }
 
@@ -228,6 +270,12 @@ impl TypedExpression {
             TypedExpression::Not { content, .. } => content.to_polars().not(),
             TypedExpression::And { left, right, .. } => left.to_polars().and(right.to_polars()),
             TypedExpression::Or { left, right, .. } => left.to_polars().or(right.to_polars()),
+            TypedExpression::Cast {
+                content,
+                expression_type,
+            } => content
+                .to_polars()
+                .cast(polars::datatypes::DataType::from(expression_type.data_type())),
         }
     }
 
@@ -419,6 +467,13 @@ impl TypedExpression {
             } => TypedExpression::Or {
                 left: Arc::new(left.substitute(substitutions)),
                 right: Arc::new(right.substitute(substitutions)),
+                expression_type: *expression_type,
+            },
+            TypedExpression::Cast {
+                content,
+                expression_type,
+            } => TypedExpression::Cast {
+                content: Arc::new(content.substitute(substitutions)),
                 expression_type: *expression_type,
             },
         }

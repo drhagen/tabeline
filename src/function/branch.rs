@@ -55,9 +55,15 @@ impl IfElse {
             });
         }
 
-        // Then and else branches must have compatible types
-        let result_type =
-            crate::typed_expression::promote_expression_types(then_type, else_type, "if_else")?;
+        // Then and else branches must have compatible types.
+        // Nothing is compatible with any type — use the non-Nothing type as result.
+        let result_type = if then_type.data_type() == DataType::Nothing {
+            else_type
+        } else if else_type.data_type() == DataType::Nothing {
+            then_type
+        } else {
+            crate::typed_expression::promote_expression_types(then_type, else_type, "if_else")?
+        };
 
         // If condition is Array, result must be Array regardless of branch shapes
         let result_type = if matches!(condition_type, ExpressionType::Array(_)) {
@@ -65,6 +71,19 @@ impl IfElse {
         } else {
             result_type
         };
+
+        // Cast branches to promoted type
+        let result_dt = result_type.data_type();
+        let then_branch = Arc::new(
+            Arc::try_unwrap(then_branch)
+                .unwrap_or_else(|arc| (*arc).clone())
+                .cast_if_needed(result_dt),
+        );
+        let else_branch = Arc::new(
+            Arc::try_unwrap(else_branch)
+                .unwrap_or_else(|arc| (*arc).clone())
+                .cast_if_needed(result_dt),
+        );
 
         Ok(Arc::new(IfElse {
             condition,
