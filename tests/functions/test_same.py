@@ -1,6 +1,7 @@
 import pytest
 
-from tabeline import DataFrame
+from tabeline import DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentTypeError
 
 
 @pytest.mark.parametrize(
@@ -51,3 +52,16 @@ def test_same_error_group_by(values):
     # which does not inherit from Exception and is not part of the Polars API.
     with pytest.raises(BaseException):  # noqa: B017, PT011
         _ = df.group_by("a").summarize(x="same(x)")
+
+
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+def test_same_rejects_literal(literal, actual_type):
+    df = DataFrame(x=[1, 2, 3])
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"same({literal})")
+    assert exc_info.value == FunctionArgumentTypeError(
+        "same", "argument", "array type", actual_type
+    )

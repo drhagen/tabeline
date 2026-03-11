@@ -90,3 +90,24 @@ def test_trapz_rejects_non_numeric_dependent_argument(values, expected_type):
     assert exc_info.value == FunctionArgumentTypeError(
         "trapz", "y", "numeric type", expected_type
     )
+
+
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+@pytest.mark.parametrize(
+    ("expression_template", "parameter"),
+    [
+        ("trapz({literal}, y)", "t"),
+        ("trapz(t, {literal})", "y"),
+    ],
+)
+def test_trapz_rejects_literal(literal, actual_type, expression_template, parameter):
+    df = DataFrame(t=[1, 2, 3], y=[1.0, 2.0, 3.0])
+    expression = expression_template.format(literal=literal)
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(q=expression)
+    assert exc_info.value == FunctionArgumentTypeError(
+        "trapz", parameter, "array type", actual_type
+    )

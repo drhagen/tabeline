@@ -5,7 +5,14 @@ import pytest
 from tabeline import Array, DataFrame, DataType
 from tabeline.testing import assert_data_frames_equal
 
-from ._types import float_data_types, integer_data_types, whole_data_types
+from .._types import (
+    float_data_types,
+    integer_data_types,
+    numeric_to_float,
+    numeric_to_integer,
+    numeric_types,
+    whole_data_types,
+)
 
 absolute_tolerance = 1e-6
 
@@ -91,28 +98,28 @@ def test_add_casting(left_dtype, right_dtype, answer_dtype):
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", whole_data_types + integer_data_types + float_data_types)
+@pytest.mark.parametrize("dtype", numeric_types)
 @pytest.mark.parametrize("expression", ["x + 2", "2 + x"])
-def test_add_with_constant_integer(dtype, expression):
+def test_add_with_positive_literal(dtype, expression):
     df = DataFrame(x=Array[dtype](2, 4, None))
     actual = df.transmute(result=expression)
     expected = DataFrame(result=Array[dtype](4, 6, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", float_data_types)
-@pytest.mark.parametrize("expression", ["x + 2.5", "2.5 + x"])
-def test_add_float_with_constant_decimal(dtype, expression):
-    df = DataFrame(x=Array[dtype](2.0, 4.5, None))
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_integer)
+@pytest.mark.parametrize("expression", ["x + -2", "-2 + x"])
+def test_add_with_negative_literal(original_dtype, expected_dtype, expression):
+    df = DataFrame(x=Array[original_dtype](2, 4, None))
     actual = df.transmute(result=expression)
-    expected = DataFrame(result=Array[dtype](4.5, 7.0, None))
+    expected = DataFrame(result=Array[expected_dtype](0, 2, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", whole_data_types + integer_data_types)
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
 @pytest.mark.parametrize("expression", ["x + 2.5", "2.5 + x"])
-def test_add_integer_with_decimal_constant(dtype, expression):
-    df = DataFrame(x=Array[dtype](2, 4, None))
+def test_add_with_decimal_literal(original_dtype, expected_dtype, expression):
+    df = DataFrame(x=Array[original_dtype](2, 4, None))
     actual = df.transmute(result=expression)
-    expected = DataFrame(result=Array[DataType.Float64](4.5, 6.5, None))
+    expected = DataFrame(result=Array[expected_dtype](4.5, 6.5, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)

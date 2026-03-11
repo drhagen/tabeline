@@ -34,10 +34,7 @@ impl IsNull {
 
         Ok(Arc::new(IsNull {
             argument: Arc::new(typed_arg),
-            expression_type: match arg_type {
-                ExpressionType::Scalar(_) => ExpressionType::Scalar(DataType::Boolean),
-                ExpressionType::Array(_) => ExpressionType::Array(DataType::Boolean),
-            },
+            expression_type: arg_type.with_data_type(DataType::Boolean),
         }) as Arc<dyn Function>)
     }
 }
@@ -108,10 +105,7 @@ impl IsNan {
 
         Ok(Arc::new(IsNan {
             argument: Arc::new(typed_arg),
-            expression_type: match arg_type {
-                ExpressionType::Scalar(_) => ExpressionType::Scalar(DataType::Boolean),
-                ExpressionType::Array(_) => ExpressionType::Array(DataType::Boolean),
-            },
+            expression_type: arg_type.with_data_type(DataType::Boolean),
         }) as Arc<dyn Function>)
     }
 }
@@ -182,10 +176,7 @@ impl IsFinite {
 
         Ok(Arc::new(IsFinite {
             argument: Arc::new(typed_arg),
-            expression_type: match arg_type {
-                ExpressionType::Scalar(_) => ExpressionType::Scalar(DataType::Boolean),
-                ExpressionType::Array(_) => ExpressionType::Array(DataType::Boolean),
-            },
+            expression_type: arg_type.with_data_type(DataType::Boolean),
         }) as Arc<dyn Function>)
     }
 }

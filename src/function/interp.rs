@@ -157,14 +157,7 @@ impl Interp {
             t,
             ts,
             ys,
-            expression_type: match t_type {
-                ExpressionType::Scalar(_) => {
-                    ExpressionType::Scalar(crate::data_type::DataType::Float64)
-                }
-                ExpressionType::Array(_) => {
-                    ExpressionType::Array(crate::data_type::DataType::Float64)
-                }
-            },
+            expression_type: t_type.with_data_type(crate::data_type::DataType::Float64),
         }))
     }
 }

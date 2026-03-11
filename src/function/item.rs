@@ -29,6 +29,15 @@ impl First {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "first".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
         Ok(Arc::new(First {
             argument: Arc::new(typed_arg),
             expression_type: ExpressionType::Scalar(arg_type.data_type()),
@@ -90,6 +99,15 @@ impl Last {
 
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
+
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "last".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
 
         Ok(Arc::new(Last {
             argument: Arc::new(typed_arg),

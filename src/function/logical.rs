@@ -40,6 +40,15 @@ impl Any {
             });
         }
 
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "any".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
         Ok(Arc::new(Any {
             argument: Arc::new(typed_arg),
             expression_type: ExpressionType::Scalar(arg_type.data_type()),
@@ -108,6 +117,15 @@ impl All {
                 function: "all".to_string(),
                 parameter: "argument".to_string(),
                 expected: "Boolean or Nothing".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "all".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
                 actual: arg_type.data_type(),
             });
         }

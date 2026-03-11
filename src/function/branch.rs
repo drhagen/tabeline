@@ -66,7 +66,7 @@ impl IfElse {
         };
 
         // If condition is Array, result must be Array regardless of branch shapes
-        let result_type = if matches!(condition_type, ExpressionType::Array(_)) {
+        let result_type = if !condition_type.is_scalar() {
             ExpressionType::Array(result_type.data_type())
         } else {
             result_type

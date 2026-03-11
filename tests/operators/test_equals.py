@@ -5,7 +5,7 @@ import pytest
 from tabeline import Array, DataFrame, DataType
 from tabeline.testing import assert_data_frames_equal
 
-from ._types import float_data_types, integer_data_types, whole_data_types
+from .._types import float_data_types, integer_data_types, whole_data_types
 
 
 @pytest.mark.parametrize("dtype_left", whole_data_types + integer_data_types + float_data_types)

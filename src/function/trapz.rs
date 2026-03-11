@@ -110,6 +110,24 @@ impl Trapz {
             });
         }
 
+        // Both arguments must be arrays
+        if !t_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "trapz".to_string(),
+                parameter: "t".to_string(),
+                expected: "array type".to_string(),
+                actual: t_type.data_type(),
+            });
+        }
+        if !y_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "trapz".to_string(),
+                parameter: "y".to_string(),
+                expected: "array type".to_string(),
+                actual: y_type.data_type(),
+            });
+        }
+
         // Result type is Float64 scalar (trapz is an aggregation)
         Ok(Arc::new(Trapz {
             t,

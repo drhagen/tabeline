@@ -1,5 +1,5 @@
 use crate::data_type::DataType;
-use crate::typed_expression::{ExpressionType, Function};
+use crate::typed_expression::{ExpressionType, Function, LiteralType};
 use std::sync::Arc;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -119,38 +119,16 @@ pub enum TypedExpression {
 }
 
 impl TypedExpression {
-    pub fn is_literal(&self) -> bool {
-        match self {
-            TypedExpression::NullLiteral
-            | TypedExpression::BooleanLiteral { .. }
-            | TypedExpression::IntegerLiteral { .. }
-            | TypedExpression::FloatLiteral { .. }
-            | TypedExpression::StringLiteral { .. } => true,
-            // Negated or positive literals (e.g. -2.5 parses as Negative(FloatLiteral))
-            TypedExpression::Negative { content, .. }
-            | TypedExpression::Positive { content, .. } => content.is_literal(),
-            _ => false,
-        }
-    }
-
-    /// Returns true if this expression is a float literal (including negated float literals).
-    pub fn is_float_literal(&self) -> bool {
-        match self {
-            TypedExpression::FloatLiteral { .. } => true,
-            TypedExpression::Negative { content, .. }
-            | TypedExpression::Positive { content, .. } => content.is_float_literal(),
-            _ => false,
-        }
-    }
-
     pub fn cast_if_needed(self, target: DataType) -> TypedExpression {
         let current = self.expression_type();
-        if current.data_type() == target {
+        // Always cast literals because their Polars type may not match the target.
+        // For concrete types, only cast if the type differs.
+        if !current.is_literal() && current.data_type() == target {
             self
         } else {
             TypedExpression::Cast {
                 content: Arc::new(self),
-                expression_type: current.with_data_type(target),
+                expression_type: ExpressionType::Scalar(target),
             }
         }
     }
@@ -160,8 +138,12 @@ impl TypedExpression {
             // Literals have fixed types
             TypedExpression::NullLiteral => ExpressionType::Scalar(DataType::Nothing),
             TypedExpression::BooleanLiteral { .. } => ExpressionType::Scalar(DataType::Boolean),
-            TypedExpression::IntegerLiteral { .. } => ExpressionType::Scalar(DataType::Integer64),
-            TypedExpression::FloatLiteral { .. } => ExpressionType::Scalar(DataType::Float64),
+            TypedExpression::IntegerLiteral { value } => {
+                ExpressionType::Literal(LiteralType::Whole(*value as u64))
+            }
+            TypedExpression::FloatLiteral { value } => {
+                ExpressionType::Literal(LiteralType::Float(*value))
+            }
             TypedExpression::StringLiteral { .. } => ExpressionType::Scalar(DataType::String),
             TypedExpression::Variable {
                 expression_type, ..

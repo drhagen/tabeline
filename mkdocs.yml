@@ -72,4 +72,5 @@ nav:
     - Joining: verbs/join.md
     - Concatenating: verbs/concatenate.md
   - Indexing: indexing.md
+  - Types: types.md
   - Contributing: contributing.md

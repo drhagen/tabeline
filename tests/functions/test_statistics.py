@@ -157,3 +157,30 @@ def test_quantile_rejects_non_numeric_quantile(values, expected_type):
     assert exc_info.value == FunctionArgumentTypeError(
         "quantile", "quantile", "numeric type", expected_type
     )
+
+
+@pytest.mark.parametrize("function", ["std", "var", "sum", "mean", "median"])
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+def test_statistic_rejects_literal(function, literal, actual_type):
+    df = DataFrame(x=[1, 2, 3])
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"{function}({literal})")
+    assert exc_info.value == FunctionArgumentTypeError(
+        function, "argument", "array type", actual_type
+    )
+
+
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+def test_quantile_rejects_literal_argument(literal, actual_type):
+    df = DataFrame(x=[1, 2, 3])
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"quantile({literal}, 0.5)")
+    assert exc_info.value == FunctionArgumentTypeError(
+        "quantile", "argument", "array type", actual_type
+    )

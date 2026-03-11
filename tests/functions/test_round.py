@@ -1,4 +1,6 @@
-from tabeline import DataFrame
+import pytest
+
+from tabeline import DataFrame, DataType
 
 
 def test_floor():
@@ -15,3 +17,23 @@ def test_ceil():
     df = DataFrame(x=values)
     actual = df.mutate(x="ceil(x)")
     assert actual == DataFrame(x=expected)
+
+
+@pytest.mark.parametrize(
+    ("expression", "expected_value", "expected_dtype"),
+    [
+        ("floor(2)", 2, DataType.Whole64),
+        ("floor(-3)", -3, DataType.Integer64),
+        ("floor(3.7)", 3.0, DataType.Float64),
+        ("floor(-3.7)", -4.0, DataType.Float64),
+        ("ceil(2)", 2, DataType.Whole64),
+        ("ceil(-3)", -3, DataType.Integer64),
+        ("ceil(3.7)", 4.0, DataType.Float64),
+        ("ceil(-3.7)", -3.0, DataType.Float64),
+    ],
+)
+def test_round_literal(expression, expected_value, expected_dtype):
+    df = DataFrame.columnless(1)
+    actual = df.mutate(result=expression)
+    assert actual == DataFrame(result=[expected_value])
+    assert actual[:, "result"].data_type == expected_dtype

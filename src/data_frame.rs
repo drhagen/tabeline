@@ -524,6 +524,8 @@ impl PyDataFrame {
         let mut typed_mutators = Vec::new();
         for (column, expression) in &mutators {
             let typed_expression = expression.validate(&df_type, py)?;
+            let result_dt = typed_expression.expression_type().data_type();
+            let typed_expression = typed_expression.cast_if_needed(result_dt);
             df_type = df_type.with_column(column.clone(), typed_expression.expression_type());
             typed_mutators.push((column.clone(), typed_expression));
         }
@@ -562,6 +564,8 @@ impl PyDataFrame {
         let mut typed_mutators = Vec::new();
         for (column, expression) in &mutators {
             let typed_expression = expression.validate(&df_type, py)?;
+            let result_dt = typed_expression.expression_type().data_type();
+            let typed_expression = typed_expression.cast_if_needed(result_dt);
             df_type = df_type.with_column(column.clone(), typed_expression.expression_type());
             typed_mutators.push((column.clone(), typed_expression));
         }
@@ -649,6 +653,8 @@ impl PyDataFrame {
                 ));
             }
 
+            let result_dt = typed.expression_type().data_type();
+            let typed = typed.cast_if_needed(result_dt);
             df_type = df_type.with_column(name.clone(), typed.expression_type());
             typed_columns.push((name.clone(), typed));
         }

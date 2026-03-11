@@ -89,3 +89,13 @@ def test_all_rejects_non_boolean(values, expected_type):
     assert exc_info.value == FunctionArgumentTypeError(
         "all", "argument", "Boolean or Nothing", expected_type
     )
+
+
+@pytest.mark.parametrize("function", ["any", "all"])
+def test_logical_rejects_literal(function):
+    df = DataFrame.columnless(2)
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"{function}(True)")
+    assert exc_info.value == FunctionArgumentTypeError(
+        function, "argument", "array type", DataType.Boolean
+    )

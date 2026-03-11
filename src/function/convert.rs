@@ -33,10 +33,7 @@ impl ToBoolean {
 
         Ok(Arc::new(ToBoolean {
             argument: Arc::new(typed_arg),
-            expression_type: match arg_type {
-                ExpressionType::Scalar(_) => ExpressionType::Scalar(DataType::Boolean),
-                ExpressionType::Array(_) => ExpressionType::Array(DataType::Boolean),
-            },
+            expression_type: arg_type.with_data_type(DataType::Boolean),
         }))
     }
 }
@@ -98,10 +95,7 @@ impl ToInteger {
 
         Ok(Arc::new(ToInteger {
             argument: Arc::new(typed_arg),
-            expression_type: match arg_type {
-                ExpressionType::Scalar(_) => ExpressionType::Scalar(DataType::Integer64),
-                ExpressionType::Array(_) => ExpressionType::Array(DataType::Integer64),
-            },
+            expression_type: arg_type.with_data_type(DataType::Integer64),
         }))
     }
 }
@@ -163,10 +157,7 @@ impl ToFloat {
 
         Ok(Arc::new(ToFloat {
             argument: Arc::new(typed_arg),
-            expression_type: match arg_type {
-                ExpressionType::Scalar(_) => ExpressionType::Scalar(DataType::Float64),
-                ExpressionType::Array(_) => ExpressionType::Array(DataType::Float64),
-            },
+            expression_type: arg_type.with_data_type(DataType::Float64),
         }))
     }
 }
@@ -228,10 +219,7 @@ impl ToString {
 
         Ok(Arc::new(ToString {
             argument: Arc::new(typed_arg),
-            expression_type: match arg_type {
-                ExpressionType::Scalar(_) => ExpressionType::Scalar(DataType::String),
-                ExpressionType::Array(_) => ExpressionType::Array(DataType::String),
-            },
+            expression_type: arg_type.with_data_type(DataType::String),
         }))
     }
 }

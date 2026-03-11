@@ -1,30 +1,108 @@
 use crate::data_type::DataType;
-use crate::typed_expression::{ExpressionType, ValidationError};
+use crate::typed_expression::{ExpressionType, LiteralType, ValidationError};
+
+fn promote_literal_types(left: LiteralType, right: LiteralType) -> LiteralType {
+    use LiteralType::*;
+    match (left, right) {
+        (Whole(_), Whole(v)) => Whole(v),
+        (Integer(_), Integer(v)) | (Whole(_), Integer(v)) | (Integer(v), Whole(_)) => Integer(v),
+        (Float(v), _) | (_, Float(v)) => Float(v),
+    }
+}
 
 pub fn promote_expression_types(
     left: ExpressionType,
     right: ExpressionType,
     operation: &str,
 ) -> Result<ExpressionType, ValidationError> {
-    // Check that shapes match
+    use ExpressionType::*;
+
     match (left, right) {
-        (ExpressionType::Scalar(left_dt), ExpressionType::Scalar(right_dt)) => {
-            let result_dt = promote_numeric_types(left_dt, right_dt, operation)?;
-            Ok(ExpressionType::Scalar(result_dt))
+        // Literal meets literal
+        (Literal(l), Literal(r)) => Ok(Literal(promote_literal_types(l, r))),
+
+        // Whole literal adapts to any concrete numeric type
+        (Literal(LiteralType::Whole(_)), Scalar(dt))
+        | (Scalar(dt), Literal(LiteralType::Whole(_)))
+            if dt.is_numeric() =>
+        {
+            Ok(Scalar(dt))
         }
-        (ExpressionType::Array(left_dt), ExpressionType::Array(right_dt)) => {
+        (Literal(LiteralType::Whole(_)), Array(dt))
+        | (Array(dt), Literal(LiteralType::Whole(_)))
+            if dt.is_numeric() =>
+        {
+            Ok(Array(dt))
+        }
+
+        // Integer literal adapts to signed integer and float types,
+        // but promotes whole types to their signed counterpart
+        (Literal(LiteralType::Integer(_)), Scalar(dt))
+        | (Scalar(dt), Literal(LiteralType::Integer(_)))
+            if dt.is_numeric() =>
+        {
+            Ok(Scalar(dt.to_signed()))
+        }
+        (Literal(LiteralType::Integer(_)), Array(dt))
+        | (Array(dt), Literal(LiteralType::Integer(_)))
+            if dt.is_numeric() =>
+        {
+            Ok(Array(dt.to_signed()))
+        }
+
+        // Float literal adapts to float concrete
+        (Literal(LiteralType::Float(_)), Scalar(dt))
+        | (Scalar(dt), Literal(LiteralType::Float(_)))
+            if dt.is_float() =>
+        {
+            Ok(Scalar(dt))
+        }
+        (Literal(LiteralType::Float(_)), Array(dt))
+        | (Array(dt), Literal(LiteralType::Float(_)))
+            if dt.is_float() =>
+        {
+            Ok(Array(dt))
+        }
+
+        // Float literal promotes int/whole to Float64
+        (Literal(LiteralType::Float(_)), Scalar(dt))
+        | (Scalar(dt), Literal(LiteralType::Float(_)))
+            if dt.is_numeric() =>
+        {
+            Ok(Scalar(DataType::Float64))
+        }
+        (Literal(LiteralType::Float(_)), Array(dt))
+        | (Array(dt), Literal(LiteralType::Float(_)))
+            if dt.is_numeric() =>
+        {
+            Ok(Array(DataType::Float64))
+        }
+
+        // Concrete types: delegate to promote_numeric_types
+        (Scalar(left_dt), Scalar(right_dt)) => {
             let result_dt = promote_numeric_types(left_dt, right_dt, operation)?;
-            Ok(ExpressionType::Array(result_dt))
+            Ok(Scalar(result_dt))
+        }
+        (Array(left_dt), Array(right_dt)) => {
+            let result_dt = promote_numeric_types(left_dt, right_dt, operation)?;
+            Ok(Array(result_dt))
         }
         // Scalar-Array operations promote to Array
-        (ExpressionType::Scalar(left_dt), ExpressionType::Array(right_dt)) => {
+        (Scalar(left_dt), Array(right_dt)) => {
             let result_dt = promote_numeric_types(left_dt, right_dt, operation)?;
-            Ok(ExpressionType::Array(result_dt))
+            Ok(Array(result_dt))
         }
-        (ExpressionType::Array(left_dt), ExpressionType::Scalar(right_dt)) => {
+        (Array(left_dt), Scalar(right_dt)) => {
             let result_dt = promote_numeric_types(left_dt, right_dt, operation)?;
-            Ok(ExpressionType::Array(result_dt))
+            Ok(Array(result_dt))
         }
+
+        // Incompatible types (e.g. literal with non-numeric)
+        _ => Err(ValidationError::IncompatibleTypes {
+            operation: operation.to_string(),
+            left_type: left.data_type(),
+            right_type: right.data_type(),
+        }),
     }
 }
 

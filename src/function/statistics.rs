@@ -42,6 +42,15 @@ impl Std {
             });
         }
 
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "std".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
         // Std always returns Float64 scalar (aggregation result)
         Ok(Arc::new(Std {
             argument,
@@ -116,6 +125,15 @@ impl Var {
                 function: "var".to_string(),
                 parameter: "argument".to_string(),
                 expected: "numeric type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "var".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
                 actual: arg_type.data_type(),
             });
         }
@@ -198,6 +216,15 @@ impl Sum {
             });
         }
 
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "sum".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
         Ok(Arc::new(Sum {
             argument,
             expression_type: ExpressionType::Scalar(arg_type.data_type()),
@@ -271,6 +298,15 @@ impl Mean {
                 function: "mean".to_string(),
                 parameter: "argument".to_string(),
                 expected: "numeric type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "mean".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
                 actual: arg_type.data_type(),
             });
         }
@@ -353,6 +389,15 @@ impl Median {
             });
         }
 
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "median".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
         // Median always returns Float64 scalar (aggregation result)
         Ok(Arc::new(Median {
             argument,
@@ -431,6 +476,15 @@ impl Quantile {
                 function: "quantile".to_string(),
                 parameter: "argument".to_string(),
                 expected: "numeric type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "quantile".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
                 actual: arg_type.data_type(),
             });
         }

@@ -40,8 +40,9 @@ macro_rules! impl_round_function {
                     });
                 }
 
+                let result_dt = arg_type.data_type();
                 Ok(Arc::new($name {
-                    argument: Arc::new(typed_arg),
+                    argument: Arc::new(typed_arg.cast_if_needed(result_dt)),
                     expression_type: arg_type,
                 }))
             }

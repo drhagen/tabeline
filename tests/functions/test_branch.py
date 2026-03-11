@@ -1,12 +1,15 @@
 import pytest
 
-from tabeline import DataFrame, DataType
+from tabeline import Array, DataFrame, DataType
 from tabeline.exceptions import (
     FunctionArgumentCountError,
     FunctionArgumentTypeError,
     IncompatibleTypesError,
     SummarizeTypeError,
 )
+from tabeline.testing import assert_data_frames_equal
+
+from .._types import numeric_to_float, numeric_to_integer, numeric_types
 
 
 def test_if_else():
@@ -55,6 +58,42 @@ def test_if_else_on_rowless_data_frame_with_mutate(default, df):
     assert actual == expected
 
 
+@pytest.mark.parametrize("dtype", numeric_types)
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [("if_else(c, 5, y)", [5, 20]), ("if_else(c, y, 5)", [10, 5])],
+)
+def test_if_else_with_positive_literal(dtype, expression, expected):
+    df = DataFrame(c=[True, False], y=Array[dtype](10, 20))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[dtype](*expected))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_integer)
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [("if_else(c, -5, y)", [-5, 20]), ("if_else(c, y, -5)", [10, -5])],
+)
+def test_if_else_with_negative_literal(original_dtype, expected_dtype, expression, expected):
+    df = DataFrame(c=[True, False], y=Array[original_dtype](10, 20))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[expected_dtype](*expected))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [("if_else(c, 2.5, y)", [2.5, 20]), ("if_else(c, y, 2.5)", [10, 2.5])],
+)
+def test_if_else_with_decimal_literal(original_dtype, expected_dtype, expression, expected):
+    df = DataFrame(c=[True, False], y=Array[original_dtype](10, 20))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[expected_dtype](*expected))
+    assert_data_frames_equal(actual, expected)
+
+
 def test_if_else_rejects_one_arg():
     df = DataFrame(x=[True, False, True])
 
@@ -88,9 +127,7 @@ def test_if_else_rejects_incompatible_branch_types():
     with pytest.raises(IncompatibleTypesError) as exc_info:
         df.mutate(y="if_else(x, 1, 'hello')")
 
-    assert exc_info.value == IncompatibleTypesError(
-        "if_else", DataType.Integer64, DataType.String
-    )
+    assert exc_info.value == IncompatibleTypesError("if_else", DataType.Whole64, DataType.String)
 
 
 def test_if_else_broadcasts_on_array_condition():

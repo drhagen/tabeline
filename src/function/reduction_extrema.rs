@@ -40,6 +40,15 @@ impl Max {
             });
         }
 
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "max".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
         Ok(Arc::new(Max {
             argument: Arc::new(typed_arg),
             expression_type: ExpressionType::Scalar(arg_type.data_type()),
@@ -107,6 +116,15 @@ impl Min {
                 function: "min".to_string(),
                 parameter: "argument".to_string(),
                 expected: "numeric type".to_string(),
+                actual: arg_type.data_type(),
+            });
+        }
+
+        if !arg_type.is_array() {
+            return Err(ValidationError::FunctionArgumentType {
+                function: "min".to_string(),
+                parameter: "argument".to_string(),
+                expected: "array type".to_string(),
                 actual: arg_type.data_type(),
             });
         }

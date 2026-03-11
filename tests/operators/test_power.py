@@ -5,7 +5,17 @@ import pytest
 from tabeline import Array, DataFrame, DataType
 from tabeline.testing import assert_data_frames_equal
 
-from ._types import float_data_types, integer_data_types, whole_data_types
+from .._types import (
+    float_data_types,
+    float_to_float,
+    integer_data_types,
+    integer_to_float,
+    numeric_to_float,
+    numeric_types,
+    whole_data_types,
+    whole_to_integer,
+    whole_to_whole,
+)
 
 absolute_tolerance = 1e-6
 
@@ -106,63 +116,54 @@ def test_power_float(left, right, answer, dtype):
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", whole_data_types)
-@pytest.mark.parametrize(
-    ("expr", "expected"),
-    [
-        ("x ** 3", [8, None]),
-        ("3 ** x", [9, None]),
-    ],
-)
-def test_power_whole_with_constant_integer(dtype, expr, expected):
-    df = DataFrame(x=Array[dtype](2, None))
-    actual = df.transmute(result=expr)
-    expected = DataFrame(result=Array[dtype](*expected))
-    assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
-
-
-@pytest.mark.parametrize("dtype", integer_data_types + float_data_types)
-def test_power_with_constant_integer_exponent(dtype):
+@pytest.mark.parametrize("dtype", numeric_types)
+def test_power_with_positive_literal_exponent(dtype):
     df = DataFrame(x=Array[dtype](2, None))
     actual = df.transmute(result="x ** 3")
     expected = DataFrame(result=Array[dtype](8, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", integer_data_types + float_data_types)
-def test_power_with_constant_integer_base(dtype):
-    df = DataFrame(x=Array[dtype](2, None))
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+def test_power_with_negative_literal_exponent(original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](2, None))
+    actual = df.transmute(result="x ** -3")
+    expected = DataFrame(result=Array[expected_dtype](0.125, None))
+    assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
+
+
+@pytest.mark.parametrize(
+    ("original_dtype", "expected_dtype"),
+    whole_to_whole + integer_to_float + float_to_float,
+)
+def test_power_with_positive_literal_base(original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](2, None))
     actual = df.transmute(result="3 ** x")
-    float_dtype = DataType.Float32 if dtype == DataType.Float32 else DataType.Float64
-    expected = DataFrame(result=Array[float_dtype](9, None))
+    expected = DataFrame(result=Array[expected_dtype](9, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", float_data_types)
 @pytest.mark.parametrize(
-    ("expr", "expected"),
-    [
-        ("x ** -3.0", [0.125, None]),
-        ("-1.5 ** x", [-2.25, None]),
-    ],
+    ("original_dtype", "expected_dtype"),
+    whole_to_integer + integer_to_float + float_to_float,
 )
-def test_power_float_with_constant_decimal(dtype, expr, expected):
-    df = DataFrame(x=Array[dtype](2, None))
-    actual = df.transmute(result=expr)
-    expected = DataFrame(result=Array[dtype](*expected))
+def test_power_with_negative_literal_base(original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](2, None))
+    actual = df.transmute(result="(-3) ** x")
+    expected = DataFrame(result=Array[expected_dtype](9, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", whole_data_types + integer_data_types)
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
 @pytest.mark.parametrize(
-    ("expr", "expected"),
+    ("expression", "expected"),
     [
-        ("x ** -3.0", [0.125, None]),
-        ("-1.5 ** x", [-2.25, None]),
+        ("x ** 2.5", [32, None]),
+        ("2.5 ** x", [39.0625, None]),
     ],
 )
-def test_power_integer_with_constant_decimal(dtype, expr, expected):
-    df = DataFrame(x=Array[dtype](2, None))
-    actual = df.transmute(result=expr)
-    expected = DataFrame(result=Array[DataType.Float64](*expected))
+def test_power_with_decimal_literal(original_dtype, expected_dtype, expression, expected):
+    df = DataFrame(x=Array[original_dtype](4, None))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[expected_dtype](*expected))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)

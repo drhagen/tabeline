@@ -1,7 +1,23 @@
 import pytest
 
-from tabeline import DataFrame, DataType
+from tabeline import Array, DataFrame, DataType
 from tabeline.exceptions import NumericTypeNotSatisfiedError
+from tabeline.testing import assert_data_frames_equal
+
+
+@pytest.mark.parametrize(
+    ("expression", "expected_value", "expected_dtype"),
+    [
+        ("+(2)", 2, DataType.Whole64),
+        ("+(-2)", -2, DataType.Integer64),
+        ("+(2.5)", 2.5, DataType.Float64),
+    ],
+)
+def test_positive_literal(expression, expected_value, expected_dtype):
+    df = DataFrame.columnless(1)
+    actual = df.mutate(result=expression)
+    expected = DataFrame(result=Array[expected_dtype](expected_value))
+    assert_data_frames_equal(actual, expected)
 
 
 @pytest.mark.parametrize(
