@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from tabeline import DataFrame, DataType
+from tabeline import DataFrame
 from tabeline.testing import assert_data_frames_equal
 
 absolute_tolerance = 1e-6

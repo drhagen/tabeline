@@ -1,5 +1,7 @@
 from tabeline import DataType
 
+# ruff: noqa: ERA001
+
 # Comment out some types to keep the number of tests reasonable
 whole_data_types = [
     DataType.Whole8,

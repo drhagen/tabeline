@@ -8,6 +8,12 @@ pub struct DataFrameType {
     columns: HashMap<String, ExpressionType>,
 }
 
+impl Default for DataFrameType {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DataFrameType {
     pub fn new() -> Self {
         DataFrameType {

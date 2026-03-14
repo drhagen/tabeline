@@ -255,9 +255,9 @@ impl TypedExpression {
             TypedExpression::Cast {
                 content,
                 expression_type,
-            } => content
-                .to_polars()
-                .cast(polars::datatypes::DataType::from(expression_type.data_type())),
+            } => content.to_polars().cast(polars::datatypes::DataType::from(
+                expression_type.data_type(),
+            )),
         }
     }
 

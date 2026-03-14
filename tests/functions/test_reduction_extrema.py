@@ -128,9 +128,7 @@ def test_max_min_combined():
 
 
 @pytest.mark.parametrize("function", ["max", "min"])
-@pytest.mark.parametrize(
-    "dtype", whole_data_types + integer_data_types + float_data_types
-)
+@pytest.mark.parametrize("dtype", whole_data_types + integer_data_types + float_data_types)
 def test_reduction_extrema_preserves_type(function, dtype):
     df = DataFrame(x=Array[dtype](1, 3, 2))
     actual = df.group_by().summarize(a=f"{function}(x)")
