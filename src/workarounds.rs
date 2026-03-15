@@ -14,8 +14,8 @@ pub fn dummy_column(height: usize) -> Column {
 }
 
 pub fn prepend_dummy_column(df: DataFrame) -> DataFrame {
-    DataFrame::new(vec![dummy_column(df.height())])
+    DataFrame::new(df.height(), vec![dummy_column(df.height())])
         .unwrap()
-        .hstack(df.get_columns())
+        .hstack(df.columns())
         .unwrap()
 }

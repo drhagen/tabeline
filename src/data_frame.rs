@@ -14,7 +14,6 @@ use crate::workarounds::{dummy_column, prepend_dummy_column};
 use crate::{GroupIndexOutOfBoundsError, PyExpression};
 use polars::datatypes::DataType as PolarsDataType;
 use polars::error::PolarsError;
-use polars::lazy::frame::pivot::pivot_stable;
 use polars::prelude::*;
 use polars::series::Series;
 use polars::{frame::UniqueKeepStrategy, prelude::DataFrame as PolarsDataFrame};
@@ -60,14 +59,14 @@ impl PyDataFrame {
         }
 
         Ok(PyDataFrame {
-            polars_data_frame: PolarsDataFrame::new(polars_columns).unwrap(),
+            polars_data_frame: PolarsDataFrame::new(height, polars_columns).unwrap(),
             group_levels: vec![],
         })
     }
 
     fn to_tuple_list(&self) -> PyResult<Vec<(String, PyArray)>> {
         let mut tuple_list = Vec::new();
-        for column in self.polars_data_frame.get_columns() {
+        for column in self.polars_data_frame.columns() {
             if column.name() == DUMMY_NAME {
                 // Skip dummy column
                 continue;
@@ -96,7 +95,7 @@ impl PyDataFrame {
     fn column_names<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
         let col_names: Vec<&str> = self
             .polars_data_frame
-            .get_columns()
+            .columns()
             .iter()
             // Skip dummy column
             .filter(|s| s.name() != DUMMY_NAME)
@@ -144,7 +143,7 @@ impl PyDataFrame {
         }
 
         let dict = PyDict::new(py);
-        for column in self.polars_data_frame.get_columns() {
+        for column in self.polars_data_frame.columns() {
             if column.name() == DUMMY_NAME {
                 // Skip dummy column
                 continue;
@@ -705,16 +704,31 @@ impl PyDataFrame {
 
         let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
-        let pivot_df = pivot_stable(
-            &self.polars_data_frame,
-            &[key],
-            Some(flattened_groups),
-            Some(&[value]),
-            false,
-            None,
-            None,
-        )
-        .unwrap();
+        let on_columns = self
+            .polars_data_frame
+            .column(&key)
+            .unwrap()
+            .unique()
+            .unwrap()
+            .sort(Default::default())
+            .unwrap()
+            .into_frame();
+
+        let pivot_df = self
+            .polars_data_frame
+            .clone()
+            .lazy()
+            .pivot(
+                cols([key]),
+                std::sync::Arc::new(on_columns),
+                cols(flattened_groups),
+                cols([value]),
+                element().first(),
+                true,
+                "_".into(),
+            )
+            .collect()
+            .unwrap();
 
         Ok(PyDataFrame {
             polars_data_frame: pivot_df,
@@ -757,7 +771,7 @@ impl PyDataFrame {
             .lazy()
             .unpivot(UnpivotArgsDSL {
                 index: cols(unpivot_columns),
-                on: cols(consumed_column_names),
+                on: Some(cols(consumed_column_names)),
                 variable_name: Some(key.clone().into()),
                 value_name: Some(value.into()),
             })
@@ -797,6 +811,7 @@ impl PyDataFrame {
                     nulls_equal: true,
                     coalesce: JoinCoalesce::CoalesceColumns,
                     maintain_order: MaintainOrderJoin::LeftRight,
+                    build_side: None,
                 },
                 None,
             )
@@ -832,6 +847,7 @@ impl PyDataFrame {
                     nulls_equal: true,
                     coalesce: JoinCoalesce::CoalesceColumns,
                     maintain_order: MaintainOrderJoin::LeftRight,
+                    build_side: None,
                 },
                 None,
             )
@@ -867,6 +883,7 @@ impl PyDataFrame {
                     nulls_equal: true,
                     coalesce: JoinCoalesce::CoalesceColumns,
                     maintain_order: MaintainOrderJoin::LeftRight,
+                    build_side: None,
                 },
                 None,
             )
@@ -957,7 +974,7 @@ impl PyDataFrame {
 
         // Convert to DataFrame
         Ok(PyDataFrame {
-            polars_data_frame: DataFrame::new(columns).unwrap(),
+            polars_data_frame: DataFrame::new(height, columns).unwrap(),
             group_levels: vec![],
         })
     }
@@ -997,7 +1014,7 @@ impl PyDataFrame {
     pub(crate) fn iter_column_names(&self) -> impl Iterator<Item = &str> {
         // Contains dummy column
         self.polars_data_frame
-            .get_columns()
+            .columns()
             .iter()
             .map(|s| s.name().as_str())
     }
@@ -1005,7 +1022,7 @@ impl PyDataFrame {
     pub(crate) fn iter_columns(&self) -> impl Iterator<Item = (&str, PyArray)> {
         // Does not contain dummy column
         self.polars_data_frame
-            .get_columns()
+            .columns()
             .iter()
             .filter(|s| s.name() != DUMMY_NAME)
             .map(|s| {
@@ -1140,7 +1157,7 @@ impl PyDataFrame {
                     .agg([all().as_expr().gather(Expr::Literal(LiteralValue::Series(
                         SpecialEq::new(Series::new("".into(), &indexes)),
                     )))])
-                    .explode(cols(non_group_columns))
+                    .explode(cols(non_group_columns), ExplodeOptions { empty_as_null: false, keep_nulls: false })
                     .sort(["_index"], Default::default())
                     .drop(cols(["_index"]))
                     .collect();
