@@ -21,33 +21,43 @@ pub fn promote_expression_types(
         // Literal meets literal
         (Literal(l), Literal(r)) => Ok(Literal(promote_literal_types(l, r))),
 
-        // Whole literal adapts to any concrete numeric type
-        (Literal(LiteralType::Whole(_)), Scalar(dt))
-        | (Scalar(dt), Literal(LiteralType::Whole(_)))
+        // Whole literal adapts to any concrete numeric type,
+        // widening if the literal value doesn't fit
+        (Literal(lit @ LiteralType::Whole(_)), Scalar(dt))
+        | (Scalar(dt), Literal(lit @ LiteralType::Whole(_)))
             if dt.is_numeric() =>
         {
-            Ok(Scalar(dt))
+            let min_dt = lit.minimum_data_type();
+            let result_dt = promote_numeric_types(min_dt, dt, operation)?;
+            Ok(Scalar(result_dt))
         }
-        (Literal(LiteralType::Whole(_)), Array(dt))
-        | (Array(dt), Literal(LiteralType::Whole(_)))
+        (Literal(lit @ LiteralType::Whole(_)), Array(dt))
+        | (Array(dt), Literal(lit @ LiteralType::Whole(_)))
             if dt.is_numeric() =>
         {
-            Ok(Array(dt))
+            let min_dt = lit.minimum_data_type();
+            let result_dt = promote_numeric_types(min_dt, dt, operation)?;
+            Ok(Array(result_dt))
         }
 
         // Integer literal adapts to signed integer and float types,
-        // but promotes whole types to their signed counterpart
-        (Literal(LiteralType::Integer(_)), Scalar(dt))
-        | (Scalar(dt), Literal(LiteralType::Integer(_)))
+        // but promotes whole types to their signed counterpart,
+        // widening if the literal value doesn't fit
+        (Literal(lit @ LiteralType::Integer(_)), Scalar(dt))
+        | (Scalar(dt), Literal(lit @ LiteralType::Integer(_)))
             if dt.is_numeric() =>
         {
-            Ok(Scalar(dt.to_signed()))
+            let min_dt = lit.minimum_data_type();
+            let result_dt = promote_numeric_types(min_dt, dt.to_signed(), operation)?;
+            Ok(Scalar(result_dt))
         }
-        (Literal(LiteralType::Integer(_)), Array(dt))
-        | (Array(dt), Literal(LiteralType::Integer(_)))
+        (Literal(lit @ LiteralType::Integer(_)), Array(dt))
+        | (Array(dt), Literal(lit @ LiteralType::Integer(_)))
             if dt.is_numeric() =>
         {
-            Ok(Array(dt.to_signed()))
+            let min_dt = lit.minimum_data_type();
+            let result_dt = promote_numeric_types(min_dt, dt.to_signed(), operation)?;
+            Ok(Array(result_dt))
         }
 
         // Float literal adapts to float concrete

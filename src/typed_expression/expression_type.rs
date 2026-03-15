@@ -37,10 +37,46 @@ impl LiteralType {
         matches!(self, LiteralType::Float(_))
     }
 
+    pub fn minimum_data_type(self) -> DataType {
+        match self {
+            LiteralType::Whole(v) => {
+                if v <= u8::MAX as u64 {
+                    DataType::Whole8
+                } else if v <= u16::MAX as u64 {
+                    DataType::Whole16
+                } else if v <= u32::MAX as u64 {
+                    DataType::Whole32
+                } else {
+                    DataType::Whole64
+                }
+            }
+            LiteralType::Integer(v) => {
+                if v >= i8::MIN as i64 && v <= i8::MAX as i64 {
+                    DataType::Integer8
+                } else if v >= i16::MIN as i64 && v <= i16::MAX as i64 {
+                    DataType::Integer16
+                } else if v >= i32::MIN as i64 && v <= i32::MAX as i64 {
+                    DataType::Integer32
+                } else {
+                    DataType::Integer64
+                }
+            }
+            LiteralType::Float(_) => DataType::Float64,
+        }
+    }
+
     pub fn to_signed(self) -> LiteralType {
         match self {
             LiteralType::Whole(v) => LiteralType::Integer(v as i64),
             other => other,
+        }
+    }
+
+    pub fn negate(self) -> LiteralType {
+        match self {
+            LiteralType::Whole(v) => LiteralType::Integer(-(v as i64)),
+            LiteralType::Integer(v) => LiteralType::Integer(-v),
+            LiteralType::Float(v) => LiteralType::Float(-v),
         }
     }
 

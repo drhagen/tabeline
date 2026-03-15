@@ -79,7 +79,12 @@ impl Expression {
                 }
 
                 // Upcast unsigned types to signed (negation of unsigned is invalid)
-                let result_type = expression_type.to_signed();
+                // For literals, negate the stored value so the type system sees the
+                // actual runtime value (e.g. Whole(128) becomes Integer(-128))
+                let result_type = match expression_type {
+                    ExpressionType::Literal(lt) => ExpressionType::Literal(lt.negate()),
+                    _ => expression_type.to_signed(),
+                };
                 let signed_dt = result_type.data_type();
 
                 Ok(TypedExpression::Negative {
