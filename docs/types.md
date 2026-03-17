@@ -7,7 +7,7 @@ icon: material/graph-outline
 Tabeline has a well-defined type system, exposing a subset of the data types available in Arrow.
 Each column has a data type determining the set of possible values that column can hold.
 
-Also, some verbs evaluate expressions of column names, specifically `filter`, `mutate`, `transmute`, and `summarize`.
+Some verbs evaluate expressions of column names, specifically `filter`, `mutate`, `transmute`, and `summarize`.
 Before evaluation, the expressions are statically type checked in the context of the data frame types.
 
 ## Data types
@@ -20,15 +20,17 @@ The data types are defined as members of the enum `tabeline.DataType`.
 | `Whole8` | 0 to 255 |
 | `Whole16` | 0 to 2^16-1 |
 | `Whole32` | 0 to 2^32-1 |
-| `Whole64` | 0 to 2^64-1 |
+| `Whole64` | 0 to 2^64-1* |
 | `Integer8` | -128 to 127 |
 | `Integer16` | -2^15 to 2^15-1 |
 | `Integer32` | -2^31 to 2^31-1 |
-| `Integer64` | -2^63 to 2^63-1 |
+| `Integer64` | -2^63 to 2^63-1* |
 | `Float32` | 32-bit IEEE 754 floating point |
 | `Float64` | 64-bit IEEE 754 floating point |
 | `String` | Unicode string |
 | `Nothing` | The bottom type |
+
+*Limitations in how PyO3 communicates between Rust and Python may create edge cases for whole numbers and integers whose absolute value is larger then 2^63-1.
 
 ## Expression types
 
@@ -75,7 +77,7 @@ Arguments of different numeric types are cast to the most complex type using the
 
 ### Signed operations
 
-Some operations that are not closed on the whole numbers—for example, specifically negation and subtraction.
+Some operations that are not closed on the whole numbers—for example, negation and subtraction.
 In such cases, wholes are cast to integers.
 
 ### Float operations
@@ -105,14 +107,14 @@ df = DataFrame(
 )
 
 df.transmute(x_plus_1="x + 1", x_minus_1="x - 1", x_plus_1000="x + 1000")
-# shape: (3, 2)
-# ┌──────────┬───────────┐
-# │ x_plus_1 ┆ x_minus_1 │
-# │ ---      ┆ ---       │
-# │ u8       ┆ i8        │
-# ╞══════════╪═══════════╡
-# │ 1        ┆ -1        │
-# │ 2        ┆ 0         │
-# │ 3        ┆ 1         │
-# └──────────┴───────────┘
+# shape: (3, 3)
+# ┌──────────┬───────────┬─────────────┐
+# │ x_plus_1 ┆ x_minus_1 ┆ x_plus_1000 │
+# │ ---      ┆ ---       ┆ ---         │
+# │ u8       ┆ i8        ┆ u16         │
+# ╞══════════╪═══════════╪═════════════╡
+# │ 1        ┆ -1        ┆ 1000        │
+# │ 2        ┆ 0         ┆ 1001        │
+# │ 3        ┆ 1         ┆ 1002        │
+# └──────────┴───────────┴─────────────┘
 ```

@@ -36,7 +36,7 @@ impl IfElse {
         let else_branch = if arguments.len() == 3 {
             Arc::new(arguments[2].validate(df_type)?)
         } else {
-            Arc::new(Expression::NullLiteral.validate(df_type)?)
+            Arc::new(TypedExpression::NullLiteral)
         };
 
         let condition_type = condition.expression_type();
