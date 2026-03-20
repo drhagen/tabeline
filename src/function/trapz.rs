@@ -6,7 +6,8 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_array, require_numeric, DataFrameType, ExpressionType, Function, TypedExpression,
+    ValidationError,
 };
 
 fn compute_trapz(args: &mut [Column]) -> PolarsResult<Column> {
@@ -86,53 +87,23 @@ impl Trapz {
             });
         }
 
-        let t = Arc::new(arguments[0].validate(df_type)?);
-        let y = Arc::new(arguments[1].validate(df_type)?);
+        let t = arguments[0].validate(df_type)?;
+        let y = arguments[1].validate(df_type)?;
 
         let t_type = t.expression_type();
         let y_type = y.expression_type();
 
-        // Both arguments must be numeric
-        if !t_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "trapz".to_string(),
-                parameter: "t".to_string(),
-                expected: "numeric type".to_string(),
-                actual: t_type.data_type(),
-            });
-        }
-        if !y_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "trapz".to_string(),
-                parameter: "y".to_string(),
-                expected: "numeric type".to_string(),
-                actual: y_type.data_type(),
-            });
-        }
+        require_numeric(t_type, "trapz", "t")?;
+        require_numeric(y_type, "trapz", "y")?;
+        require_array(t_type, "trapz", "t")?;
+        require_array(y_type, "trapz", "y")?;
 
-        // Both arguments must be arrays
-        if !t_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "trapz".to_string(),
-                parameter: "t".to_string(),
-                expected: "array type".to_string(),
-                actual: t_type.data_type(),
-            });
-        }
-        if !y_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "trapz".to_string(),
-                parameter: "y".to_string(),
-                expected: "array type".to_string(),
-                actual: y_type.data_type(),
-            });
-        }
+        let float64 = crate::data_type::DataType::Float64;
 
-        // Result type is Float64 scalar (trapz is an aggregation)
         Ok(Arc::new(Trapz {
-            t,
-            y,
-            expression_type: ExpressionType::Scalar(crate::data_type::DataType::Float64),
+            t: Arc::new(t.cast_if_needed(float64)),
+            y: Arc::new(y.cast_if_needed(float64)),
+            expression_type: ExpressionType::Scalar(float64),
         }) as Arc<dyn Function>)
     }
 }
@@ -142,8 +113,8 @@ impl Function for Trapz {
         apply_multiple(
             compute_trapz,
             &[
-                self.t.to_polars().cast(DataType::Float64),
-                self.y.to_polars().cast(DataType::Float64),
+                self.t.to_polars(),
+                self.y.to_polars(),
             ],
             |_, fields| Ok(fields[0].clone()),
             true,

@@ -1,8 +1,8 @@
 use crate::data_type::DataType;
 use crate::expression::Expression;
 use crate::typed_expression::{
-    promote_expression_types, types_are_comparable, DataFrameType, ExpressionType, LiteralType,
-    TypedExpression, ValidationError,
+    harmonize_expression_types, promote_expression_types, types_are_comparable, DataFrameType,
+    ExpressionType, LiteralType, TypedExpression, ValidationError,
 };
 use std::sync::Arc;
 
@@ -392,27 +392,14 @@ where
         });
     }
 
-    // Cast operands to common type for numeric comparisons
-    let (typed_left, typed_right) = if left_type.data_type() != right_type.data_type()
-        && left_type.data_type().is_numeric()
-        && right_type.data_type().is_numeric()
-    {
-        let promoted = promote_expression_types(left_type, right_type, operation)?;
-        let promoted_dt = promoted.data_type();
-        (
-            typed_left.cast_if_needed(promoted_dt),
-            typed_right.cast_if_needed(promoted_dt),
-        )
-    } else {
-        (typed_left, typed_right)
-    };
+    // Harmonize types to get common type and correct shape
+    let harmonized = harmonize_expression_types(left_type, right_type, operation)?;
+    let harmonized_dt = harmonized.data_type();
+    let typed_left = typed_left.cast_if_needed(harmonized_dt);
+    let typed_right = typed_right.cast_if_needed(harmonized_dt);
 
-    // Result is Boolean, but preserves scalar/array shape from operands
-    let result_type = if left_type.is_scalar() && right_type.is_scalar() {
-        ExpressionType::Scalar(DataType::Boolean)
-    } else {
-        ExpressionType::Array(DataType::Boolean)
-    };
+    // Result is Boolean with the harmonized shape
+    let result_type = harmonized.with_data_type(DataType::Boolean);
 
     Ok(constructor(typed_left, typed_right, result_type))
 }
@@ -450,12 +437,9 @@ where
         });
     }
 
-    // Result is Boolean, preserves scalar/array shape
-    let result_type = if left_type.is_scalar() && right_type.is_scalar() {
-        ExpressionType::Scalar(DataType::Boolean)
-    } else {
-        ExpressionType::Array(DataType::Boolean)
-    };
+    // Harmonize to get correct shape, then override data type to Boolean
+    let harmonized = harmonize_expression_types(left_type, right_type, operation)?;
+    let result_type = harmonized.with_data_type(DataType::Boolean);
 
     Ok(constructor(typed_left, typed_right, result_type))
 }

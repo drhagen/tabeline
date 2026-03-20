@@ -6,7 +6,8 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_array, require_numeric, DataFrameType, ExpressionType, Function, TypedExpression,
+    ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,23 +32,8 @@ impl Max {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "max".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "max".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "max", "argument")?;
+        require_array(arg_type, "max", "argument")?;
 
         Ok(Arc::new(Max {
             argument: Arc::new(typed_arg),
@@ -111,23 +97,8 @@ impl Min {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "min".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "min".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "min", "argument")?;
+        require_array(arg_type, "min", "argument")?;
 
         Ok(Arc::new(Min {
             argument: Arc::new(typed_arg),

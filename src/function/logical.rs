@@ -1,7 +1,7 @@
-use crate::data_type::DataType;
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_array, require_boolean, DataFrameType, ExpressionType, Function, TypedExpression,
+    ValidationError,
 };
 use polars::prelude::*;
 use std::any::Any as StdAny;
@@ -30,24 +30,8 @@ impl Any {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        // Any requires boolean type (Nothing is allowed and propagates)
-        if arg_type.data_type() != DataType::Boolean && arg_type.data_type() != DataType::Nothing {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "any".to_string(),
-                parameter: "argument".to_string(),
-                expected: "Boolean or Nothing".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "any".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_boolean(arg_type, "any", "argument")?;
+        require_array(arg_type, "any", "argument")?;
 
         Ok(Arc::new(Any {
             argument: Arc::new(typed_arg),
@@ -111,24 +95,8 @@ impl All {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        // All requires boolean type (Nothing is allowed and propagates)
-        if arg_type.data_type() != DataType::Boolean && arg_type.data_type() != DataType::Nothing {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "all".to_string(),
-                parameter: "argument".to_string(),
-                expected: "Boolean or Nothing".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "all".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_boolean(arg_type, "all", "argument")?;
+        require_array(arg_type, "all", "argument")?;
 
         Ok(Arc::new(All {
             argument: Arc::new(typed_arg),

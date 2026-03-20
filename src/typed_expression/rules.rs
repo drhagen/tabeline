@@ -10,6 +10,43 @@ fn promote_literal_types(left: LiteralType, right: LiteralType) -> LiteralType {
     }
 }
 
+pub fn harmonize_expression_types(
+    left: ExpressionType,
+    right: ExpressionType,
+    operation: &str,
+) -> Result<ExpressionType, ValidationError> {
+    use ExpressionType::*;
+
+    // Either is Nothing → return the other type
+    if left.data_type() == DataType::Nothing {
+        return Ok(right);
+    }
+    if right.data_type() == DataType::Nothing {
+        return Ok(left);
+    }
+
+    // Both numeric (including literals) → delegate to promote_expression_types
+    if left.data_type().is_numeric() && right.data_type().is_numeric() {
+        return promote_expression_types(left, right, operation);
+    }
+
+    // Same data type, possibly different shapes → broadcast
+    if left.data_type() == right.data_type() {
+        return match (left, right) {
+            (Array(_), _) | (_, Array(_)) => Ok(Array(left.data_type())),
+            (Scalar(_), _) | (_, Scalar(_)) => Ok(Scalar(left.data_type())),
+            (Literal(_), Literal(_)) => Ok(left),
+        };
+    }
+
+    // Incompatible types
+    Err(ValidationError::IncompatibleTypes {
+        operation: operation.to_string(),
+        left_type: left.data_type(),
+        right_type: right.data_type(),
+    })
+}
+
 pub fn promote_expression_types(
     left: ExpressionType,
     right: ExpressionType,
@@ -182,6 +219,55 @@ pub fn promote_numeric_types(
             right_type: right,
         }),
     }
+}
+
+pub fn require_numeric(
+    expression_type: ExpressionType,
+    function: &str,
+    parameter: &str,
+) -> Result<(), ValidationError> {
+    if !expression_type.data_type().is_numeric() {
+        return Err(ValidationError::FunctionArgumentType {
+            function: function.to_string(),
+            parameter: parameter.to_string(),
+            expected: "numeric type".to_string(),
+            actual: expression_type.data_type(),
+        });
+    }
+    Ok(())
+}
+
+pub fn require_array(
+    expression_type: ExpressionType,
+    function: &str,
+    parameter: &str,
+) -> Result<(), ValidationError> {
+    if !expression_type.is_array() {
+        return Err(ValidationError::FunctionArgumentType {
+            function: function.to_string(),
+            parameter: parameter.to_string(),
+            expected: "array type".to_string(),
+            actual: expression_type.data_type(),
+        });
+    }
+    Ok(())
+}
+
+pub fn require_boolean(
+    expression_type: ExpressionType,
+    function: &str,
+    parameter: &str,
+) -> Result<(), ValidationError> {
+    let data_type = expression_type.data_type();
+    if data_type != DataType::Boolean && data_type != DataType::Nothing {
+        return Err(ValidationError::FunctionArgumentType {
+            function: function.to_string(),
+            parameter: parameter.to_string(),
+            expected: "Boolean or Nothing".to_string(),
+            actual: data_type,
+        });
+    }
+    Ok(())
 }
 
 pub fn types_are_comparable(left: DataType, right: DataType) -> bool {

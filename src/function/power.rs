@@ -6,7 +6,8 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    promote_expression_types, require_numeric, DataFrameType, ExpressionType, LiteralType,
+    Function, TypedExpression, ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,14 +32,7 @@ impl Sqrt {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "sqrt".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "sqrt", "argument")?;
 
         let result_type = arg_type.to_float();
         let cast_arg = typed_arg.cast_if_needed(result_type.data_type());
@@ -104,14 +98,7 @@ impl Exp {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "exp".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "exp", "argument")?;
 
         let result_type = arg_type.to_float();
         let cast_arg = typed_arg.cast_if_needed(result_type.data_type());
@@ -181,40 +168,31 @@ impl Pow {
         let base_type = typed_base.expression_type();
         let exponent_type = typed_exponent.expression_type();
 
-        if !base_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "pow".to_string(),
-                parameter: "base".to_string(),
-                expected: "numeric type".to_string(),
-                actual: base_type.data_type(),
-            });
-        }
-        if !exponent_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "pow".to_string(),
-                parameter: "exponent".to_string(),
-                expected: "numeric type".to_string(),
-                actual: exponent_type.data_type(),
-            });
-        }
+        require_numeric(base_type, "pow", "base")?;
+        require_numeric(exponent_type, "pow", "exponent")?;
 
         let promoted_type =
-            crate::typed_expression::promote_expression_types(base_type, exponent_type, "pow")?;
+            promote_expression_types(base_type, exponent_type, "pow")?;
 
-        // Cast both operands to the promoted type
-        let promoted_dt = promoted_type.data_type();
-        let typed_base = typed_base.cast_if_needed(promoted_dt);
-        let typed_exponent = typed_exponent.cast_if_needed(promoted_dt);
+        // Check wholeness on the original exponent type, before any casting
+        let exponent_is_whole = match exponent_type {
+            ExpressionType::Literal(LiteralType::Whole(_)) => true,
+            ExpressionType::Literal(_) => false,
+            _ => exponent_type.data_type().is_whole(),
+        };
 
-        // Apply power type rules: anything ** whole preserves type, otherwise float
-        let exponent_dt = typed_exponent.expression_type().data_type();
-        let expression_type = if exponent_dt.is_whole() {
-            promoted_type
+        let expression_type = if exponent_is_whole {
+            // anything ** whole → preserves base type
+            let base_dt = if base_type.is_literal() || exponent_type.is_literal() {
+                promoted_type.data_type()
+            } else {
+                base_type.data_type()
+            };
+            promoted_type.with_data_type(base_dt)
         } else {
-            let float_dt = typed_base
-                .expression_type()
-                .data_type()
-                .promote_to_float(exponent_dt);
+            // anything ** int/float → float operation
+            let result_dt = promoted_type.data_type();
+            let float_dt = result_dt.promote_to_float(result_dt);
             promoted_type.with_data_type(float_dt)
         };
 

@@ -6,7 +6,7 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_numeric, DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 
 fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
@@ -118,46 +118,26 @@ impl Interp {
             });
         }
 
-        let t = Arc::new(arguments[0].validate(df_type)?);
-        let ts = Arc::new(arguments[1].validate(df_type)?);
-        let ys = Arc::new(arguments[2].validate(df_type)?);
+        let t = arguments[0].validate(df_type)?;
+        let ts = arguments[1].validate(df_type)?;
+        let ys = arguments[2].validate(df_type)?;
 
         let t_type = t.expression_type();
         let ts_type = ts.expression_type();
         let ys_type = ys.expression_type();
 
-        // All arguments must be numeric
-        if !t_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "interp".to_string(),
-                parameter: "t".to_string(),
-                expected: "numeric type".to_string(),
-                actual: t_type.data_type(),
-            });
-        }
-        if !ts_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "interp".to_string(),
-                parameter: "ts".to_string(),
-                expected: "numeric type".to_string(),
-                actual: ts_type.data_type(),
-            });
-        }
-        if !ys_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "interp".to_string(),
-                parameter: "ys".to_string(),
-                expected: "numeric type".to_string(),
-                actual: ys_type.data_type(),
-            });
-        }
+        require_numeric(t_type, "interp", "t")?;
+        require_numeric(ts_type, "interp", "ts")?;
+        require_numeric(ys_type, "interp", "ys")?;
 
-        // Result type is Float64 and preserves shape of input t
+        let result_type = t_type.with_data_type(crate::data_type::DataType::Float64);
+        let float64 = crate::data_type::DataType::Float64;
+
         Ok(Arc::new(Interp {
-            t,
-            ts,
-            ys,
-            expression_type: t_type.with_data_type(crate::data_type::DataType::Float64),
+            t: Arc::new(t.cast_if_needed(float64)),
+            ts: Arc::new(ts.cast_if_needed(float64)),
+            ys: Arc::new(ys.cast_if_needed(float64)),
+            expression_type: result_type,
         }))
     }
 }
@@ -167,9 +147,9 @@ impl Function for Interp {
         apply_multiple(
             interpolate,
             &[
-                self.t.to_polars().cast(DataType::Float64),
-                self.ts.to_polars().cast(DataType::Float64),
-                self.ys.to_polars().cast(DataType::Float64),
+                self.t.to_polars(),
+                self.ts.to_polars(),
+                self.ys.to_polars(),
             ],
             |_, fields| Ok(fields[0].clone()),
             true,

@@ -10,5 +10,8 @@ pub use ast::TypedExpression;
 pub use data_frame_type::DataFrameType;
 pub use error::ValidationError;
 pub use expression_type::{ExpressionType, LiteralType};
-pub use rules::{promote_expression_types, promote_numeric_types, types_are_comparable};
+pub use rules::{
+    harmonize_expression_types, promote_expression_types, promote_numeric_types, require_array,
+    require_boolean, require_numeric, types_are_comparable,
+};
 pub use typed_function::Function;

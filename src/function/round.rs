@@ -1,6 +1,6 @@
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_numeric, DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 use polars::prelude::*;
 use std::any::Any;
@@ -31,14 +31,7 @@ macro_rules! impl_round_function {
                 let typed_arg = arguments[0].validate(df_type)?;
                 let arg_type = typed_arg.expression_type();
 
-                if !arg_type.data_type().is_numeric() {
-                    return Err(ValidationError::FunctionArgumentType {
-                        function: $fn_name.to_string(),
-                        parameter: "argument".to_string(),
-                        expected: "numeric type".to_string(),
-                        actual: arg_type.data_type(),
-                    });
-                }
+                require_numeric(arg_type, $fn_name, "argument")?;
 
                 let result_dt = arg_type.data_type();
                 Ok(Arc::new($name {

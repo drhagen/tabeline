@@ -6,7 +6,14 @@ from tabeline import Array, DataFrame, DataType
 from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
 
-from .._types import float_to_float, integer_to_float, numeric_to_float, whole_to_whole
+from .._types import (
+    float_to_float,
+    integer_to_float,
+    numeric_to_float,
+    numeric_types,
+    whole_to_integer,
+    whole_to_whole,
+)
 
 absolute_tolerance = 1e-6
 
@@ -32,14 +39,11 @@ def test_pow():
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize(
-    ("original_dtype", "expected_dtype"),
-    whole_to_whole + integer_to_float + float_to_float,
-)
-def test_pow_with_positive_literal_exponent(original_dtype, expected_dtype):
-    df = DataFrame(x=Array[original_dtype](2, None))
+@pytest.mark.parametrize("dtype", numeric_types)
+def test_pow_with_positive_literal_exponent(dtype):
+    df = DataFrame(x=Array[dtype](2, None))
     actual = df.transmute(result="pow(x, 3)")
-    expected = DataFrame(result=Array[expected_dtype](8, None))
+    expected = DataFrame(result=Array[dtype](8, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
@@ -62,7 +66,10 @@ def test_pow_with_positive_literal_base(original_dtype, expected_dtype):
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+@pytest.mark.parametrize(
+    ("original_dtype", "expected_dtype"),
+    whole_to_integer + integer_to_float + float_to_float,
+)
 def test_pow_with_negative_literal_base(original_dtype, expected_dtype):
     df = DataFrame(x=Array[original_dtype](2, None))
     actual = df.transmute(result="pow(-3, x)")

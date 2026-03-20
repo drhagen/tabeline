@@ -4,10 +4,10 @@ use std::sync::Arc;
 
 use polars::prelude::*;
 
-use crate::data_type::DataType;
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    harmonize_expression_types, require_boolean, DataFrameType, ExpressionType, Function,
+    TypedExpression, ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,39 +31,21 @@ impl IfElse {
             });
         }
 
-        let condition = Arc::new(arguments[0].validate(df_type)?);
-        let then_branch = Arc::new(arguments[1].validate(df_type)?);
+        let condition = arguments[0].validate(df_type)?;
+        let then_branch = arguments[1].validate(df_type)?;
         let else_branch = if arguments.len() == 3 {
-            Arc::new(arguments[2].validate(df_type)?)
+            arguments[2].validate(df_type)?
         } else {
-            Arc::new(TypedExpression::NullLiteral)
+            TypedExpression::NullLiteral
         };
 
         let condition_type = condition.expression_type();
         let then_type = then_branch.expression_type();
         let else_type = else_branch.expression_type();
 
-        // Condition must be boolean (Nothing is allowed and propagates)
-        if condition_type.data_type() != DataType::Boolean
-            && condition_type.data_type() != DataType::Nothing
-        {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "if_else".to_string(),
-                parameter: "condition".to_string(),
-                expected: "Boolean or Nothing".to_string(),
-                actual: condition_type.data_type(),
-            });
-        }
+        require_boolean(condition_type, "if_else", "condition")?;
 
-        // Then and else branches must have compatible types.
-        // Nothing is compatible with any type — use the non-Nothing type as result.
-        let result_type = if then_type.data_type() == DataType::Nothing {
-            else_type
-        } else if else_type.data_type() == DataType::Nothing {
-            then_type
-        } else {
-            crate::typed_expression::promote_expression_types(then_type, else_type, "if_else")?
-        };
+        let result_type = harmonize_expression_types(then_type, else_type, "if_else")?;
 
         // If condition is Array, result must be Array regardless of branch shapes
         let result_type = if !condition_type.is_scalar() {
@@ -74,21 +56,13 @@ impl IfElse {
 
         // Cast branches to promoted type
         let result_dt = result_type.data_type();
-        let then_branch = Arc::new(
-            Arc::try_unwrap(then_branch)
-                .unwrap_or_else(|arc| (*arc).clone())
-                .cast_if_needed(result_dt),
-        );
-        let else_branch = Arc::new(
-            Arc::try_unwrap(else_branch)
-                .unwrap_or_else(|arc| (*arc).clone())
-                .cast_if_needed(result_dt),
-        );
+        let then_branch = then_branch.cast_if_needed(result_dt);
+        let else_branch = else_branch.cast_if_needed(result_dt);
 
         Ok(Arc::new(IfElse {
-            condition,
-            then_branch,
-            else_branch,
+            condition: Arc::new(condition),
+            then_branch: Arc::new(then_branch),
+            else_branch: Arc::new(else_branch),
             expression_type: result_type,
         }))
     }

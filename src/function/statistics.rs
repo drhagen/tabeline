@@ -4,10 +4,10 @@ use std::sync::Arc;
 
 use polars::prelude::*;
 
-use crate::data_type::DataType;
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_array, require_numeric, DataFrameType, ExpressionType, Function, TypedExpression,
+    ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -29,32 +29,16 @@ impl Std {
             });
         }
 
-        let argument = Arc::new(arguments[0].validate(df_type)?);
+        let argument = arguments[0].validate(df_type)?;
         let arg_type = argument.expression_type();
 
-        // Std requires numeric type
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "std".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "std", "argument")?;
+        require_array(arg_type, "std", "argument")?;
 
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "std".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        // Std always returns Float64 scalar (aggregation result)
+        let result_dt = arg_type.data_type().to_float();
         Ok(Arc::new(Std {
-            argument,
-            expression_type: ExpressionType::Scalar(DataType::Float64),
+            argument: Arc::new(argument.cast_if_needed(result_dt)),
+            expression_type: ExpressionType::Scalar(result_dt),
         }))
     }
 }
@@ -116,32 +100,16 @@ impl Var {
             });
         }
 
-        let argument = Arc::new(arguments[0].validate(df_type)?);
+        let argument = arguments[0].validate(df_type)?;
         let arg_type = argument.expression_type();
 
-        // Var requires numeric type
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "var".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "var", "argument")?;
+        require_array(arg_type, "var", "argument")?;
 
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "var".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        // Var always returns Float64 scalar (aggregation result)
+        let result_dt = arg_type.data_type().to_float();
         Ok(Arc::new(Var {
-            argument,
-            expression_type: ExpressionType::Scalar(DataType::Float64),
+            argument: Arc::new(argument.cast_if_needed(result_dt)),
+            expression_type: ExpressionType::Scalar(result_dt),
         }))
     }
 }
@@ -203,30 +171,14 @@ impl Sum {
             });
         }
 
-        let argument = Arc::new(arguments[0].validate(df_type)?);
+        let argument = arguments[0].validate(df_type)?;
         let arg_type = argument.expression_type();
 
-        // Sum requires numeric type
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "sum".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "sum".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "sum", "argument")?;
+        require_array(arg_type, "sum", "argument")?;
 
         Ok(Arc::new(Sum {
-            argument,
+            argument: Arc::new(argument),
             expression_type: ExpressionType::Scalar(arg_type.data_type()),
         }))
     }
@@ -289,32 +241,16 @@ impl Mean {
             });
         }
 
-        let argument = Arc::new(arguments[0].validate(df_type)?);
+        let argument = arguments[0].validate(df_type)?;
         let arg_type = argument.expression_type();
 
-        // Mean requires numeric type
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "mean".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "mean", "argument")?;
+        require_array(arg_type, "mean", "argument")?;
 
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "mean".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        // Mean always returns Float64 scalar (aggregation result)
+        let result_dt = arg_type.data_type().to_float();
         Ok(Arc::new(Mean {
-            argument,
-            expression_type: ExpressionType::Scalar(DataType::Float64),
+            argument: Arc::new(argument.cast_if_needed(result_dt)),
+            expression_type: ExpressionType::Scalar(result_dt),
         }))
     }
 }
@@ -376,32 +312,16 @@ impl Median {
             });
         }
 
-        let argument = Arc::new(arguments[0].validate(df_type)?);
+        let argument = arguments[0].validate(df_type)?;
         let arg_type = argument.expression_type();
 
-        // Median requires numeric type
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "median".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "median", "argument")?;
+        require_array(arg_type, "median", "argument")?;
 
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "median".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        // Median always returns Float64 scalar (aggregation result)
+        let result_dt = arg_type.data_type().to_float();
         Ok(Arc::new(Median {
-            argument,
-            expression_type: ExpressionType::Scalar(DataType::Float64),
+            argument: Arc::new(argument.cast_if_needed(result_dt)),
+            expression_type: ExpressionType::Scalar(result_dt),
         }))
     }
 }
@@ -464,46 +384,21 @@ impl Quantile {
             });
         }
 
-        let argument = Arc::new(arguments[0].validate(df_type)?);
-        let quantile = Arc::new(arguments[1].validate(df_type)?);
+        let argument = arguments[0].validate(df_type)?;
+        let quantile = arguments[1].validate(df_type)?;
 
         let arg_type = argument.expression_type();
         let quantile_type = quantile.expression_type();
 
-        // Argument requires numeric type
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "quantile".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "quantile", "argument")?;
+        require_array(arg_type, "quantile", "argument")?;
+        require_numeric(quantile_type, "quantile", "quantile")?;
 
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "quantile".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
-
-        // Quantile parameter should be numeric
-        if !quantile_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "quantile".to_string(),
-                parameter: "quantile".to_string(),
-                expected: "numeric type".to_string(),
-                actual: quantile_type.data_type(),
-            });
-        }
-
-        // Quantile always returns Float64 scalar (aggregation result)
+        let result_dt = arg_type.data_type().to_float();
         Ok(Arc::new(Quantile {
-            argument,
-            quantile,
-            expression_type: ExpressionType::Scalar(DataType::Float64),
+            argument: Arc::new(argument.cast_if_needed(result_dt)),
+            quantile: Arc::new(quantile.cast_if_needed(result_dt)),
+            expression_type: ExpressionType::Scalar(result_dt),
         }))
     }
 }

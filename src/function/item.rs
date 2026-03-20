@@ -1,6 +1,6 @@
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_array, DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 use polars::prelude::*;
 use std::any::Any;
@@ -29,14 +29,7 @@ impl First {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "first".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_array(arg_type, "first", "argument")?;
 
         Ok(Arc::new(First {
             argument: Arc::new(typed_arg),
@@ -100,14 +93,7 @@ impl Last {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.is_array() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "last".to_string(),
-                parameter: "argument".to_string(),
-                expected: "array type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_array(arg_type, "last", "argument")?;
 
         Ok(Arc::new(Last {
             argument: Arc::new(typed_arg),

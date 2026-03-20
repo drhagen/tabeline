@@ -7,7 +7,7 @@ use polars::prelude::*;
 use crate::data_type::DataType;
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_numeric, DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -94,14 +94,7 @@ impl IsNan {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "is_nan".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "is_nan", "argument")?;
 
         Ok(Arc::new(IsNan {
             argument: Arc::new(typed_arg),
@@ -165,14 +158,7 @@ impl IsFinite {
         let typed_arg = arguments[0].validate(df_type)?;
         let arg_type = typed_arg.expression_type();
 
-        if !arg_type.data_type().is_numeric() {
-            return Err(ValidationError::FunctionArgumentType {
-                function: "is_finite".to_string(),
-                parameter: "argument".to_string(),
-                expected: "numeric type".to_string(),
-                actual: arg_type.data_type(),
-            });
-        }
+        require_numeric(arg_type, "is_finite", "argument")?;
 
         Ok(Arc::new(IsFinite {
             argument: Arc::new(typed_arg),

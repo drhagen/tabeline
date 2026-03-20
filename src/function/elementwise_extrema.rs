@@ -8,7 +8,7 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+    require_numeric, DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -37,14 +37,7 @@ impl PMax {
             let typed_arg = arg.validate(df_type)?;
             let arg_type = typed_arg.expression_type();
 
-            if !arg_type.data_type().is_numeric() {
-                return Err(ValidationError::FunctionArgumentType {
-                    function: "pmax".to_string(),
-                    parameter: "argument".to_string(),
-                    expected: "numeric type".to_string(),
-                    actual: arg_type.data_type(),
-                });
-            }
+            require_numeric(arg_type, "pmax", "argument")?;
 
             result_type = Some(match result_type {
                 None => arg_type,
@@ -147,14 +140,7 @@ impl PMin {
             let typed_arg = arg.validate(df_type)?;
             let arg_type = typed_arg.expression_type();
 
-            if !arg_type.data_type().is_numeric() {
-                return Err(ValidationError::FunctionArgumentType {
-                    function: "pmin".to_string(),
-                    parameter: "argument".to_string(),
-                    expected: "numeric type".to_string(),
-                    actual: arg_type.data_type(),
-                });
-            }
+            require_numeric(arg_type, "pmin", "argument")?;
 
             result_type = Some(match result_type {
                 None => arg_type,
