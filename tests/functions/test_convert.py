@@ -63,3 +63,64 @@ def test_cast_string(values):
     actual = df.transmute(b="to_string(a)")
     expected = DataFrame(b=[str(value) for value in values])
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [
+        ("to_boolean(1)", True),
+        ("to_boolean(-1)", True),
+        ("to_boolean(0)", False),
+        ("to_boolean(1.0)", True),
+    ],
+)
+def test_cast_boolean_literal(expression, expected):
+    df = DataFrame.columnless(1)
+    actual = df.mutate(result=expression)
+    expected = DataFrame(result=[expected])
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [
+        ("to_integer(2)", 2),
+        ("to_integer(-3)", -3),
+        ("to_integer(2.5)", 2),
+    ],
+)
+def test_cast_integer_literal(expression, expected):
+    df = DataFrame.columnless(1)
+    actual = df.mutate(result=expression)
+    expected = DataFrame(result=[expected])
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [
+        ("to_float(2)", 2.0),
+        ("to_float(-3)", -3.0),
+        ("to_float(2.5)", 2.5),
+    ],
+)
+def test_cast_float_literal(expression, expected):
+    df = DataFrame.columnless(1)
+    actual = df.mutate(result=expression)
+    expected = DataFrame(result=[expected])
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [
+        ("to_string(2)", "2"),
+        ("to_string(-3)", "-3"),
+        ("to_string(2.5)", "2.5"),
+    ],
+)
+def test_cast_string_literal(expression, expected):
+    df = DataFrame.columnless(1)
+    actual = df.mutate(result=expression)
+    expected = DataFrame(result=[expected])
+    assert actual == expected

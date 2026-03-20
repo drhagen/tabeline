@@ -1,7 +1,10 @@
 import pytest
 
-from tabeline import DataFrame
+from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
+
+from .._types import numeric_types
 
 
 @pytest.mark.parametrize(
@@ -50,3 +53,25 @@ def test_last_broadcast():
     actual = df.group_by("id").mutate(x="last(x)").ungroup()
     expected = DataFrame(id=[1, 1, 1, 2, 2, 2], x=[30, 30, 30, 60, 60, 60])
     assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+@pytest.mark.parametrize("expression", ["first(x)", "last(x)"])
+def test_preserves_type(expression, dtype):
+    df = DataFrame(x=Array[dtype](1, 2, 3))
+    actual = df.group_by().summarize(y=expression)
+    assert actual[:, "y"].data_type == dtype
+
+
+@pytest.mark.parametrize("function", ["first", "last"])
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+def test_item_rejects_literal(function, literal, actual_type):
+    df = DataFrame(x=[1, 2, 3])
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"{function}({literal})")
+    assert exc_info.value == FunctionArgumentTypeError(
+        function, "argument", "array type", actual_type
+    )

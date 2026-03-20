@@ -4,8 +4,10 @@ use std::sync::Arc;
 
 use polars::prelude::*;
 
-use super::Function;
 use crate::expression::Expression;
+use crate::typed_expression::{
+    require_numeric, DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+};
 
 fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
     let t = &args[0];
@@ -97,9 +99,47 @@ fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Interp {
-    pub t: Arc<Expression>,
-    pub ts: Arc<Expression>,
-    pub ys: Arc<Expression>,
+    pub t: Arc<TypedExpression>,
+    pub ts: Arc<TypedExpression>,
+    pub ys: Arc<TypedExpression>,
+    pub expression_type: ExpressionType,
+}
+
+impl Interp {
+    pub fn validate(
+        arguments: Vec<Arc<Expression>>,
+        df_type: &DataFrameType,
+    ) -> Result<Arc<dyn Function>, ValidationError> {
+        if arguments.len() != 3 {
+            return Err(ValidationError::FunctionArgumentCount {
+                function: "interp".to_string(),
+                expected: 3,
+                actual: arguments.len(),
+            });
+        }
+
+        let t = arguments[0].validate(df_type)?;
+        let ts = arguments[1].validate(df_type)?;
+        let ys = arguments[2].validate(df_type)?;
+
+        let t_type = t.expression_type();
+        let ts_type = ts.expression_type();
+        let ys_type = ys.expression_type();
+
+        require_numeric(t_type, "interp", "t")?;
+        require_numeric(ts_type, "interp", "ts")?;
+        require_numeric(ys_type, "interp", "ys")?;
+
+        let result_type = t_type.with_data_type(crate::data_type::DataType::Float64);
+        let float64 = crate::data_type::DataType::Float64;
+
+        Ok(Arc::new(Interp {
+            t: Arc::new(t.cast_if_needed(float64)),
+            ts: Arc::new(ts.cast_if_needed(float64)),
+            ys: Arc::new(ys.cast_if_needed(float64)),
+            expression_type: result_type,
+        }))
+    }
 }
 
 impl Function for Interp {
@@ -107,21 +147,26 @@ impl Function for Interp {
         apply_multiple(
             interpolate,
             &[
-                self.t.to_polars().cast(DataType::Float64),
-                self.ts.to_polars().cast(DataType::Float64),
-                self.ys.to_polars().cast(DataType::Float64),
+                self.t.to_polars(),
+                self.ts.to_polars(),
+                self.ys.to_polars(),
             ],
             |_, fields| Ok(fields[0].clone()),
             true,
         )
     }
 
-    fn substitute(&self, substitutions: &HashMap<&str, Expression>) -> Box<dyn Function> {
-        Box::new(Interp {
+    fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
+        Arc::new(Interp {
             t: Arc::new(self.t.substitute(substitutions)),
             ts: Arc::new(self.ts.substitute(substitutions)),
             ys: Arc::new(self.ys.substitute(substitutions)),
+            expression_type: self.expression_type,
         })
+    }
+
+    fn expression_type(&self) -> ExpressionType {
+        self.expression_type
     }
 
     fn as_any(&self) -> &dyn Any {
@@ -130,9 +175,16 @@ impl Function for Interp {
 
     fn equals(&self, other: &dyn Function) -> bool {
         if let Some(other) = other.as_any().downcast_ref::<Interp>() {
-            self.t == other.t && self.ts == other.ts && self.ys == other.ys
+            self.t == other.t
+                && self.ts == other.ts
+                && self.ys == other.ys
+                && self.expression_type == other.expression_type
         } else {
             false
         }
+    }
+
+    fn name(&self) -> &'static str {
+        "interp"
     }
 }

@@ -3,6 +3,7 @@ use pyo3::{exceptions::PyException, prelude::*};
 #[pyclass(frozen, eq, extends=PyException)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DuplicateColumnError {
+    #[pyo3(get)]
     pub column_name: String,
 }
 

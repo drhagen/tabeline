@@ -3,7 +3,9 @@ use pyo3::{exceptions::PyException, prelude::*};
 #[pyclass(frozen, eq, extends=PyException)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UnmatchedColumnsError {
+    #[pyo3(get)]
     pub expected_columns: Vec<String>,
+    #[pyo3(get)]
     pub actual_columns: Vec<String>,
 }
 

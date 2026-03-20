@@ -5,6 +5,7 @@ use pyo3::{exceptions::PyIndexError, prelude::*};
 #[pyclass(frozen, eq, extends=PyIndexError)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GroupIndexOutOfBoundsError {
+    #[pyo3(get)]
     pub message: String,
 }
 

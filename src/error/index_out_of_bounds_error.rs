@@ -3,8 +3,11 @@ use pyo3::{exceptions::PyIndexError, prelude::*};
 #[pyclass(frozen, eq, extends=PyIndexError)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndexOutOfBoundsError {
+    #[pyo3(get)]
     pub index: i64,
+    #[pyo3(get)]
     pub length: i64,
+    #[pyo3(get)]
     pub one_indexed: bool,
 }
 

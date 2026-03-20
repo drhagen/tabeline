@@ -5,8 +5,11 @@ use pyo3::{exceptions::PyTypeError, prelude::*};
 #[pyclass(frozen, extends=PyTypeError)]
 #[derive(Debug)]
 pub struct IncompatibleTypeError {
+    #[pyo3(get)]
     pub expected_type: DataType,
+    #[pyo3(get)]
     pub item: Py<PyAny>,
+    #[pyo3(get)]
     pub location: usize,
 }
 

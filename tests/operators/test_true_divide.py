@@ -5,7 +5,12 @@ import pytest
 from tabeline import Array, DataFrame, DataType
 from tabeline.testing import assert_data_frames_equal
 
-from ._types import float_data_types, integer_data_types, whole_data_types
+from .._types import (
+    float_data_types,
+    integer_data_types,
+    numeric_to_float,
+    whole_data_types,
+)
 
 absolute_tolerance = 1e-6
 
@@ -72,35 +77,20 @@ def test_true_divide_float(left, right, answer, dtype):
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
-@pytest.mark.parametrize("dtype", float_data_types)
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
 @pytest.mark.parametrize(
-    ("expr", "expected"),
+    ("expression", "expected"),
     [
         ("x / 2", [1, None]),
-        ("1 / x", [0.5, None]),
+        ("4 / x", [2, None]),
+        ("x / -2", [-1, None]),
+        ("-4 / x", [-2, None]),
         ("x / 0.5", [4, None]),
         ("4.5 / x", [2.25, None]),
     ],
 )
-def test_true_divide_float_with_constant(dtype, expr, expected):
-    df = DataFrame(x=Array[dtype](2, None))
-    actual = df.transmute(result=expr)
-    expected = DataFrame(result=Array[dtype](*expected))
-    assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
-
-
-@pytest.mark.parametrize("dtype", whole_data_types + integer_data_types)
-@pytest.mark.parametrize(
-    ("expr", "expected"),
-    [
-        ("x / 2", [1, None]),
-        ("1 / x", [0.5, None]),
-        ("x / 0.5", [4, None]),
-        ("4.5 / x", [2.25, None]),
-    ],
-)
-def test_true_divide_integer_with_constant(dtype, expr, expected):
-    df = DataFrame(x=Array[dtype](2, None))
-    actual = df.transmute(result=expr)
-    expected = DataFrame(result=Array[DataType.Float64](*expected))
+def test_true_divide_with_literal(original_dtype, expected_dtype, expression, expected):
+    df = DataFrame(x=Array[original_dtype](2, None))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[expected_dtype](*expected))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)

@@ -1,7 +1,12 @@
 import math
 
-from tabeline import DataFrame
+import pytest
+
+from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
+
+from .._types import numeric_to_float
 
 absolute_tolerance = 1e-6
 
@@ -109,3 +114,110 @@ def test_quantile_expression():
     actual = df.group_by("id").summarize(x="quantile(x, 0.25*3)")
     expected = DataFrame(id=[1, 2], x=[3.25, 7.25])
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+@pytest.mark.parametrize(
+    "expression",
+    ["std(x)", "var(x)", "mean(x)", "median(x)", "quantile(x, 0.5)"],
+)
+def test_float_result_type(expression, original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](1, 2, 3, 4))
+    actual = df.group_by().summarize(y=expression)
+    assert actual[:, "y"].data_type == expected_dtype
+
+
+# Test every numeric type, not just the representative subset in numeric_types,
+# because Polars silently widens small integer types on sum and we cast back to
+# the original type to counteract this.
+@pytest.mark.parametrize(
+    "dtype",
+    [
+        DataType.Whole8,
+        DataType.Whole16,
+        DataType.Whole32,
+        DataType.Whole64,
+        DataType.Integer8,
+        DataType.Integer16,
+        DataType.Integer32,
+        DataType.Integer64,
+        DataType.Float32,
+        DataType.Float64,
+    ],
+)
+def test_sum_preserves_type(dtype):
+    df = DataFrame(x=Array[dtype](1, 2, 3, 4))
+    actual = df.group_by().summarize(y="sum(x)")
+    assert actual[:, "y"].data_type == dtype
+
+
+def test_quantile_rejects_one_arg():
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y="quantile(x)")
+
+    assert exc_info.value == FunctionArgumentCountError("quantile", 2, 1)
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_quantile_rejects_non_numeric_argument(values, expected_type):
+    df = DataFrame(x=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y="quantile(x, 0.5)")
+
+    assert exc_info.value == FunctionArgumentTypeError(
+        "quantile", "argument", "numeric type", expected_type
+    )
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
+    ],
+)
+def test_quantile_rejects_non_numeric_quantile(values, expected_type):
+    df = DataFrame(x=[1, 2, 3], q=values)
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y="quantile(x, q)")
+
+    assert exc_info.value == FunctionArgumentTypeError(
+        "quantile", "quantile", "numeric type", expected_type
+    )
+
+
+@pytest.mark.parametrize("function", ["std", "var", "sum", "mean", "median"])
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+def test_statistic_rejects_literal(function, literal, actual_type):
+    df = DataFrame(x=[1, 2, 3])
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"{function}({literal})")
+    assert exc_info.value == FunctionArgumentTypeError(
+        function, "argument", "array type", actual_type
+    )
+
+
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+def test_quantile_rejects_literal_argument(literal, actual_type):
+    df = DataFrame(x=[1, 2, 3])
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"quantile({literal}, 0.5)")
+    assert exc_info.value == FunctionArgumentTypeError(
+        "quantile", "argument", "array type", actual_type
+    )

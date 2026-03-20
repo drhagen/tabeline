@@ -2,7 +2,11 @@ import math
 
 import pytest
 
-from tabeline import DataFrame
+from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
+from tabeline.testing import assert_data_frames_equal
+
+from .._types import numeric_to_float, numeric_to_integer, numeric_types
 
 
 def test_pmax():
@@ -117,6 +121,7 @@ def test_pmin_with_inf():
     assert actual == expected
 
 
+@pytest.mark.parametrize("function", ["pmax", "pmin"])
 @pytest.mark.parametrize(
     "df",
     [
@@ -125,35 +130,92 @@ def test_pmin_with_inf():
         DataFrame(a=[], x=[], y=[]).group_by("a"),
     ],
 )
-def test_pmax_on_empty_data_frame(df):
-    actual = df.mutate(z="pmax(x, y)")
+def test_elementwise_extrema_on_empty_data_frame(function, df):
+    actual = df.mutate(z=f"{function}(x, y)")
     expected = df.mutate(z="1.0")
     assert actual == expected
 
 
+@pytest.mark.parametrize("function", ["pmax", "pmin"])
+def test_elementwise_extrema_single_argument_with_expression(function):
+    df = DataFrame(x=[1.0, 5.0, 3.0, 2.0])
+    actual = df.transmute(result=f"{function}(x * 2)")
+    expected = DataFrame(result=[2.0, 10.0, 6.0, 4.0])
+    assert actual == expected
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+def test_pmax_with_positive_literal(dtype):
+    df = DataFrame(x=Array[dtype](1, 5, 3))
+    actual = df.transmute(result="pmax(x, 3)")
+    expected = DataFrame(result=Array[dtype](3, 5, 3))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_integer)
+def test_pmax_with_negative_literal(original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](1, 5, 3))
+    actual = df.transmute(result="pmax(x, -3)")
+    expected = DataFrame(result=Array[expected_dtype](1, 5, 3))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+def test_pmax_with_decimal_literal(original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](1, 5, 3))
+    actual = df.transmute(result="pmax(x, 2.5)")
+    expected = DataFrame(result=Array[expected_dtype](2.5, 5, 3))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+def test_pmin_with_positive_literal(dtype):
+    df = DataFrame(x=Array[dtype](1, 5, 3))
+    actual = df.transmute(result="pmin(x, 3)")
+    expected = DataFrame(result=Array[dtype](1, 3, 3))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_integer)
+def test_pmin_with_negative_literal(original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](1, 5, 3))
+    actual = df.transmute(result="pmin(x, -3)")
+    expected = DataFrame(result=Array[expected_dtype](-3, -3, -3))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+def test_pmin_with_decimal_literal(original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](1, 5, 3))
+    actual = df.transmute(result="pmin(x, 2.5)")
+    expected = DataFrame(result=Array[expected_dtype](1, 2.5, 2.5))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize("function", ["pmax", "pmin"])
+def test_elementwise_extrema_rejects_zero_args(function):
+    df = DataFrame(x=[1, 2, 3])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y=f"{function}()")
+
+    assert exc_info.value == FunctionArgumentCountError(function, 1, 0)
+
+
+@pytest.mark.parametrize("function", ["pmax", "pmin"])
 @pytest.mark.parametrize(
-    "df",
+    ("values", "expected_type"),
     [
-        DataFrame(x=[], y=[]),
-        DataFrame(x=[], y=[]).group_by(),
-        DataFrame(a=[], x=[], y=[]).group_by("a"),
+        (["a", "b", "c"], DataType.String),
+        ([True, False, True], DataType.Boolean),
     ],
 )
-def test_pmin_on_empty_data_frame(df):
-    actual = df.mutate(z="pmin(x, y)")
-    expected = df.mutate(z="1.0")
-    assert actual == expected
+def test_elementwise_extrema_rejects_non_numeric(function, values, expected_type):
+    df = DataFrame(x=values)
 
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(y=f"{function}(x)")
 
-def test_pmax_single_argument_with_expression():
-    df = DataFrame(x=[1.0, 5.0, 3.0, 2.0])
-    actual = df.transmute(result="pmax(x * 2)")
-    expected = DataFrame(result=[2.0, 10.0, 6.0, 4.0])
-    assert actual == expected
-
-
-def test_pmin_single_argument_with_expression():
-    df = DataFrame(x=[1.0, 5.0, 3.0, 2.0])
-    actual = df.transmute(result="pmin(x * 2)")
-    expected = DataFrame(result=[2.0, 10.0, 6.0, 4.0])
-    assert actual == expected
+    assert exc_info.value == FunctionArgumentTypeError(
+        function, "argument", "numeric type", expected_type
+    )

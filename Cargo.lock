@@ -3234,6 +3234,7 @@ name = "tabeline"
 version = "0.6.3"
 dependencies = [
  "arrow",
+ "once_cell",
  "polars",
  "polars-arrow",
  "polars-expr",

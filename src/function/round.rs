@@ -1,69 +1,83 @@
-use super::Function;
 use crate::expression::Expression;
+use crate::typed_expression::{
+    require_numeric, DataFrameType, ExpressionType, Function, TypedExpression, ValidationError,
+};
 use polars::prelude::*;
 use std::any::Any;
+use std::collections::HashMap;
 use std::sync::Arc;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Floor {
-    pub argument: Arc<Expression>,
-}
-
-impl Function for Floor {
-    fn to_polars(&self) -> Expr {
-        self.argument.to_polars().floor()
-    }
-
-    fn substitute(
-        &self,
-        substitutions: &std::collections::HashMap<&str, Expression>,
-    ) -> Box<dyn Function> {
-        Box::new(Floor {
-            argument: Arc::new(self.argument.substitute(substitutions)),
-        })
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn equals(&self, other: &dyn Function) -> bool {
-        if let Some(other) = other.as_any().downcast_ref::<Floor>() {
-            self.argument == other.argument
-        } else {
-            false
+macro_rules! impl_round_function {
+    ($name:ident, $fn_name:literal, $polars_method:ident) => {
+        #[derive(Debug, Clone, PartialEq)]
+        pub struct $name {
+            pub argument: Arc<TypedExpression>,
+            pub expression_type: ExpressionType,
         }
-    }
-}
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Ceil {
-    pub argument: Arc<Expression>,
-}
+        impl $name {
+            pub fn validate(
+                arguments: Vec<Arc<Expression>>,
+                df_type: &DataFrameType,
+            ) -> Result<Arc<dyn Function>, ValidationError> {
+                if arguments.len() != 1 {
+                    return Err(ValidationError::FunctionArgumentCount {
+                        function: $fn_name.to_string(),
+                        expected: 1,
+                        actual: arguments.len(),
+                    });
+                }
 
-impl Function for Ceil {
-    fn to_polars(&self) -> Expr {
-        self.argument.to_polars().ceil()
-    }
+                let typed_arg = arguments[0].validate(df_type)?;
+                let arg_type = typed_arg.expression_type();
 
-    fn substitute(
-        &self,
-        substitutions: &std::collections::HashMap<&str, Expression>,
-    ) -> Box<dyn Function> {
-        Box::new(Ceil {
-            argument: Arc::new(self.argument.substitute(substitutions)),
-        })
-    }
+                require_numeric(arg_type, $fn_name, "argument")?;
 
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn equals(&self, other: &dyn Function) -> bool {
-        if let Some(other) = other.as_any().downcast_ref::<Ceil>() {
-            self.argument == other.argument
-        } else {
-            false
+                let result_dt = arg_type.data_type();
+                Ok(Arc::new($name {
+                    argument: Arc::new(typed_arg.cast_if_needed(result_dt)),
+                    expression_type: arg_type,
+                }))
+            }
         }
-    }
+
+        impl Function for $name {
+            fn to_polars(&self) -> Expr {
+                self.argument.to_polars().$polars_method()
+            }
+
+            fn substitute(
+                &self,
+                substitutions: &HashMap<&str, TypedExpression>,
+            ) -> Arc<dyn Function> {
+                Arc::new($name {
+                    argument: Arc::new(self.argument.substitute(substitutions)),
+                    expression_type: self.expression_type,
+                })
+            }
+
+            fn expression_type(&self) -> ExpressionType {
+                self.expression_type
+            }
+
+            fn as_any(&self) -> &dyn Any {
+                self
+            }
+
+            fn equals(&self, other: &dyn Function) -> bool {
+                if let Some(other) = other.as_any().downcast_ref::<$name>() {
+                    self.argument == other.argument && self.expression_type == other.expression_type
+                } else {
+                    false
+                }
+            }
+
+            fn name(&self) -> &'static str {
+                $fn_name
+            }
+        }
+    };
 }
+
+impl_round_function!(Floor, "floor", floor);
+impl_round_function!(Ceil, "ceil", ceil);

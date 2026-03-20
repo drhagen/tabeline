@@ -5,7 +5,7 @@ import pytest
 from tabeline import Array, DataFrame, DataType
 from tabeline.testing import assert_data_frames_equal
 
-from ._types import float_data_types, integer_data_types, whole_data_types
+from .._types import float_data_types, integer_data_types, whole_data_types
 
 
 @pytest.mark.parametrize("dtype_left", whole_data_types + integer_data_types + float_data_types)
@@ -50,23 +50,38 @@ def test_values_equal(value):
 
 
 @pytest.mark.parametrize(
+    "dtype",
+    [DataType.Boolean, DataType.String],
+)
+def test_null_equal_null_basic(dtype):
+    df = DataFrame(a=Array[dtype](None), b=Array[dtype](None), c=Array[DataType.Nothing](None))
+
+    actual = df.transmute(c="a == b")
+    expected = DataFrame(c=Array(True))
+    assert_data_frames_equal(actual, expected)
+
+    actual = df.transmute(c="a != b")
+    expected = DataFrame(c=Array(False))
+    assert_data_frames_equal(actual, expected)
+
+    actual = df.transmute(c="a == c")
+    expected = DataFrame(c=Array(True))
+    assert_data_frames_equal(actual, expected)
+
+    actual = df.transmute(c="a != c")
+    expected = DataFrame(c=Array(False))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
     "dtype_left",
-    whole_data_types
-    + integer_data_types
-    + float_data_types
-    + [DataType.Boolean, DataType.String, DataType.Nothing],
+    whole_data_types + integer_data_types + float_data_types + [DataType.Nothing],
 )
 @pytest.mark.parametrize(
     "dtype_right",
-    whole_data_types
-    + integer_data_types
-    + float_data_types
-    + [DataType.Boolean, DataType.String, DataType.Nothing],
+    whole_data_types + integer_data_types + float_data_types + [DataType.Nothing],
 )
-def test_null_equal_null(dtype_left, dtype_right):
-    if dtype_left == DataType.String or dtype_right == DataType.String:
-        pytest.skip("Polars will not compare strings to numbers")
-
+def test_null_equal_null_numeric(dtype_left, dtype_right):
     df = DataFrame(a=Array[dtype_left](None), b=Array[dtype_right](None))
 
     actual = df.transmute(c="a == b")

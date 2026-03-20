@@ -1,6 +1,15 @@
 import pytest
 
-from tabeline import DataFrame
+from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import (
+    FunctionArgumentCountError,
+    FunctionArgumentTypeError,
+    IncompatibleTypesError,
+    SummarizeTypeError,
+)
+from tabeline.testing import assert_data_frames_equal
+
+from .._types import numeric_to_float, numeric_to_integer, numeric_types
 
 
 def test_if_else():
@@ -47,3 +56,82 @@ def test_if_else_on_rowless_data_frame_with_mutate(default, df):
     actual = df.mutate(x=f"if_else(a!=0, a{default})")
     expected = df.mutate(x="1")
     assert actual == expected
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [("if_else(c, 5, y)", [5, 20]), ("if_else(c, y, 5)", [10, 5])],
+)
+def test_if_else_with_positive_literal(dtype, expression, expected):
+    df = DataFrame(c=[True, False], y=Array[dtype](10, 20))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[dtype](*expected))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_integer)
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [("if_else(c, -5, y)", [-5, 20]), ("if_else(c, y, -5)", [10, -5])],
+)
+def test_if_else_with_negative_literal(original_dtype, expected_dtype, expression, expected):
+    df = DataFrame(c=[True, False], y=Array[original_dtype](10, 20))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[expected_dtype](*expected))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+@pytest.mark.parametrize(
+    ("expression", "expected"),
+    [("if_else(c, 2.5, y)", [2.5, 20]), ("if_else(c, y, 2.5)", [10, 2.5])],
+)
+def test_if_else_with_decimal_literal(original_dtype, expected_dtype, expression, expected):
+    df = DataFrame(c=[True, False], y=Array[original_dtype](10, 20))
+    actual = df.transmute(result=expression)
+    expected = DataFrame(result=Array[expected_dtype](*expected))
+    assert_data_frames_equal(actual, expected)
+
+
+def test_if_else_rejects_one_arg():
+    df = DataFrame(x=[True, False, True])
+
+    with pytest.raises(FunctionArgumentCountError) as exc_info:
+        df.mutate(y="if_else(x)")
+
+    assert exc_info.value == FunctionArgumentCountError("if_else", 2, 1)
+
+
+@pytest.mark.parametrize(
+    ("values", "expected_type"),
+    [
+        ([1, 2, 3], DataType.Integer64),
+        (["a", "b", "c"], DataType.String),
+    ],
+)
+def test_if_else_condition_must_be_boolean(values, expected_type):
+    df = DataFrame(x=values, y=[4, 5, 6])
+
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.mutate(z="if_else(x, y, 0)")
+
+    assert exc_info.value == FunctionArgumentTypeError(
+        "if_else", "condition", "Boolean or Nothing", expected_type
+    )
+
+
+def test_if_else_rejects_incompatible_branch_types():
+    df = DataFrame(x=[True, False, True])
+
+    with pytest.raises(IncompatibleTypesError) as exc_info:
+        df.mutate(y="if_else(x, 1, 'hello')")
+
+    assert exc_info.value == IncompatibleTypesError("if_else", DataType.Whole64, DataType.String)
+
+
+def test_if_else_broadcasts_on_array_condition():
+    df = DataFrame(x=[1, 1, 2, 2], y=[10, 20, 30, 40])
+
+    with pytest.raises(SummarizeTypeError):
+        df.group_by("x").summarize(z="if_else(y > 15, 1, 0)")

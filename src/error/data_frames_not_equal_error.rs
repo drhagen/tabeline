@@ -5,6 +5,7 @@ use pyo3::{exceptions::PyException, prelude::*};
 #[pyclass(frozen, eq, extends=PyException)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DataFramesNotEqualError {
+    #[pyo3(get)]
     pub differences: Vec<DataFrameDifference>,
 }
 

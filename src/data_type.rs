@@ -88,3 +88,86 @@ impl From<DataType> for PolarsDataType {
         }
     }
 }
+
+impl DataType {
+    /// Check if this type is numeric (can participate in arithmetic operations)
+    /// Note: Nothing (null) is considered numeric because it propagates through operations
+    pub fn is_numeric(self) -> bool {
+        matches!(
+            self,
+            DataType::Integer8
+                | DataType::Integer16
+                | DataType::Integer32
+                | DataType::Integer64
+                | DataType::Whole8
+                | DataType::Whole16
+                | DataType::Whole32
+                | DataType::Whole64
+                | DataType::Float32
+                | DataType::Float64
+                | DataType::Nothing
+        )
+    }
+
+    /// Check if this type is a whole number (unsigned integer)
+    pub fn is_whole(self) -> bool {
+        matches!(
+            self,
+            DataType::Whole8 | DataType::Whole16 | DataType::Whole32 | DataType::Whole64
+        )
+    }
+
+    /// Check if this type is a floating point number
+    pub fn is_float(self) -> bool {
+        matches!(self, DataType::Float32 | DataType::Float64)
+    }
+
+    /// Check if this type is an integer (signed or unsigned)
+    pub fn is_integer(self) -> bool {
+        matches!(
+            self,
+            DataType::Integer8
+                | DataType::Integer16
+                | DataType::Integer32
+                | DataType::Integer64
+                | DataType::Whole8
+                | DataType::Whole16
+                | DataType::Whole32
+                | DataType::Whole64
+        )
+    }
+
+    /// Convert integer types to Float64, leaving float types unchanged.
+    pub fn to_float(self) -> DataType {
+        if self.is_integer() {
+            DataType::Float64
+        } else {
+            self
+        }
+    }
+
+    /// Promote two types to a float type for binary float operations.
+    /// Returns Float32 if either operand is Float32 and neither is Float64.
+    /// Returns Float64 otherwise (including when both are integers).
+    pub fn promote_to_float(self, other: DataType) -> DataType {
+        if self == DataType::Float64 || other == DataType::Float64 {
+            DataType::Float64
+        } else if self == DataType::Float32 || other == DataType::Float32 {
+            DataType::Float32
+        } else {
+            DataType::Float64
+        }
+    }
+
+    /// Convert unsigned integer types to their signed counterpart of the same size.
+    /// Returns the type unchanged if already signed or not an integer.
+    pub fn to_signed(self) -> DataType {
+        match self {
+            DataType::Whole8 => DataType::Integer8,
+            DataType::Whole16 => DataType::Integer16,
+            DataType::Whole32 => DataType::Integer32,
+            DataType::Whole64 => DataType::Integer64,
+            other => other,
+        }
+    }
+}

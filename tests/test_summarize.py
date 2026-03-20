@@ -1,6 +1,7 @@
 import pytest
 
 from tabeline import DataFrame
+from tabeline.exceptions import SummarizeTypeError, UnknownFunctionError, UnknownVariableError
 
 
 def test_summarize():
@@ -85,3 +86,32 @@ def test_summarize_rowless(expressions):
     actual = df.group_by("x", "y").summarize(**expressions)
     expected = DataFrame(x=[], y=[], a=[], b=[])
     assert actual == expected
+
+
+def test_summarize_rejects_non_scalar():
+    df = DataFrame(x=[1, 1, 2, 2], y=[10, 20, 30, 40])
+
+    with pytest.raises(SummarizeTypeError) as exc_info:
+        df.group_by("x").summarize(z="y")
+
+    assert exc_info.value == SummarizeTypeError("z")
+
+
+def test_summarize_unknown_variable():
+    df = DataFrame(x=[1, 1, 2, 2], y=[1, 2, 3, 4])
+
+    with pytest.raises(UnknownVariableError) as exc_info:
+        df.group_by("x").summarize(z="max(unknown)")
+
+    assert exc_info.value == UnknownVariableError("unknown", ["x", "y"])
+
+
+def test_summarize_unknown_function():
+    df = DataFrame(x=[1, 1, 2, 2], y=[1, 2, 3, 4])
+
+    with pytest.raises(UnknownFunctionError) as exc_info:
+        df.group_by("x").summarize(z="bogus(y)")
+
+    error = exc_info.value
+    assert error.name == "bogus"
+    assert len(error.available) > 0

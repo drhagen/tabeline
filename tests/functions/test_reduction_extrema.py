@@ -1,6 +1,11 @@
 import math
 
-from tabeline import DataFrame
+import pytest
+
+from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import FunctionArgumentTypeError
+
+from .._types import float_data_types, integer_data_types, whole_data_types
 
 
 def test_max():
@@ -120,3 +125,25 @@ def test_max_min_combined():
     actual = df.group_by("id").summarize(min_x="min(x)", max_x="max(x)")
     expected = DataFrame(id=[1, 2], min_x=[1.0, 5.0], max_x=[4.0, 7.0])
     assert actual == expected
+
+
+@pytest.mark.parametrize("function", ["max", "min"])
+@pytest.mark.parametrize("dtype", whole_data_types + integer_data_types + float_data_types)
+def test_reduction_extrema_preserves_type(function, dtype):
+    df = DataFrame(x=Array[dtype](1, 3, 2))
+    actual = df.group_by().summarize(a=f"{function}(x)")
+    assert actual[:, "a"].data_type == dtype
+
+
+@pytest.mark.parametrize("function", ["max", "min"])
+@pytest.mark.parametrize(
+    ("literal", "actual_type"),
+    [("42", DataType.Whole64), ("-42", DataType.Integer64), ("4.2", DataType.Float64)],
+)
+def test_reduction_extrema_rejects_literal(function, literal, actual_type):
+    df = DataFrame(x=[1, 2, 3])
+    with pytest.raises(FunctionArgumentTypeError) as exc_info:
+        df.group_by().summarize(y=f"{function}({literal})")
+    assert exc_info.value == FunctionArgumentTypeError(
+        function, "argument", "array type", actual_type
+    )

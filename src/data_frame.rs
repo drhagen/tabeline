@@ -2,15 +2,17 @@ use crate::array::PyArray;
 use crate::arrow::{
     polars_arrow_array_from_pyarrow, record_batches_from_polars_arrow_record_batch,
 };
+use crate::data_type::DataType;
 use crate::error::{
-    ColumnAlreadyExistsError, DuplicateColumnError, GroupColumnError, HasGroupsError,
-    IncompatibleLengthError, IndexOutOfBoundsError, NoGroupsError, NonexistentColumnError,
-    RenameExistingError,
+    ColumnAlreadyExistsError, DuplicateColumnError, FilterTypeError, GroupColumnError,
+    HasGroupsError, IncompatibleLengthError, IndexOutOfBoundsError, NoGroupsError,
+    NonexistentColumnError, RenameExistingError, SummarizeTypeError,
 };
-use crate::expression::Expression;
 use crate::py_scalar::PyScalar;
+use crate::typed_expression::{DataFrameType, ExpressionType, TypedExpression};
 use crate::workarounds::{dummy_column, prepend_dummy_column};
 use crate::{GroupIndexOutOfBoundsError, PyExpression};
+use polars::datatypes::DataType as PolarsDataType;
 use polars::error::PolarsError;
 use polars::lazy::frame::pivot::pivot_stable;
 use polars::prelude::*;
@@ -258,10 +260,24 @@ impl PyDataFrame {
     }
 
     #[pyo3(signature = (predicate, /))]
-    fn filter(&self, predicate: &PyExpression) -> PyDataFrame {
+    fn filter(&self, predicate: &PyExpression, py: Python) -> PyResult<PyDataFrame> {
+        // Validate the predicate expression
+        let df_type = DataFrameType::from_data_frame(self);
+        let typed_predicate = predicate.validate(&df_type, py)?;
+
+        // Assert that predicate is Boolean
+        if typed_predicate.expression_type().data_type() != DataType::Boolean {
+            return Err(PyErr::from_value(
+                FilterTypeError {
+                    actual_type: typed_predicate.expression_type().data_type(),
+                }
+                .into_bound_py_any(py)?,
+            ));
+        }
+
         let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
-        let polars_expression = predicate.expression.to_polars();
+        let polars_expression = typed_predicate.to_polars();
         let grouped_expression = polars_expression.over(flattened_groups.as_slice());
 
         let filtered_df = self
@@ -272,10 +288,10 @@ impl PyDataFrame {
             .collect()
             .unwrap();
 
-        PyDataFrame {
+        Ok(PyDataFrame {
             polars_data_frame: filtered_df,
             group_levels: self.group_levels.clone(),
-        }
+        })
     }
 
     #[pyo3(signature = (columns, /))]
@@ -371,7 +387,7 @@ impl PyDataFrame {
             .polars_data_frame
             .clone()
             .lazy()
-            .with_column(arange(0.into(), len(), 1, DataType::Int32).alias("_index"))
+            .with_column(arange(0.into(), len(), 1, PolarsDataType::Int32).alias("_index"))
             .with_column(col("_index").min().over(window_columns))
             .select(&[all()
                 .as_expr()
@@ -503,14 +519,25 @@ impl PyDataFrame {
         let mutated_names: Vec<&str> = mutators.iter().map(|(c, _)| c.as_str()).collect();
         self.validate_group_names_not_used(&mutated_names, py)?;
 
+        // Sequentially validate expressions
+        let mut df_type = DataFrameType::from_data_frame(self);
+        let mut typed_mutators = Vec::new();
+        for (column, expression) in &mutators {
+            let typed_expression = expression.validate(&df_type, py)?;
+            let result_dt = typed_expression.expression_type().data_type();
+            let typed_expression = typed_expression.cast_if_needed(result_dt);
+            df_type = df_type.with_column(column.clone(), typed_expression.expression_type());
+            typed_mutators.push((column.clone(), typed_expression));
+        }
+
         let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
         let mut polars_df = self.polars_data_frame.clone().lazy();
 
-        for (column, expression) in &mutators {
-            let polars_expression = expression.expression.to_polars();
+        for (column, typed_expr) in typed_mutators {
+            let polars_expression = typed_expr.to_polars();
             let grouped_expression = polars_expression.over(flattened_groups.as_slice());
-            let named_expression = grouped_expression.alias(column);
+            let named_expression = grouped_expression.alias(&column);
 
             polars_df = polars_df.with_column(named_expression);
         }
@@ -532,14 +559,25 @@ impl PyDataFrame {
         let transmuted_names: Vec<&str> = mutators.iter().map(|(c, _)| c.as_str()).collect();
         self.validate_group_names_not_used(&transmuted_names, py)?;
 
+        // Sequentially validate expressions
+        let mut df_type = DataFrameType::from_data_frame(self);
+        let mut typed_mutators = Vec::new();
+        for (column, expression) in &mutators {
+            let typed_expression = expression.validate(&df_type, py)?;
+            let result_dt = typed_expression.expression_type().data_type();
+            let typed_expression = typed_expression.cast_if_needed(result_dt);
+            df_type = df_type.with_column(column.clone(), typed_expression.expression_type());
+            typed_mutators.push((column.clone(), typed_expression));
+        }
+
         let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
         let mut polars_df = self.polars_data_frame.clone().lazy();
 
-        for (column, expression) in &mutators {
-            let polars_expression = expression.expression.to_polars();
+        for (column, typed_expr) in typed_mutators {
+            let polars_expression = typed_expr.to_polars();
             let grouped_expression = polars_expression.over(flattened_groups.as_slice());
-            let named_expression = grouped_expression.alias(column);
+            let named_expression = grouped_expression.alias(&column);
 
             polars_df = polars_df.with_column(named_expression);
         }
@@ -599,21 +637,44 @@ impl PyDataFrame {
         self.validate_group_names_not_used(&summarized_names, py)?;
         let new_group_levels = self.drop_one_group_level(py)?;
 
+        // Sequentially validate expressions
+        let mut df_type = DataFrameType::from_data_frame(self);
+        let mut typed_columns = Vec::new();
+        for (name, column) in &columns {
+            let typed = column.validate(&df_type, py)?;
+
+            // Assert that each expression is scalar (a reduction)
+            if let ExpressionType::Array(_) = typed.expression_type() {
+                return Err(PyErr::from_value(
+                    SummarizeTypeError {
+                        column: name.clone(),
+                    }
+                    .into_bound_py_any(py)?,
+                ));
+            }
+
+            let result_dt = typed.expression_type().data_type();
+            let typed = typed.cast_if_needed(result_dt);
+            df_type = df_type.with_column(name.clone(), typed.expression_type());
+            typed_columns.push((name.clone(), typed));
+        }
+
         let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
         // There is no way to sequentially evaluate expressions in a group_by
         // context, so each reducer must be substituted into subsequent reducers:
         // https://stackoverflow.com/q/71120396/
-        let mut substituted_columns = Vec::<(String, Expression)>::new();
-        let mut substitutions = HashMap::<&str, Expression>::new();
-        for (name, column) in &columns {
-            substituted_columns.push((name.clone(), column.expression.substitute(&substitutions)));
-            substitutions.insert(name.as_str(), column.expression.clone());
+        let mut substituted_columns = Vec::<(String, TypedExpression)>::new();
+        let typed_columns_vec: Vec<(String, TypedExpression)> = typed_columns;
+        let mut substitutions = HashMap::<&str, TypedExpression>::new();
+        for (name, typed) in &typed_columns_vec {
+            substituted_columns.push((name.clone(), typed.substitute(&substitutions)));
+            substitutions.insert(name.as_str(), typed.clone());
         }
 
         let mut polars_expressions = vec![];
-        for (column, expression) in substituted_columns {
-            let polars_expression = expression.to_polars();
+        for (column, typed_expr) in substituted_columns {
+            let polars_expression = typed_expr.to_polars();
             let named_expression = polars_expression.alias(&column);
 
             polars_expressions.push(named_expression);
@@ -1074,7 +1135,7 @@ impl PyDataFrame {
                 self.polars_data_frame
                     .clone()
                     .lazy()
-                    .with_column(arange(0.into(), len(), 1, DataType::Int32).alias("_index"))
+                    .with_column(arange(0.into(), len(), 1, PolarsDataType::Int32).alias("_index"))
                     .group_by_stable(flattened_groups)
                     .agg([all().as_expr().gather(Expr::Literal(LiteralValue::Series(
                         SpecialEq::new(Series::new("".into(), &indexes)),
