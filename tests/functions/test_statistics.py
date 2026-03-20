@@ -6,7 +6,7 @@ from tabeline import Array, DataFrame, DataType
 from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
 
-from .._types import numeric_to_float, numeric_types
+from .._types import numeric_to_float
 
 absolute_tolerance = 1e-6
 
@@ -127,7 +127,24 @@ def test_float_result_type(expression, original_dtype, expected_dtype):
     assert actual[:, "y"].data_type == expected_dtype
 
 
-@pytest.mark.parametrize("dtype", numeric_types)
+# Test every numeric type, not just the representative subset in numeric_types,
+# because Polars silently widens small integer types on sum and we cast back to
+# the original type to counteract this.
+@pytest.mark.parametrize(
+    "dtype",
+    [
+        DataType.Whole8,
+        DataType.Whole16,
+        DataType.Whole32,
+        DataType.Whole64,
+        DataType.Integer8,
+        DataType.Integer16,
+        DataType.Integer32,
+        DataType.Integer64,
+        DataType.Float32,
+        DataType.Float64,
+    ],
+)
 def test_sum_preserves_type(dtype):
     df = DataFrame(x=Array[dtype](1, 2, 3, 4))
     actual = df.group_by().summarize(y="sum(x)")

@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use polars::prelude::*;
 
+use crate::data_type::PolarsDataType;
 use crate::expression::Expression;
 use crate::typed_expression::{
     require_array, require_numeric, DataFrameType, ExpressionType, Function, TypedExpression,
@@ -187,11 +188,15 @@ impl Sum {
 impl Function for Sum {
     fn to_polars(&self) -> Expr {
         let polars_expression = self.argument.to_polars();
+        // Polars silently widens small integer types (e.g. Int8 & Int26 → Int64) on sum.
+        // Cast back to the original type to preserve the declared expression type.
+        let result_dt = PolarsDataType::from(self.expression_type.data_type());
         ternary_expr(
             polars_expression.clone().is_null().any(false),
             lit(NULL),
             polars_expression.sum(),
         )
+        .cast(result_dt)
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
