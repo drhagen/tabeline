@@ -188,7 +188,7 @@ impl Sum {
 impl Function for Sum {
     fn to_polars(&self) -> Expr {
         let polars_expression = self.argument.to_polars();
-        // Polars silently widens small integer types (e.g. Int8 & Int26 → Int64) on sum.
+        // WORKAROUND: Polars silently widens small integer types (e.g. Int8 & Int26 → Int64) on sum.
         // Cast back to the original type to preserve the declared expression type.
         let result_dt = PolarsDataType::from(self.expression_type.data_type());
         ternary_expr(
