@@ -1,6 +1,8 @@
 import pytest
 
-from tabeline import DataFrame, DataType
+from tabeline import Array, DataFrame, DataType
+
+from .._types import numeric_types
 
 
 def test_floor():
@@ -17,6 +19,14 @@ def test_ceil():
     df = DataFrame(x=values)
     actual = df.mutate(x="ceil(x)")
     assert actual == DataFrame(x=expected)
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+@pytest.mark.parametrize("expression", ["floor(x)", "ceil(x)"])
+def test_preserves_type(expression, dtype):
+    df = DataFrame(x=Array[dtype](1, 2, 3))
+    actual = df.mutate(y=expression)
+    assert actual[:, "y"].data_type == dtype
 
 
 @pytest.mark.parametrize(

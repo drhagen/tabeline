@@ -2,7 +2,9 @@ import math
 
 import pytest
 
-from tabeline import DataFrame
+from tabeline import Array, DataFrame, DataType
+
+from .._types import numeric_types
 
 
 def test_is_null():
@@ -24,6 +26,14 @@ def test_is_finite():
     actual = df.mutate(x="is_finite(x)")
     expected = DataFrame(x=[True, False, False, False, None])
     assert actual == expected
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+@pytest.mark.parametrize("expression", ["is_null(x)", "is_nan(x)", "is_finite(x)"])
+def test_boolean_result_type(expression, dtype):
+    df = DataFrame(x=Array[dtype](1, 2, 3))
+    actual = df.mutate(y=expression)
+    assert actual[:, "y"].data_type == DataType.Boolean
 
 
 @pytest.mark.parametrize(

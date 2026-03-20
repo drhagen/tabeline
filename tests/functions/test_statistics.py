@@ -2,9 +2,11 @@ import math
 
 import pytest
 
-from tabeline import DataFrame, DataType
+from tabeline import Array, DataFrame, DataType
 from tabeline.exceptions import FunctionArgumentCountError, FunctionArgumentTypeError
 from tabeline.testing import assert_data_frames_equal
+
+from .._types import numeric_to_float, numeric_types
 
 absolute_tolerance = 1e-6
 
@@ -112,6 +114,24 @@ def test_quantile_expression():
     actual = df.group_by("id").summarize(x="quantile(x, 0.25*3)")
     expected = DataFrame(id=[1, 2], x=[3.25, 7.25])
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+@pytest.mark.parametrize(
+    "expression",
+    ["std(x)", "var(x)", "mean(x)", "median(x)", "quantile(x, 0.5)"],
+)
+def test_float_result_type(expression, original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](1, 2, 3, 4))
+    actual = df.group_by().summarize(y=expression)
+    assert actual[:, "y"].data_type == expected_dtype
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+def test_sum_preserves_type(dtype):
+    df = DataFrame(x=Array[dtype](1, 2, 3, 4))
+    actual = df.group_by().summarize(y="sum(x)")
+    assert actual[:, "y"].data_type == dtype
 
 
 def test_quantile_rejects_one_arg():

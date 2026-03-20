@@ -2,8 +2,10 @@ import math
 
 import pytest
 
-from tabeline import DataFrame
+from tabeline import Array, DataFrame
 from tabeline.testing import assert_data_frames_equal
+
+from .._types import numeric_to_float
 
 absolute_tolerance = 1e-6
 
@@ -48,6 +50,17 @@ def test_arctan():
     actual = df.mutate(x="arctan(x)")
     expected = DataFrame(x=[0.0, math.atan(1.0), -math.pi / 4, None])
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
+
+
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+@pytest.mark.parametrize(
+    "expression",
+    ["sin(x)", "cos(x)", "tan(x)", "arcsin(x)", "arccos(x)", "arctan(x)"],
+)
+def test_float_result_type(expression, original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](0, None))
+    actual = df.mutate(y=expression)
+    assert actual[:, "y"].data_type == expected_dtype
 
 
 @pytest.mark.parametrize(

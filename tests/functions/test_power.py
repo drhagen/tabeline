@@ -92,6 +92,14 @@ def test_pow_with_decimal_literal(original_dtype, expected_dtype, expression, ex
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
 
 
+@pytest.mark.parametrize(("original_dtype", "expected_dtype"), numeric_to_float)
+@pytest.mark.parametrize("expression", ["sqrt(x)", "exp(x)"])
+def test_float_result_type(expression, original_dtype, expected_dtype):
+    df = DataFrame(x=Array[original_dtype](4, None))
+    actual = df.mutate(y=expression)
+    assert actual[:, "y"].data_type == expected_dtype
+
+
 @pytest.mark.parametrize(
     ("expression", "expected_value"),
     [

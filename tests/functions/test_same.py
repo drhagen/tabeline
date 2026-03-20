@@ -1,7 +1,9 @@
 import pytest
 
-from tabeline import DataFrame, DataType
+from tabeline import Array, DataFrame, DataType
 from tabeline.exceptions import FunctionArgumentTypeError
+
+from .._types import numeric_types
 
 
 @pytest.mark.parametrize(
@@ -52,6 +54,13 @@ def test_same_error_group_by(values):
     # which does not inherit from Exception and is not part of the Polars API.
     with pytest.raises(BaseException):  # noqa: B017, PT011
         _ = df.group_by("a").summarize(x="same(x)")
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+def test_preserves_type(dtype):
+    df = DataFrame(x=Array[dtype](1, 1, 1))
+    actual = df.group_by().summarize(y="same(x)")
+    assert actual[:, "y"].data_type == dtype
 
 
 @pytest.mark.parametrize(

@@ -5,12 +5,21 @@ import pytest
 from tabeline import Array, DataFrame, DataType
 from tabeline.testing import assert_data_frames_equal
 
+from .._types import numeric_types
+
 
 def test_abs():
     df = DataFrame(x=[-2.5, 2.5, 0.0, -0.0, math.nan, math.inf, -math.inf, None])
     expected = DataFrame(x=[2.5, 2.5, 0.0, 0.0, math.nan, math.inf, math.inf, None])
     actual = df.mutate(x="abs(x)")
     assert actual == expected
+
+
+@pytest.mark.parametrize("dtype", numeric_types)
+def test_preserves_type(dtype):
+    df = DataFrame(x=Array[dtype](1, 2, 3))
+    actual = df.mutate(y="abs(x)")
+    assert actual[:, "y"].data_type == dtype
 
 
 @pytest.mark.parametrize(
