@@ -119,7 +119,7 @@ pub fn concatenate_columns(
     }
 
     // Perform horizontal concatenation
-    let concatenated = concat_df_horizontal(&dfs, false)
+    let concatenated = concat_df_horizontal(&dfs, false, false, false)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
 
     Ok(PyDataFrame {

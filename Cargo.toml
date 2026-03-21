@@ -9,10 +9,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = "0.27"
-arrow = { version = "57" }
+arrow = { version = "58" }
 once_cell = "1.20"
-# WORKAROUND: moment, timezones, and polars-expr are only needed due to dependency bugs in Polars
+# WORKAROUND: timezones and polars-expr are only needed due to dependency bugs in Polars
 # https://github.com/pola-rs/polars/issues/25492
-polars = { version = "0.52.0", features = ["lazy", "pivot", "csv", "abs", "log", "round_series", "trigonometry", "range", "dtype-i8", "dtype-i16", "dtype-u8", "dtype-u16", "moment", "timezones"] }
-polars-expr = { version = "0.52.0", features = ["dtype-array"] }
-polars-arrow = { version = "0.52.0" }
+polars = { version = "0.53.0", features = ["lazy", "pivot", "csv", "abs", "log", "round_series", "trigonometry", "range", "dtype-i8", "dtype-i16", "dtype-u8", "dtype-u16", "timezones"] }
+polars-expr = { version = "0.53.0", features = ["dtype-array"] }
+polars-arrow = { version = "0.53.0" }
