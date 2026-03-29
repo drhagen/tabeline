@@ -6,8 +6,8 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    promote_expression_types, require_numeric, DataFrameType, ExpressionType, LiteralType,
-    Function, TypedExpression, ValidationError,
+    promote_expression_types, require_numeric, DataFrameType, ExpressionType, Function,
+    LiteralType, TypedExpression, ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -171,8 +171,7 @@ impl Pow {
         require_numeric(base_type, "pow", "base")?;
         require_numeric(exponent_type, "pow", "exponent")?;
 
-        let promoted_type =
-            promote_expression_types(base_type, exponent_type, "pow")?;
+        let promoted_type = promote_expression_types(base_type, exponent_type, "pow")?;
 
         // Check wholeness on the original exponent type, before any casting
         let exponent_is_whole = match exponent_type {

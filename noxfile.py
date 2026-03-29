@@ -77,6 +77,7 @@ def coverage(s: Session):
         ["ruff", "check", "."],
         ["ruff", "format", "--check", "."],
         ["cargo", "clippy", "--locked", "--", "-D", "warnings"],
+        ["cargo", "fmt", "--check"],
     ],
 )
 def lint(s: Session, command: list[str]):

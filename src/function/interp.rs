@@ -146,11 +146,7 @@ impl Function for Interp {
     fn to_polars(&self) -> Expr {
         apply_multiple(
             interpolate,
-            &[
-                self.t.to_polars(),
-                self.ts.to_polars(),
-                self.ys.to_polars(),
-            ],
+            &[self.t.to_polars(), self.ts.to_polars(), self.ys.to_polars()],
             |_, fields| Ok(fields[0].clone()),
             true,
         )

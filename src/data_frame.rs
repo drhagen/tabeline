@@ -1157,7 +1157,13 @@ impl PyDataFrame {
                     .agg([all().as_expr().gather(Expr::Literal(LiteralValue::Series(
                         SpecialEq::new(Series::new("".into(), &indexes)),
                     )))])
-                    .explode(cols(non_group_columns), ExplodeOptions { empty_as_null: false, keep_nulls: false })
+                    .explode(
+                        cols(non_group_columns),
+                        ExplodeOptions {
+                            empty_as_null: false,
+                            keep_nulls: false,
+                        },
+                    )
                     .sort(["_index"], Default::default())
                     .drop(cols(["_index"]))
                     .collect();

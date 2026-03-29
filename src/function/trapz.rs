@@ -112,10 +112,7 @@ impl Function for Trapz {
     fn to_polars(&self) -> Expr {
         apply_multiple(
             compute_trapz,
-            &[
-                self.t.to_polars(),
-                self.y.to_polars(),
-            ],
+            &[self.t.to_polars(), self.y.to_polars()],
             |_, fields| Ok(fields[0].clone()),
             true,
         )
