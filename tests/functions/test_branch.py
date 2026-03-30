@@ -135,3 +135,31 @@ def test_if_else_broadcasts_on_array_condition():
 
     with pytest.raises(SummarizeTypeError):
         df.group_by("x").summarize(z="if_else(y > 15, 1, 0)")
+
+
+def test_if_else_null_condition():
+    df = DataFrame(c=[None, None], a=[5.0, 6.0], b=[7.0, 8.0])
+    actual = df.mutate(x="if_else(c, a, b)")
+    expected = df.mutate(x="c")
+    assert_data_frames_equal(actual, expected)
+
+
+def test_if_else_null_if_true():
+    df = DataFrame(c=[True, False], a=[None, None], b=[5.0, 6.0])
+    actual = df.mutate(x="if_else(c, a, b)")
+    expected = DataFrame(c=[True, False], a=[None, None], b=[5.0, 6.0], x=[None, 6.0])
+    assert_data_frames_equal(actual, expected)
+
+
+def test_if_else_null_if_false():
+    df = DataFrame(c=[True, False], a=[5.0, 6.0], b=[None, None])
+    actual = df.mutate(x="if_else(c, a, b)")
+    expected = DataFrame(c=[True, False], a=[5.0, 6.0], b=[None, None], x=[5.0, None])
+    assert_data_frames_equal(actual, expected)
+
+
+def test_if_else_null_condition_empty():
+    df = DataFrame(c=[], a=[], b=[])
+    actual = df.mutate(x="if_else(c, a, b)")
+    expected = df.mutate(x="c")
+    assert_data_frames_equal(actual, expected)

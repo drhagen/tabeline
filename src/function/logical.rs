@@ -42,7 +42,13 @@ impl Any {
 
 impl Function for Any {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().any(false)
+        if self.argument.expression_type().data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars any() crashes on DataType::Null (Nothing) columns;
+            // any(nothing) = nothing per three-value logic
+            lit(NULL)
+        } else {
+            self.argument.to_polars().any(false)
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
@@ -107,7 +113,13 @@ impl All {
 
 impl Function for All {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().all(false)
+        if self.argument.expression_type().data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars all() crashes on DataType::Null (Nothing) columns;
+            // all(nothing) = nothing per three-value logic
+            lit(NULL)
+        } else {
+            self.argument.to_polars().all(false)
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

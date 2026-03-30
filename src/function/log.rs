@@ -54,7 +54,14 @@ macro_rules! impl_log_function {
 
         impl Function for $name {
             fn to_polars(&self) -> Expr {
-                self.argument.to_polars().log(Expr::from($base))
+                if self.argument.expression_type().data_type()
+                    == crate::data_type::DataType::Nothing
+                {
+                    // WORKAROUND: Polars returns Unknown(Float) for log on empty DataType::Null columns
+                    lit(NULL)
+                } else {
+                    self.argument.to_polars().log(Expr::from($base))
+                }
             }
 
             fn substitute(

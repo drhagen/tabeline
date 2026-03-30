@@ -147,14 +147,22 @@ impl Expression {
 
             Expression::TrueDivide { left, right } => {
                 validate_binary_arithmetic(left, right, df_type, "division", |l, r, et| {
-                    let float_dt = l
-                        .expression_type()
-                        .data_type()
-                        .promote_to_float(r.expression_type().data_type());
-                    TypedExpression::TrueDivide {
-                        left: Arc::new(l.cast_if_needed(float_dt)),
-                        right: Arc::new(r.cast_if_needed(float_dt)),
-                        expression_type: et.with_data_type(float_dt),
+                    if et.data_type() == DataType::Nothing {
+                        TypedExpression::TrueDivide {
+                            left: Arc::new(l),
+                            right: Arc::new(r),
+                            expression_type: et,
+                        }
+                    } else {
+                        let float_dt = l
+                            .expression_type()
+                            .data_type()
+                            .promote_to_float(r.expression_type().data_type());
+                        TypedExpression::TrueDivide {
+                            left: Arc::new(l.cast_if_needed(float_dt)),
+                            right: Arc::new(r.cast_if_needed(float_dt)),
+                            expression_type: et.with_data_type(float_dt),
+                        }
                     }
                 })
             }
@@ -226,12 +234,20 @@ impl Expression {
                 } else {
                     // anything ** int/float → float operation
                     let result_dt = result_type.data_type();
-                    let float_dt = result_dt.promote_to_float(result_dt);
-                    Ok(TypedExpression::Power {
-                        left: Arc::new(typed_left.cast_if_needed(float_dt)),
-                        right: Arc::new(typed_right.cast_if_needed(float_dt)),
-                        expression_type: result_type.with_data_type(float_dt),
-                    })
+                    if result_dt == DataType::Nothing {
+                        Ok(TypedExpression::Power {
+                            left: Arc::new(typed_left),
+                            right: Arc::new(typed_right),
+                            expression_type: result_type,
+                        })
+                    } else {
+                        let float_dt = result_dt.promote_to_float(result_dt);
+                        Ok(TypedExpression::Power {
+                            left: Arc::new(typed_left.cast_if_needed(float_dt)),
+                            right: Arc::new(typed_right.cast_if_needed(float_dt)),
+                            expression_type: result_type.with_data_type(float_dt),
+                        })
+                    }
                 }
             }
 
@@ -437,9 +453,17 @@ where
         });
     }
 
-    // Harmonize to get correct shape, then override data type to Boolean
+    // Harmonize to get correct shape, then override data type to Boolean.
+    // Exception: if both operands are Nothing, result is Nothing (three-value logic: Nothing
+    // input → Nothing output, same as any/all).
     let harmonized = harmonize_expression_types(left_type, right_type, operation)?;
-    let result_type = harmonized.with_data_type(DataType::Boolean);
+    let result_type = if left_type.data_type() == DataType::Nothing
+        && right_type.data_type() == DataType::Nothing
+    {
+        harmonized
+    } else {
+        harmonized.with_data_type(DataType::Boolean)
+    };
 
     Ok(constructor(typed_left, typed_right, result_type))
 }

@@ -41,7 +41,12 @@ impl Abs {
 
 impl Function for Abs {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().abs()
+        if self.argument.expression_type().data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars abs crashes on DataType::Null columns
+            lit(NULL)
+        } else {
+            self.argument.to_polars().abs()
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

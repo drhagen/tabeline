@@ -2,6 +2,36 @@ import pytest
 
 from tabeline import DataFrame, DataType
 from tabeline.exceptions import TypeMismatchError
+from tabeline.testing import assert_data_frames_equal
+
+
+def test_and():
+    df = DataFrame(a=[True, True, False, False], b=[True, False, True, False])
+    actual = df.transmute(c="a & b")
+    expected = DataFrame(c=[True, False, False, False])
+    assert_data_frames_equal(actual, expected)
+
+
+def test_and_null_left():
+    df = DataFrame(a=[None, None], b=[True, False])
+    actual = df.transmute(c="a & b")
+    expected = DataFrame(c=[None, False])
+    assert_data_frames_equal(actual, expected)
+
+
+def test_and_null_right():
+    df = DataFrame(a=[True, False], b=[None, None])
+    actual = df.transmute(c="a & b")
+    expected = DataFrame(c=[None, False])
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize("nulls", [[], [None, None]])
+def test_and_both_null(nulls):
+    df = DataFrame(a=nulls, b=nulls)
+    actual = df.transmute(c="a & b")
+    expected = DataFrame(c=nulls)
+    assert_data_frames_equal(actual, expected)
 
 
 @pytest.mark.parametrize(

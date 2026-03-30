@@ -119,6 +119,15 @@ pub enum TypedExpression {
 }
 
 impl TypedExpression {
+    /// Returns true if this expression ultimately originates from a Nothing (all-null) column,
+    /// even if it has been wrapped in a Cast node during comparison type harmonization.
+    fn is_nothing_origin(&self) -> bool {
+        match self {
+            TypedExpression::Cast { content, .. } => content.is_nothing_origin(),
+            _ => self.expression_type().data_type() == DataType::Nothing,
+        }
+    }
+
     pub fn cast_if_needed(self, target: DataType) -> TypedExpression {
         let current = self.expression_type();
         // Always cast literals because their Polars type may not match the target.
@@ -220,24 +229,84 @@ impl TypedExpression {
             TypedExpression::StringLiteral { value } => lit(value.clone()),
             TypedExpression::Variable { name, .. } => col(name),
             TypedExpression::Positive { content, .. } => content.to_polars(),
-            TypedExpression::Negative { content, .. } => -content.to_polars(),
+            TypedExpression::Negative { content, .. } => {
+                if content.expression_type().data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars neg operation not supported for DataType::Null columns
+                    lit(NULL)
+                } else {
+                    -content.to_polars()
+                }
+            }
             TypedExpression::Add { left, right, .. } => left.to_polars() + right.to_polars(),
             TypedExpression::Subtract { left, right, .. } => left.to_polars() - right.to_polars(),
             TypedExpression::Multiply { left, right, .. } => left.to_polars() * right.to_polars(),
-            TypedExpression::TrueDivide { left, right, .. } => {
-                binary_expr(left.to_polars(), Operator::TrueDivide, right.to_polars())
+            TypedExpression::TrueDivide {
+                left,
+                right,
+                expression_type,
+            } => {
+                if expression_type.data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars true_divide crashes on DataType::Null (Nothing) columns
+                    lit(NULL)
+                } else {
+                    binary_expr(left.to_polars(), Operator::TrueDivide, right.to_polars())
+                }
             }
             TypedExpression::FloorDivide { left, right, .. } => {
-                left.to_polars().floor_div(right.to_polars())
+                if left.expression_type().data_type() == crate::data_type::DataType::Nothing
+                    || right.expression_type().data_type() == crate::data_type::DataType::Nothing
+                {
+                    // WORKAROUND: Polars floor_div crashes on DataType::Null columns
+                    lit(NULL)
+                } else {
+                    left.to_polars().floor_div(right.to_polars())
+                }
             }
             TypedExpression::Mod { left, right, .. } => left.to_polars() % right.to_polars(),
-            TypedExpression::Power { left, right, .. } => left.to_polars().pow(right.to_polars()),
+            TypedExpression::Power {
+                left,
+                right,
+                expression_type,
+            } => {
+                if expression_type.data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars pow crashes on DataType::Null (Nothing) columns
+                    lit(NULL)
+                } else {
+                    left.to_polars().pow(right.to_polars())
+                }
+            }
             TypedExpression::Call { call } => call.to_polars(),
             TypedExpression::Equal { left, right, .. } => {
-                left.to_polars().eq_missing(right.to_polars())
+                // WORKAROUND: eq_missing on DataType::Null (Nothing) columns returns null
+                // instead of respecting eq_missing semantics. Implement manually:
+                // nothing eq_missing x = x.is_null(); nothing eq_missing nothing = true
+                let left_is_nothing = left.is_nothing_origin();
+                let right_is_nothing = right.is_nothing_origin();
+                if left_is_nothing && right_is_nothing {
+                    lit(true)
+                } else if left_is_nothing {
+                    right.to_polars().is_null()
+                } else if right_is_nothing {
+                    left.to_polars().is_null()
+                } else {
+                    left.to_polars().eq_missing(right.to_polars())
+                }
             }
             TypedExpression::NotEqual { left, right, .. } => {
-                left.to_polars().neq_missing(right.to_polars())
+                // WORKAROUND: neq_missing on DataType::Null (Nothing) columns returns null
+                // instead of respecting the neq_missing semantics. Implement manually:
+                // nothing neq_missing x = x.is_not_null(); nothing neq_missing nothing = false
+                let left_is_nothing = left.is_nothing_origin();
+                let right_is_nothing = right.is_nothing_origin();
+                if left_is_nothing && right_is_nothing {
+                    lit(false)
+                } else if left_is_nothing {
+                    right.to_polars().is_not_null()
+                } else if right_is_nothing {
+                    left.to_polars().is_not_null()
+                } else {
+                    left.to_polars().neq_missing(right.to_polars())
+                }
             }
             TypedExpression::GreaterThanOrEqual { left, right, .. } => {
                 left.to_polars().gt_eq(right.to_polars())
@@ -249,9 +318,36 @@ impl TypedExpression {
                 left.to_polars().gt(right.to_polars())
             }
             TypedExpression::LessThan { left, right, .. } => left.to_polars().lt(right.to_polars()),
-            TypedExpression::Not { content, .. } => content.to_polars().not(),
-            TypedExpression::And { left, right, .. } => left.to_polars().and(right.to_polars()),
-            TypedExpression::Or { left, right, .. } => left.to_polars().or(right.to_polars()),
+            TypedExpression::Not { content, .. } => {
+                if content.expression_type().data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars not() crashes on DataType::Null columns
+                    lit(NULL)
+                } else {
+                    content.to_polars().not()
+                }
+            }
+            TypedExpression::And { left, right, .. } => {
+                if left.expression_type().data_type() == crate::data_type::DataType::Nothing
+                    && right.expression_type().data_type() == crate::data_type::DataType::Nothing
+                {
+                    // WORKAROUND: Polars does not support bitand on DataType::Null columns;
+                    // Nothing AND Nothing = Nothing per three-value logic
+                    lit(NULL)
+                } else {
+                    left.to_polars().and(right.to_polars())
+                }
+            }
+            TypedExpression::Or { left, right, .. } => {
+                if left.expression_type().data_type() == crate::data_type::DataType::Nothing
+                    && right.expression_type().data_type() == crate::data_type::DataType::Nothing
+                {
+                    // WORKAROUND: Polars does not support bitor on DataType::Null columns;
+                    // Nothing OR Nothing = Nothing per three-value logic
+                    lit(NULL)
+                } else {
+                    left.to_polars().or(right.to_polars())
+                }
+            }
             TypedExpression::Cast {
                 content,
                 expression_type,

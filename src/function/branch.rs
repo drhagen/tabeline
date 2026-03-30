@@ -70,11 +70,16 @@ impl IfElse {
 
 impl Function for IfElse {
     fn to_polars(&self) -> Expr {
-        ternary_expr(
-            self.condition.to_polars(),
-            self.then_branch.to_polars(),
-            self.else_branch.to_polars(),
-        )
+        if self.condition.expression_type().data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars ternary_expr crashes when condition has DataType::Null
+            lit(NULL)
+        } else {
+            ternary_expr(
+                self.condition.to_polars(),
+                self.then_branch.to_polars(),
+                self.else_branch.to_polars(),
+            )
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

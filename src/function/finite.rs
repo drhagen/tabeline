@@ -96,16 +96,26 @@ impl IsNan {
 
         require_numeric(arg_type, "is_nan", "argument")?;
 
+        let expression_type = if arg_type.data_type() == DataType::Nothing {
+            arg_type
+        } else {
+            arg_type.with_data_type(DataType::Boolean)
+        };
         Ok(Arc::new(IsNan {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type.with_data_type(DataType::Boolean),
+            expression_type,
         }) as Arc<dyn Function>)
     }
 }
 
 impl Function for IsNan {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().is_nan()
+        if self.argument.expression_type().data_type() == DataType::Nothing {
+            // WORKAROUND: Polars is_nan() crashes on DataType::Null (Nothing) columns
+            lit(NULL)
+        } else {
+            self.argument.to_polars().is_nan()
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
@@ -160,16 +170,26 @@ impl IsFinite {
 
         require_numeric(arg_type, "is_finite", "argument")?;
 
+        let expression_type = if arg_type.data_type() == DataType::Nothing {
+            arg_type
+        } else {
+            arg_type.with_data_type(DataType::Boolean)
+        };
         Ok(Arc::new(IsFinite {
             argument: Arc::new(typed_arg),
-            expression_type: arg_type.with_data_type(DataType::Boolean),
+            expression_type,
         }) as Arc<dyn Function>)
     }
 }
 
 impl Function for IsFinite {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().is_finite()
+        if self.argument.expression_type().data_type() == DataType::Nothing {
+            // WORKAROUND: Polars is_finite() crashes on DataType::Null (Nothing) columns
+            lit(NULL)
+        } else {
+            self.argument.to_polars().is_finite()
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
