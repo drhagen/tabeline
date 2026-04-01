@@ -130,9 +130,13 @@ impl TypedExpression {
 
     pub fn cast_if_needed(self, target: DataType) -> TypedExpression {
         let current = self.expression_type();
+        // Casting to Nothing is a no-op: the parent node's Nothing expression_type
+        // drives the lit(NULL) workaround in to_polars, so the operand keeps its type.
+        if target == DataType::Nothing {
+            self
         // Always cast literals because their Polars type may not match the target.
         // For concrete types, only cast if the type differs.
-        if !current.is_literal() && current.data_type() == target {
+        } else if !current.is_literal() && current.data_type() == target {
             self
         } else {
             TypedExpression::Cast {
@@ -237,9 +241,42 @@ impl TypedExpression {
                     -content.to_polars()
                 }
             }
-            TypedExpression::Add { left, right, .. } => left.to_polars() + right.to_polars(),
-            TypedExpression::Subtract { left, right, .. } => left.to_polars() - right.to_polars(),
-            TypedExpression::Multiply { left, right, .. } => left.to_polars() * right.to_polars(),
+            TypedExpression::Add {
+                left,
+                right,
+                expression_type,
+            } => {
+                if expression_type.data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars add on DataType::Null columns may not preserve Null dtype
+                    lit(NULL)
+                } else {
+                    left.to_polars() + right.to_polars()
+                }
+            }
+            TypedExpression::Subtract {
+                left,
+                right,
+                expression_type,
+            } => {
+                if expression_type.data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars subtract on DataType::Null columns may not preserve Null dtype
+                    lit(NULL)
+                } else {
+                    left.to_polars() - right.to_polars()
+                }
+            }
+            TypedExpression::Multiply {
+                left,
+                right,
+                expression_type,
+            } => {
+                if expression_type.data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars multiply on DataType::Null columns may not preserve Null dtype
+                    lit(NULL)
+                } else {
+                    left.to_polars() * right.to_polars()
+                }
+            }
             TypedExpression::TrueDivide {
                 left,
                 right,
@@ -262,7 +299,18 @@ impl TypedExpression {
                     left.to_polars().floor_div(right.to_polars())
                 }
             }
-            TypedExpression::Mod { left, right, .. } => left.to_polars() % right.to_polars(),
+            TypedExpression::Mod {
+                left,
+                right,
+                expression_type,
+            } => {
+                if expression_type.data_type() == crate::data_type::DataType::Nothing {
+                    // WORKAROUND: Polars modulo on DataType::Null columns may not preserve Null dtype
+                    lit(NULL)
+                } else {
+                    left.to_polars() % right.to_polars()
+                }
+            }
             TypedExpression::Power {
                 left,
                 right,

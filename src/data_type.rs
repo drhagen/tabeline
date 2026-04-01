@@ -150,7 +150,9 @@ impl DataType {
     /// Returns Float32 if either operand is Float32 and neither is Float64.
     /// Returns Float64 otherwise (including when both are integers).
     pub fn promote_to_float(self, other: DataType) -> DataType {
-        if self == DataType::Float64 || other == DataType::Float64 {
+        if self == DataType::Nothing || other == DataType::Nothing {
+            DataType::Nothing
+        } else if self == DataType::Float64 || other == DataType::Float64 {
             DataType::Float64
         } else if self == DataType::Float32 || other == DataType::Float32 {
             DataType::Float32

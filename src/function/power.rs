@@ -201,12 +201,8 @@ impl Pow {
         } else {
             // anything ** int/float → float operation
             let result_dt = promoted_type.data_type();
-            if result_dt == crate::data_type::DataType::Nothing {
-                promoted_type
-            } else {
-                let float_dt = result_dt.promote_to_float(result_dt);
-                promoted_type.with_data_type(float_dt)
-            }
+            let float_dt = result_dt.promote_to_float(result_dt);
+            promoted_type.with_data_type(float_dt)
         };
 
         let result_dt = expression_type.data_type();

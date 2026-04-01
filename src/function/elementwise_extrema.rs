@@ -65,6 +65,11 @@ impl PMax {
 
 impl Function for PMax {
     fn to_polars(&self) -> Expr {
+        if self.expression_type.data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars max_horizontal on DataType::Null columns may not preserve Null dtype
+            return lit(NULL);
+        }
+
         if self.arguments.len() == 1 {
             return self.arguments[0].to_polars();
         }
@@ -168,6 +173,11 @@ impl PMin {
 
 impl Function for PMin {
     fn to_polars(&self) -> Expr {
+        if self.expression_type.data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars min_horizontal on DataType::Null columns may not preserve Null dtype
+            return lit(NULL);
+        }
+
         if self.arguments.len() == 1 {
             return self.arguments[0].to_polars();
         }
