@@ -70,6 +70,11 @@ from tabeline.testing import assert_data_frames_equal
         "pow(n, a)",
         "pow(a, n)",
         "pow(n, n)",
+        "if_else(n, a, a)",
+        "interp(n, a, a)",
+        "interp(a, n, a)",
+        "interp(a, a, n)",
+        "interp(n, n, n)",
     ],
 )
 @pytest.mark.parametrize("nulls", [[], [None, None]])
@@ -81,24 +86,26 @@ def test_nothing_is_preserved(expression, nulls):
 
 
 @pytest.mark.parametrize(
-    "name",
+    "expression",
     [
-        "first",
-        "last",
-        "same",
-        "std",
-        "var",
-        "max",
-        "min",
-        "sum",
-        "mean",
-        "median",
-        "any",
-        "all",
+        "first(n)",
+        "last(n)",
+        "same(n)",
+        "std(n)",
+        "var(n)",
+        "max(n)",
+        "min(n)",
+        "sum(n)",
+        "mean(n)",
+        "median(n)",
+        "any(n)",
+        "all(n)",
+        "quantile(n, 0.5)",
+        "trapz(n, n)",
     ],
 )
-def test_nothing_preserving_reduction_with_summarize(name):
+def test_nothing_preserving_reduction_with_summarize(expression):
     df = DataFrame(n=[None, None])
-    actual = df.group_by().summarize(x=f"{name}(n)")
+    actual = df.group_by().summarize(x=expression)
     expected = DataFrame(x=[None])
     assert_data_frames_equal(actual, expected)

@@ -99,23 +99,33 @@ impl Trapz {
         require_array(y_type, "trapz", "y")?;
 
         let float64 = crate::data_type::DataType::Float64;
+        let nothing = crate::data_type::DataType::Nothing;
+        let expression_type = if t_type.data_type() == nothing || y_type.data_type() == nothing {
+            ExpressionType::Scalar(nothing)
+        } else {
+            ExpressionType::Scalar(float64)
+        };
 
         Ok(Arc::new(Trapz {
             t: Arc::new(t.cast_if_needed(float64)),
             y: Arc::new(y.cast_if_needed(float64)),
-            expression_type: ExpressionType::Scalar(float64),
+            expression_type,
         }) as Arc<dyn Function>)
     }
 }
 
 impl Function for Trapz {
     fn to_polars(&self) -> Expr {
-        apply_multiple(
-            compute_trapz,
-            &[self.t.to_polars(), self.y.to_polars()],
-            |_, fields| Ok(fields[0].clone()),
-            true,
-        )
+        if self.expression_type.data_type() == crate::data_type::DataType::Nothing {
+            lit(NULL)
+        } else {
+            apply_multiple(
+                compute_trapz,
+                &[self.t.to_polars(), self.y.to_polars()],
+                |_, fields| Ok(fields[0].clone()),
+                true,
+            )
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

@@ -225,7 +225,6 @@ impl Expression {
                     })
                 } else {
                     // anything ** int/float → float operation
-                    // anything ** int/float → float operation
                     let result_dt = result_type.data_type();
                     let float_dt = result_dt.promote_to_float(result_dt);
                     Ok(TypedExpression::Power {
@@ -267,20 +266,18 @@ impl Expression {
                 })
             }
 
-            Expression::GreaterThanOrEqual { left, right } => {
-                validate_comparison(
-                    left,
-                    right,
-                    df_type,
-                    "greater than or equal",
-                    true,
-                    |l, r, et| TypedExpression::GreaterThanOrEqual {
-                        left: Arc::new(l),
-                        right: Arc::new(r),
-                        expression_type: et,
-                    },
-                )
-            }
+            Expression::GreaterThanOrEqual { left, right } => validate_comparison(
+                left,
+                right,
+                df_type,
+                "greater than or equal",
+                true,
+                |l, r, et| TypedExpression::GreaterThanOrEqual {
+                    left: Arc::new(l),
+                    right: Arc::new(r),
+                    expression_type: et,
+                },
+            ),
 
             Expression::LessThan { left, right } => {
                 validate_comparison(left, right, df_type, "less than", false, |l, r, et| {
@@ -292,20 +289,18 @@ impl Expression {
                 })
             }
 
-            Expression::LessThanOrEqual { left, right } => {
-                validate_comparison(
-                    left,
-                    right,
-                    df_type,
-                    "less than or equal",
-                    true,
-                    |l, r, et| TypedExpression::LessThanOrEqual {
-                        left: Arc::new(l),
-                        right: Arc::new(r),
-                        expression_type: et,
-                    },
-                )
-            }
+            Expression::LessThanOrEqual { left, right } => validate_comparison(
+                left,
+                right,
+                df_type,
+                "less than or equal",
+                true,
+                |l, r, et| TypedExpression::LessThanOrEqual {
+                    left: Arc::new(l),
+                    right: Arc::new(r),
+                    expression_type: et,
+                },
+            ),
 
             // Logical operators
             Expression::And { left, right } => {
