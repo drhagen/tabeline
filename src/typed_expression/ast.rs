@@ -357,15 +357,65 @@ impl TypedExpression {
                 }
             }
             TypedExpression::GreaterThanOrEqual { left, right, .. } => {
-                left.to_polars().gt_eq(right.to_polars())
+                // WORKAROUND: gt_eq on DataType::Null columns returns null instead of
+                // respecting == semantics. Implement manually:
+                // nothing >= nothing = true; nothing >= x = x.is_null()
+                let left_is_nothing = left.is_nothing_origin();
+                let right_is_nothing = right.is_nothing_origin();
+                if left_is_nothing && right_is_nothing {
+                    lit(true)
+                } else if left_is_nothing {
+                    right.to_polars().is_null()
+                } else if right_is_nothing {
+                    left.to_polars().is_null()
+                } else {
+                    let left_polars = left.to_polars();
+                    let right_polars = right.to_polars();
+                    left_polars
+                        .clone()
+                        .gt(right_polars.clone())
+                        .or(left_polars.eq_missing(right_polars))
+                }
             }
             TypedExpression::LessThanOrEqual { left, right, .. } => {
-                left.to_polars().lt_eq(right.to_polars())
+                // WORKAROUND: lt_eq on DataType::Null columns returns null instead of
+                // respecting == semantics. Implement manually:
+                // nothing <= nothing = true; nothing <= x = x.is_null()
+                let left_is_nothing = left.is_nothing_origin();
+                let right_is_nothing = right.is_nothing_origin();
+                if left_is_nothing && right_is_nothing {
+                    lit(true)
+                } else if left_is_nothing {
+                    right.to_polars().is_null()
+                } else if right_is_nothing {
+                    left.to_polars().is_null()
+                } else {
+                    let left_polars = left.to_polars();
+                    let right_polars = right.to_polars();
+                    left_polars
+                        .clone()
+                        .lt(right_polars.clone())
+                        .or(left_polars.eq_missing(right_polars))
+                }
             }
             TypedExpression::GreaterThan { left, right, .. } => {
-                left.to_polars().gt(right.to_polars())
+                // WORKAROUND: gt on DataType::Null columns returns a Boolean null column
+                // instead of preserving DataType::Null; propagate Nothing
+                if left.is_nothing_origin() || right.is_nothing_origin() {
+                    lit(NULL)
+                } else {
+                    left.to_polars().gt(right.to_polars())
+                }
             }
-            TypedExpression::LessThan { left, right, .. } => left.to_polars().lt(right.to_polars()),
+            TypedExpression::LessThan { left, right, .. } => {
+                // WORKAROUND: lt on DataType::Null columns returns a Boolean null column
+                // instead of preserving DataType::Null; propagate Nothing
+                if left.is_nothing_origin() || right.is_nothing_origin() {
+                    lit(NULL)
+                } else {
+                    left.to_polars().lt(right.to_polars())
+                }
+            }
             TypedExpression::Not { content, .. } => {
                 if content.expression_type().data_type() == crate::data_type::DataType::Nothing {
                     // WORKAROUND: Polars not() crashes on DataType::Null columns
