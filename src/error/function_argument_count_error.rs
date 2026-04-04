@@ -1,6 +1,6 @@
 use pyo3::{exceptions::PyTypeError, prelude::*};
 
-#[pyclass(frozen, eq, extends=PyTypeError)]
+#[pyclass(frozen, eq, extends=PyTypeError, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FunctionArgumentCountError {
     #[pyo3(get)]

@@ -2,7 +2,7 @@ use pyo3::{exceptions::PyIndexError, prelude::*};
 
 // WORKAROUND: Polars does not return a useful payload when indexing fails, so
 // this only contains the not-particularly-helpful message from Polars.
-#[pyclass(frozen, eq, extends=PyIndexError)]
+#[pyclass(frozen, eq, extends=PyIndexError, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GroupIndexOutOfBoundsError {
     #[pyo3(get)]

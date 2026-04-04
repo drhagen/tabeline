@@ -24,7 +24,7 @@ use std::collections::{HashMap, HashSet};
 
 pub const DUMMY_NAME: &str = "_dummy";
 
-#[pyclass(frozen, eq, sequence)]
+#[pyclass(frozen, eq, sequence, from_py_object)]
 #[derive(Debug, Clone)]
 pub struct PyDataFrame {
     pub(crate) polars_data_frame: PolarsDataFrame,

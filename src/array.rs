@@ -13,7 +13,7 @@ use crate::{
     DataType, IndexOutOfBoundsError,
 };
 
-#[pyclass(frozen, eq, sequence)]
+#[pyclass(frozen, eq, sequence, from_py_object)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct PyArray {
     pub(crate) polars_column: Column,

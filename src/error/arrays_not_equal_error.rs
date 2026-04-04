@@ -2,7 +2,7 @@ use pyo3::{exceptions::PyException, prelude::*};
 
 use crate::testing::ArrayDifference;
 
-#[pyclass(frozen, eq, extends=PyException)]
+#[pyclass(frozen, eq, extends=PyException, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArraysNotEqualError {
     #[pyo3(get)]

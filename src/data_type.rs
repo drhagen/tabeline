@@ -4,7 +4,7 @@ pub use polars::datatypes::DataType as PolarsDataType;
 
 use pyo3::pyclass;
 
-#[pyclass(frozen, eq, hash)]
+#[pyclass(frozen, eq, hash, from_py_object)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DataType {
     Boolean,

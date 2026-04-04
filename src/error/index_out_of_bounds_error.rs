@@ -1,6 +1,6 @@
 use pyo3::{exceptions::PyIndexError, prelude::*};
 
-#[pyclass(frozen, eq, extends=PyIndexError)]
+#[pyclass(frozen, eq, extends=PyIndexError, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IndexOutOfBoundsError {
     #[pyo3(get)]

@@ -1,7 +1,7 @@
 use crate::DataType;
 use pyo3::{exceptions::PyTypeError, prelude::*};
 
-#[pyclass(frozen, eq, extends=PyTypeError)]
+#[pyclass(frozen, eq, extends=PyTypeError, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FilterTypeError {
     #[pyo3(get)]

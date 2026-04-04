@@ -8,7 +8,7 @@ use crate::{
     DataType, PyArray, PyDataFrame,
 };
 
-#[pyclass(frozen, eq, str)]
+#[pyclass(frozen, eq, str, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArrayDifference {
     Count {
@@ -65,7 +65,7 @@ impl ArrayDifference {
     }
 }
 
-#[pyclass(frozen, eq, str)]
+#[pyclass(frozen, eq, str, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DataFrameDifference {
     Height {
