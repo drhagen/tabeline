@@ -290,10 +290,12 @@ impl TypedExpression {
                     binary_expr(left.to_polars(), Operator::TrueDivide, right.to_polars())
                 }
             }
-            TypedExpression::FloorDivide { left, right, .. } => {
-                if left.expression_type().data_type() == crate::data_type::DataType::Nothing
-                    || right.expression_type().data_type() == crate::data_type::DataType::Nothing
-                {
+            TypedExpression::FloorDivide {
+                left,
+                right,
+                expression_type,
+            } => {
+                if expression_type.data_type() == crate::data_type::DataType::Nothing {
                     // WORKAROUND: Polars floor_div crashes on DataType::Null columns
                     lit(NULL)
                 } else {

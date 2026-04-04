@@ -75,6 +75,18 @@ from tabeline.testing import assert_data_frames_equal
         "interp(a, n, a)",
         "interp(a, a, n)",
         "interp(n, n, n)",
+        "n > a",
+        "n < a",
+        "n >= a",
+        "n <= a",
+        "a > n",
+        "a < n",
+        "a >= n",
+        "a <= n",
+        "n > n",
+        "n < n",
+        "n >= n",
+        "n <= n",
     ],
 )
 @pytest.mark.parametrize("nulls", [[], [None, None]])

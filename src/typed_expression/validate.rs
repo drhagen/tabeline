@@ -405,8 +405,9 @@ where
     let typed_left = typed_left.cast_if_needed(harmonized_dt);
     let typed_right = typed_right.cast_if_needed(harmonized_dt);
 
-    // Strict ordering of Nothing is undefined; propagate Nothing. Non-strict operators
-    // treat Nothing as equal to itself and to null (same semantics as ==).
+    // If nulls are considered equal, then Nothing inputs should produce true
+    // (not Nothing) results. Otherwise, if either input is Nothing, result is
+    // Nothing.
     let result_type = if !nulls_equal
         && (left_type.data_type() == DataType::Nothing
             || right_type.data_type() == DataType::Nothing)

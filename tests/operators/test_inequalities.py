@@ -41,29 +41,6 @@ def test_null_inequality_nothing(dtype, op):
     assert_data_frames_equal(actual, expected)
 
 
-@pytest.mark.parametrize("op", [">", "<", ">=", "<="])
-@pytest.mark.parametrize("nulls", [[], [None, None]])
-def test_nothing_inequality_numeric(op, nulls):
-    df = DataFrame(n=nulls, a=list(range(len(nulls))))
-    expected = DataFrame(c=nulls)
-
-    actual = df.transmute(c=f"n {op} a")
-    assert_data_frames_equal(actual, expected)
-
-    actual = df.transmute(c=f"a {op} n")
-    assert_data_frames_equal(actual, expected)
-
-
-@pytest.mark.parametrize("op", [">", "<", ">=", "<="])
-@pytest.mark.parametrize("nulls", [[], [None, None]])
-def test_nothing_inequality_nothing(op, nulls):
-    df = DataFrame(a=nulls, b=nulls)
-    expected = DataFrame(c=nulls)
-
-    actual = df.transmute(c=f"a {op} b")
-    assert_data_frames_equal(actual, expected)
-
-
 @pytest.mark.parametrize(
     ("expression", "operation"),
     [
