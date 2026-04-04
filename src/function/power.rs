@@ -6,8 +6,8 @@ use polars::prelude::*;
 
 use crate::expression::Expression;
 use crate::typed_expression::{
-    promote_expression_types, require_numeric, DataFrameType, ExpressionType, LiteralType,
-    Function, TypedExpression, ValidationError,
+    promote_expression_types, require_numeric, DataFrameType, ExpressionType, Function,
+    LiteralType, TypedExpression, ValidationError,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -45,7 +45,12 @@ impl Sqrt {
 
 impl Function for Sqrt {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().sqrt()
+        if self.argument.expression_type().data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars returns Unknown(Float) for sqrt on empty DataType::Null columns
+            lit(NULL)
+        } else {
+            self.argument.to_polars().sqrt()
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
@@ -111,7 +116,12 @@ impl Exp {
 
 impl Function for Exp {
     fn to_polars(&self) -> Expr {
-        self.argument.to_polars().exp()
+        if self.argument.expression_type().data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars returns Float64 for exp() on DataType::Null (Nothing) columns
+            lit(NULL)
+        } else {
+            self.argument.to_polars().exp()
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {
@@ -171,8 +181,7 @@ impl Pow {
         require_numeric(base_type, "pow", "base")?;
         require_numeric(exponent_type, "pow", "exponent")?;
 
-        let promoted_type =
-            promote_expression_types(base_type, exponent_type, "pow")?;
+        let promoted_type = promote_expression_types(base_type, exponent_type, "pow")?;
 
         // Check wholeness on the original exponent type, before any casting
         let exponent_is_whole = match exponent_type {
@@ -207,7 +216,12 @@ impl Pow {
 
 impl Function for Pow {
     fn to_polars(&self) -> Expr {
-        self.base.to_polars().pow(self.exponent.to_polars())
+        if self.expression_type.data_type() == crate::data_type::DataType::Nothing {
+            // WORKAROUND: Polars pow crashes on DataType::Null (Nothing) columns
+            lit(NULL)
+        } else {
+            self.base.to_polars().pow(self.exponent.to_polars())
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

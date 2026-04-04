@@ -1,6 +1,7 @@
 import pytest
 
-from tabeline import DataFrame
+from tabeline import Array, DataFrame, DataType
+from tabeline.testing import assert_data_frames_equal
 
 
 @pytest.mark.parametrize(
@@ -124,3 +125,31 @@ def test_cast_string_literal(expression, expected):
     actual = df.mutate(result=expression)
     expected = DataFrame(result=[expected])
     assert actual == expected
+
+
+@pytest.mark.parametrize("nulls", [[], [None, None]])
+def test_cast_boolean_on_null_column(nulls):
+    actual = DataFrame(a=nulls).transmute(x="to_boolean(a)")
+    expected = DataFrame(x=Array[DataType.Boolean](*nulls))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize("nulls", [[], [None, None]])
+def test_cast_integer_on_null_column(nulls):
+    actual = DataFrame(a=nulls).transmute(x="to_integer(a)")
+    expected = DataFrame(x=Array[DataType.Integer64](*nulls))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize("nulls", [[], [None, None]])
+def test_cast_float_on_null_column(nulls):
+    actual = DataFrame(a=nulls).transmute(x="to_float(a)")
+    expected = DataFrame(x=Array[DataType.Float64](*nulls))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize("nulls", [[], [None, None]])
+def test_cast_string_on_null_column(nulls):
+    actual = DataFrame(a=nulls).transmute(x="to_string(a)")
+    expected = DataFrame(x=Array[DataType.String](*nulls))
+    assert_data_frames_equal(actual, expected)

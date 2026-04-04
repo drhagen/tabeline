@@ -130,8 +130,16 @@ impl Interp {
         require_numeric(ts_type, "interp", "ts")?;
         require_numeric(ys_type, "interp", "ys")?;
 
-        let result_type = t_type.with_data_type(crate::data_type::DataType::Float64);
         let float64 = crate::data_type::DataType::Float64;
+        let nothing = crate::data_type::DataType::Nothing;
+        let result_type = if t_type.data_type() == nothing
+            || ts_type.data_type() == nothing
+            || ys_type.data_type() == nothing
+        {
+            t_type.with_data_type(nothing)
+        } else {
+            t_type.with_data_type(float64)
+        };
 
         Ok(Arc::new(Interp {
             t: Arc::new(t.cast_if_needed(float64)),
@@ -144,16 +152,16 @@ impl Interp {
 
 impl Function for Interp {
     fn to_polars(&self) -> Expr {
-        apply_multiple(
-            interpolate,
-            &[
-                self.t.to_polars(),
-                self.ts.to_polars(),
-                self.ys.to_polars(),
-            ],
-            |_, fields| Ok(fields[0].clone()),
-            true,
-        )
+        if self.expression_type.data_type() == crate::data_type::DataType::Nothing {
+            lit(NULL)
+        } else {
+            apply_multiple(
+                interpolate,
+                &[self.t.to_polars(), self.ts.to_polars(), self.ys.to_polars()],
+                |_, fields| Ok(fields[0].clone()),
+                true,
+            )
+        }
     }
 
     fn substitute(&self, substitutions: &HashMap<&str, TypedExpression>) -> Arc<dyn Function> {

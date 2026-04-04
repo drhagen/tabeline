@@ -47,7 +47,14 @@ macro_rules! impl_trig_function {
 
         impl Function for $name {
             fn to_polars(&self) -> Expr {
-                self.argument.to_polars().$polars_method()
+                if self.argument.expression_type().data_type()
+                    == crate::data_type::DataType::Nothing
+                {
+                    // WORKAROUND: Polars crashes on DataType::Null columns for trigonometry functions
+                    lit(NULL)
+                } else {
+                    self.argument.to_polars().$polars_method()
+                }
             }
 
             fn substitute(

@@ -3,6 +3,7 @@ import math
 import pytest
 
 from tabeline import Array, DataFrame, DataType
+from tabeline.testing import assert_data_frames_equal
 
 from .._types import numeric_types
 
@@ -88,3 +89,17 @@ def test_is_finite_literal(expression, expected):
     actual = df.mutate(result=expression)
     expected = DataFrame(result=[expected])
     assert actual == expected
+
+
+def test_is_null_on_nonempty_null_column():
+    df = DataFrame(x=[None, None])
+    actual = df.mutate(x="is_null(x)")
+    expected = DataFrame(x=[True, True])
+    assert_data_frames_equal(actual, expected)
+
+
+def test_is_null_on_empty_null_column():
+    df = DataFrame(x=[])
+    actual = df.mutate(x="is_null(x)")
+    expected = DataFrame(x=Array[DataType.Boolean]())
+    assert_data_frames_equal(actual, expected)

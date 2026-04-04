@@ -237,7 +237,7 @@ impl Expression {
 
             // Comparison operators
             Expression::Equal { left, right } => {
-                validate_comparison(left, right, df_type, "equality", |l, r, et| {
+                validate_comparison(left, right, df_type, "equality", true, |l, r, et| {
                     TypedExpression::Equal {
                         left: Arc::new(l),
                         right: Arc::new(r),
@@ -247,7 +247,7 @@ impl Expression {
             }
 
             Expression::NotEqual { left, right } => {
-                validate_comparison(left, right, df_type, "inequality", |l, r, et| {
+                validate_comparison(left, right, df_type, "inequality", true, |l, r, et| {
                     TypedExpression::NotEqual {
                         left: Arc::new(l),
                         right: Arc::new(r),
@@ -257,7 +257,7 @@ impl Expression {
             }
 
             Expression::GreaterThan { left, right } => {
-                validate_comparison(left, right, df_type, "greater than", |l, r, et| {
+                validate_comparison(left, right, df_type, "greater than", false, |l, r, et| {
                     TypedExpression::GreaterThan {
                         left: Arc::new(l),
                         right: Arc::new(r),
@@ -266,18 +266,21 @@ impl Expression {
                 })
             }
 
-            Expression::GreaterThanOrEqual { left, right } => {
-                validate_comparison(left, right, df_type, "greater than or equal", |l, r, et| {
-                    TypedExpression::GreaterThanOrEqual {
-                        left: Arc::new(l),
-                        right: Arc::new(r),
-                        expression_type: et,
-                    }
-                })
-            }
+            Expression::GreaterThanOrEqual { left, right } => validate_comparison(
+                left,
+                right,
+                df_type,
+                "greater than or equal",
+                false,
+                |l, r, et| TypedExpression::GreaterThanOrEqual {
+                    left: Arc::new(l),
+                    right: Arc::new(r),
+                    expression_type: et,
+                },
+            ),
 
             Expression::LessThan { left, right } => {
-                validate_comparison(left, right, df_type, "less than", |l, r, et| {
+                validate_comparison(left, right, df_type, "less than", false, |l, r, et| {
                     TypedExpression::LessThan {
                         left: Arc::new(l),
                         right: Arc::new(r),
@@ -286,15 +289,18 @@ impl Expression {
                 })
             }
 
-            Expression::LessThanOrEqual { left, right } => {
-                validate_comparison(left, right, df_type, "less than or equal", |l, r, et| {
-                    TypedExpression::LessThanOrEqual {
-                        left: Arc::new(l),
-                        right: Arc::new(r),
-                        expression_type: et,
-                    }
-                })
-            }
+            Expression::LessThanOrEqual { left, right } => validate_comparison(
+                left,
+                right,
+                df_type,
+                "less than or equal",
+                false,
+                |l, r, et| TypedExpression::LessThanOrEqual {
+                    left: Arc::new(l),
+                    right: Arc::new(r),
+                    expression_type: et,
+                },
+            ),
 
             // Logical operators
             Expression::And { left, right } => {
@@ -372,6 +378,7 @@ fn validate_comparison<F>(
     right: &Expression,
     df_type: &DataFrameType,
     operation: &str,
+    nulls_equal: bool,
     constructor: F,
 ) -> Result<TypedExpression, ValidationError>
 where
@@ -398,8 +405,17 @@ where
     let typed_left = typed_left.cast_if_needed(harmonized_dt);
     let typed_right = typed_right.cast_if_needed(harmonized_dt);
 
-    // Result is Boolean with the harmonized shape
-    let result_type = harmonized.with_data_type(DataType::Boolean);
+    // If nulls are considered equal, then Nothing inputs should produce true
+    // (not Nothing) results. Otherwise, if either input is Nothing, result is
+    // Nothing.
+    let result_type = if !nulls_equal
+        && (left_type.data_type() == DataType::Nothing
+            || right_type.data_type() == DataType::Nothing)
+    {
+        harmonized.with_data_type(DataType::Nothing)
+    } else {
+        harmonized.with_data_type(DataType::Boolean)
+    };
 
     Ok(constructor(typed_left, typed_right, result_type))
 }
@@ -437,9 +453,17 @@ where
         });
     }
 
-    // Harmonize to get correct shape, then override data type to Boolean
+    // Harmonize to get correct shape, then override data type to Boolean.
+    // Exception: if both operands are Nothing, result is Nothing (three-value logic: Nothing
+    // input → Nothing output, same as any/all).
     let harmonized = harmonize_expression_types(left_type, right_type, operation)?;
-    let result_type = harmonized.with_data_type(DataType::Boolean);
+    let result_type = if left_type.data_type() == DataType::Nothing
+        && right_type.data_type() == DataType::Nothing
+    {
+        harmonized
+    } else {
+        harmonized.with_data_type(DataType::Boolean)
+    };
 
     Ok(constructor(typed_left, typed_right, result_type))
 }
