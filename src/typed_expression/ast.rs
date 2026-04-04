@@ -128,15 +128,16 @@ impl TypedExpression {
         }
     }
 
+    /// Cast this expression to the target type if needed.
+    ///
+    /// Rules:
+    /// 1. Do not cast if the target is Nothing because there is nothing to cast
+    /// 2. Otherwise, if this is a literal, cast it because literals do not have
+    ///    a well defined type
+    /// 3. Otherwise, if the type already matches, do not bother casting
     pub fn cast_if_needed(self, target: DataType) -> TypedExpression {
         let current = self.expression_type();
-        // Casting to Nothing is a no-op: the parent node's Nothing expression_type
-        // drives the lit(NULL) workaround in to_polars, so the operand keeps its type.
-        if target == DataType::Nothing {
-            self
-        // Always cast literals because their Polars type may not match the target.
-        // For concrete types, only cast if the type differs.
-        } else if !current.is_literal() && current.data_type() == target {
+        if target == DataType::Nothing || !current.is_literal() && current.data_type() == target {
             self
         } else {
             TypedExpression::Cast {
@@ -357,45 +358,21 @@ impl TypedExpression {
                 }
             }
             TypedExpression::GreaterThanOrEqual { left, right, .. } => {
-                // WORKAROUND: gt_eq on DataType::Null columns returns null instead of
-                // respecting == semantics. Implement manually:
-                // nothing >= nothing = true; nothing >= x = x.is_null()
-                let left_is_nothing = left.is_nothing_origin();
-                let right_is_nothing = right.is_nothing_origin();
-                if left_is_nothing && right_is_nothing {
-                    lit(true)
-                } else if left_is_nothing {
-                    right.to_polars().is_null()
-                } else if right_is_nothing {
-                    left.to_polars().is_null()
+                // WORKAROUND: gt_eq on DataType::Null columns returns a Boolean null column
+                // instead of preserving DataType::Null; propagate Nothing
+                if left.is_nothing_origin() || right.is_nothing_origin() {
+                    lit(NULL)
                 } else {
-                    let left_polars = left.to_polars();
-                    let right_polars = right.to_polars();
-                    left_polars
-                        .clone()
-                        .gt(right_polars.clone())
-                        .or(left_polars.eq_missing(right_polars))
+                    left.to_polars().gt_eq(right.to_polars())
                 }
             }
             TypedExpression::LessThanOrEqual { left, right, .. } => {
-                // WORKAROUND: lt_eq on DataType::Null columns returns null instead of
-                // respecting == semantics. Implement manually:
-                // nothing <= nothing = true; nothing <= x = x.is_null()
-                let left_is_nothing = left.is_nothing_origin();
-                let right_is_nothing = right.is_nothing_origin();
-                if left_is_nothing && right_is_nothing {
-                    lit(true)
-                } else if left_is_nothing {
-                    right.to_polars().is_null()
-                } else if right_is_nothing {
-                    left.to_polars().is_null()
+                // WORKAROUND: lt_eq on DataType::Null columns returns a Boolean null column
+                // instead of preserving DataType::Null; propagate Nothing
+                if left.is_nothing_origin() || right.is_nothing_origin() {
+                    lit(NULL)
                 } else {
-                    let left_polars = left.to_polars();
-                    let right_polars = right.to_polars();
-                    left_polars
-                        .clone()
-                        .lt(right_polars.clone())
-                        .or(left_polars.eq_missing(right_polars))
+                    left.to_polars().lt_eq(right.to_polars())
                 }
             }
             TypedExpression::GreaterThan { left, right, .. } => {

@@ -14,8 +14,8 @@ from .._types import numeric_types
     [
         ("<", [True, False, None, None, None]),
         (">", [False, False, None, None, None]),
-        ("<=", [True, True, None, None, True]),
-        (">=", [False, True, None, None, True]),
+        ("<=", [True, True, None, None, None]),
+        (">=", [False, True, None, None, None]),
     ],
 )
 def test_numeric_inequalities(dtype_left, dtype_right, op, results):
@@ -29,21 +29,8 @@ def test_numeric_inequalities(dtype_left, dtype_right, op, results):
 
 
 @pytest.mark.parametrize("dtype", numeric_types)
-@pytest.mark.parametrize("op", [">=", "<="])
-def test_null_ge_le_nothing(dtype, op):
-    df = DataFrame(a=Array[dtype](None, None), b=[None, None])
-    expected = DataFrame(c=[True, True])
-
-    actual = df.transmute(c=f"a {op} b")
-    assert_data_frames_equal(actual, expected)
-
-    actual = df.transmute(c=f"b {op} a")
-    assert_data_frames_equal(actual, expected)
-
-
-@pytest.mark.parametrize("dtype", numeric_types)
-@pytest.mark.parametrize("op", [">", "<"])
-def test_null_gt_lt_nothing(dtype, op):
+@pytest.mark.parametrize("op", [">", "<", ">=", "<="])
+def test_null_inequality_nothing(dtype, op):
     df = DataFrame(a=Array[dtype](None, None), b=[None, None])
     expected = DataFrame(c=[None, None])
 
@@ -54,22 +41,9 @@ def test_null_gt_lt_nothing(dtype, op):
     assert_data_frames_equal(actual, expected)
 
 
-@pytest.mark.parametrize("op", [">=", "<="])
+@pytest.mark.parametrize("op", [">", "<", ">=", "<="])
 @pytest.mark.parametrize("nulls", [[], [None, None]])
-def test_nothing_ge_le_numeric(op, nulls):
-    df = DataFrame(n=nulls, a=list(range(len(nulls))))
-    expected = df.transmute(c="False")
-
-    actual = df.transmute(c=f"n {op} a")
-    assert_data_frames_equal(actual, expected)
-
-    actual = df.transmute(c=f"a {op} n")
-    assert_data_frames_equal(actual, expected)
-
-
-@pytest.mark.parametrize("op", [">", "<"])
-@pytest.mark.parametrize("nulls", [[], [None, None]])
-def test_nothing_gt_lt_numeric(op, nulls):
+def test_nothing_inequality_numeric(op, nulls):
     df = DataFrame(n=nulls, a=list(range(len(nulls))))
     expected = DataFrame(c=nulls)
 
@@ -80,19 +54,9 @@ def test_nothing_gt_lt_numeric(op, nulls):
     assert_data_frames_equal(actual, expected)
 
 
-@pytest.mark.parametrize("op", [">=", "<="])
+@pytest.mark.parametrize("op", [">", "<", ">=", "<="])
 @pytest.mark.parametrize("nulls", [[], [None, None]])
-def test_nothing_ge_le_nothing(op, nulls):
-    df = DataFrame(a=nulls, b=nulls)
-    expected = df.transmute(c="True")
-
-    actual = df.transmute(c=f"a {op} b")
-    assert_data_frames_equal(actual, expected)
-
-
-@pytest.mark.parametrize("op", [">", "<"])
-@pytest.mark.parametrize("nulls", [[], [None, None]])
-def test_nothing_gt_lt_nothing(op, nulls):
+def test_nothing_inequality_nothing(op, nulls):
     df = DataFrame(a=nulls, b=nulls)
     expected = DataFrame(c=nulls)
 

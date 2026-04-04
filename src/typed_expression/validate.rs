@@ -271,7 +271,7 @@ impl Expression {
                 right,
                 df_type,
                 "greater than or equal",
-                true,
+                false,
                 |l, r, et| TypedExpression::GreaterThanOrEqual {
                     left: Arc::new(l),
                     right: Arc::new(r),
@@ -294,7 +294,7 @@ impl Expression {
                 right,
                 df_type,
                 "less than or equal",
-                true,
+                false,
                 |l, r, et| TypedExpression::LessThanOrEqual {
                     left: Arc::new(l),
                     right: Arc::new(r),
