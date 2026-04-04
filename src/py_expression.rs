@@ -5,7 +5,7 @@ use pyo3::{prelude::*, IntoPyObjectExt};
 use crate::expression::Expression;
 use crate::typed_expression::{DataFrameType, TypedExpression};
 
-#[pyclass(frozen)]
+#[pyclass(frozen, from_py_object)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct PyExpression {
     pub expression: Expression,

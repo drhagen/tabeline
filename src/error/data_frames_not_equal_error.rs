@@ -2,7 +2,7 @@ use crate::testing::DataFrameDifference;
 
 use pyo3::{exceptions::PyException, prelude::*};
 
-#[pyclass(frozen, eq, extends=PyException)]
+#[pyclass(frozen, eq, extends=PyException, from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DataFramesNotEqualError {
     #[pyo3(get)]

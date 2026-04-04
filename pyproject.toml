@@ -19,7 +19,7 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11", 
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -39,28 +39,29 @@ Repository = "https://github.com/drhagen/tabeline"
 
 [project.optional-dependencies]
 pandas = [
-    "pandas == 2.*",
-    "numpy",
-    "pyarrow == 22.*",
+    # No Pandas 3 for Python 3.10; drop Pandas 2 along with Python 3.10
+    "pandas >=2, <4",
+    "numpy == 2.*",
+    "pyarrow == 23.*",
 ]
 
 polars = [
     "polars == 1.*",
-    "pyarrow == 22.*",
+    "pyarrow == 23.*",
 ]
 
 [dependency-groups]
 nox = [
-    "nox-uv == 0.6.*",
+    "nox-uv == 0.7.*",
 ]
 
 test = [
-    "pytest == 8.*",
+    "pytest == 9.*",
     "coverage",
 ]
 
 lint = [
-    "ruff == 0.8.*",
+    "ruff == 0.15.*",
 ]
 
 docs = [

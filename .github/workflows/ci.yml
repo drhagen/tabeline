@@ -7,7 +7,7 @@ on:
       - master
 
 env:
-  uv-version: "0.9.11"
+  uv-version: "0.11.3"
 
 jobs:
   test:
