@@ -123,3 +123,51 @@ def test_add_with_decimal_literal(original_dtype, expected_dtype, expression):
     actual = df.transmute(result=expression)
     expected = DataFrame(result=Array[expected_dtype](4.5, 6.5, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
+
+
+@pytest.mark.parametrize(
+    ("left", "right", "answer"),
+    [
+        ("a", "b", "ab"),
+        ("", "x", "x"),
+        ("x", "", "x"),
+        ("x", None, None),
+        (None, "x", None),
+        (None, None, None),
+    ],
+)
+def test_concatenate_strings(left, right, answer):
+    df = DataFrame(a=Array[DataType.String](left), b=Array[DataType.String](right))
+    actual = df.transmute(c="a + b")
+    expected = DataFrame(c=Array[DataType.String](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("value", "answer"),
+    [
+        ("hello", "hello world"),
+        ("", " world"),
+        (None, None),
+    ],
+)
+def test_concatenate_column_with_literal(value, answer):
+    df = DataFrame(a=Array[DataType.String](value))
+    actual = df.transmute(c="a + ' world'")
+    expected = DataFrame(c=Array[DataType.String](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("value", "answer"),
+    [
+        ("world", "hello world"),
+        ("", "hello "),
+        (None, None),
+    ],
+)
+def test_concatenate_literal_with_column(value, answer):
+    df = DataFrame(a=Array[DataType.String](value))
+    actual = df.transmute(c="'hello ' + a")
+    expected = DataFrame(c=Array[DataType.String](answer))
+    assert_data_frames_equal(actual, expected)
