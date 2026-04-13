@@ -115,10 +115,51 @@ impl Expression {
 
             // Arithmetic operators
             Expression::Add { left, right } => {
-                validate_add(left, right, df_type, |l, r, et| TypedExpression::Add {
-                    left: Arc::new(l),
-                    right: Arc::new(r),
-                    expression_type: et,
+                let typed_left = left.validate(df_type)?;
+                let typed_right = right.validate(df_type)?;
+                let left_type = typed_left.expression_type();
+                let right_type = typed_right.expression_type();
+                let left_dt = left_type.data_type();
+                let right_dt = right_type.data_type();
+
+                let result_type = match (left_dt, right_dt) {
+                    // Numeric + Numeric -> Numeric
+                    // Nothing + Numeric or Numeric + Nothing -> Nothing
+                    // This also handles Nothing + Nothing -> Nothing
+                    (l, r) if l.is_numeric() && r.is_numeric() => {
+                        promote_expression_types(left_type, right_type, "addition")?
+                    }
+                    // String + String -> String
+                    // Nothing + String or String + Nothing -> Nothing
+                    (DataType::String, DataType::String)
+                    | (DataType::Nothing, DataType::String)
+                    | (DataType::String, DataType::Nothing) => {
+                        let result_dt = if left_dt == right_dt {
+                            DataType::String
+                        } else {
+                            DataType::Nothing
+                        };
+                        match (left_type, right_type) {
+                            (ExpressionType::Array(_), _) | (_, ExpressionType::Array(_)) => {
+                                ExpressionType::Array(result_dt)
+                            }
+                            _ => ExpressionType::Scalar(result_dt),
+                        }
+                    }
+                    (l, r) => {
+                        return Err(ValidationError::IncompatibleTypes {
+                            operation: "addition".to_string(),
+                            left_type: l,
+                            right_type: r,
+                        })
+                    }
+                };
+
+                let result_dt = result_type.data_type();
+                Ok(TypedExpression::Add {
+                    left: Arc::new(typed_left.cast_if_needed(result_dt)),
+                    right: Arc::new(typed_right.cast_if_needed(result_dt)),
+                    expression_type: result_type,
                 })
             }
 
@@ -369,53 +410,6 @@ where
     let typed_right = typed_right.cast_if_needed(result_dt);
 
     Ok(constructor(typed_left, typed_right, result_type))
-}
-
-fn validate_add<F>(
-    left: &Expression,
-    right: &Expression,
-    df_type: &DataFrameType,
-    constructor: F,
-) -> Result<TypedExpression, ValidationError>
-where
-    F: FnOnce(TypedExpression, TypedExpression, ExpressionType) -> TypedExpression,
-{
-    let typed_left = left.validate(df_type)?;
-    let typed_right = right.validate(df_type)?;
-    let left_type = typed_left.expression_type();
-    let right_type = typed_right.expression_type();
-    let left_dt = left_type.data_type();
-    let right_dt = right_type.data_type();
-
-    // Addition supports numeric types and strings (not Boolean, etc.)
-    let left_addable =
-        left_dt == DataType::Nothing || left_dt.is_numeric() || left_dt == DataType::String;
-    let right_addable =
-        right_dt == DataType::Nothing || right_dt.is_numeric() || right_dt == DataType::String;
-
-    if !left_addable {
-        return Err(ValidationError::NumericTypeNotSatisfied {
-            operation: "addition".to_string(),
-            actual: left_dt,
-        });
-    }
-    if !right_addable {
-        return Err(ValidationError::NumericTypeNotSatisfied {
-            operation: "addition".to_string(),
-            actual: right_dt,
-        });
-    }
-
-    // harmonize_expression_types handles: Nothing propagation, numeric promotion,
-    // and same-type broadcasting (covers String + String)
-    let result_type = harmonize_expression_types(left_type, right_type, "addition")?;
-    let result_dt = result_type.data_type();
-
-    Ok(constructor(
-        typed_left.cast_if_needed(result_dt),
-        typed_right.cast_if_needed(result_dt),
-        result_type,
-    ))
 }
 
 fn validate_comparison<F>(

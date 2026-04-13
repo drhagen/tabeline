@@ -3,6 +3,7 @@ import math
 import pytest
 
 from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import IncompatibleTypesError
 from tabeline.testing import assert_data_frames_equal
 
 from .._types import (
@@ -171,3 +172,19 @@ def test_concatenate_literal_with_column(value, answer):
     actual = df.transmute(c="'hello ' + a")
     expected = DataFrame(c=Array[DataType.String](answer))
     assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("values", "right_type"),
+    [
+        ([True, False, True], DataType.Boolean),
+        (["a", "b", "c"], DataType.String),
+    ],
+)
+def test_addition_rejects_incompatible_operand(values, right_type):
+    df = DataFrame(x=[1, 2, 3], y=values)
+
+    with pytest.raises(IncompatibleTypesError) as exc_info:
+        df.mutate(z="x + y")
+
+    assert exc_info.value == IncompatibleTypesError("addition", DataType.Integer64, right_type)
