@@ -3,6 +3,7 @@ import math
 import pytest
 
 from tabeline import Array, DataFrame, DataType
+from tabeline.exceptions import IncompatibleTypesError
 from tabeline.testing import assert_data_frames_equal
 
 from .._types import (
@@ -123,3 +124,100 @@ def test_add_with_decimal_literal(original_dtype, expected_dtype, expression):
     actual = df.transmute(result=expression)
     expected = DataFrame(result=Array[expected_dtype](4.5, 6.5, None))
     assert_data_frames_equal(actual, expected, absolute_tolerance=absolute_tolerance)
+
+
+@pytest.mark.parametrize(
+    ("left", "right", "answer"),
+    [
+        ("a", "b", "ab"),
+        ("", "x", "x"),
+        ("x", "", "x"),
+        ("x", None, None),
+        (None, "x", None),
+        (None, None, None),
+    ],
+)
+def test_concatenate_strings(left, right, answer):
+    df = DataFrame(a=Array[DataType.String](left), b=Array[DataType.String](right))
+    actual = df.transmute(c="a + b")
+    expected = DataFrame(c=Array[DataType.String](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("value", "answer"),
+    [
+        ("hello", "hello world"),
+        ("", " world"),
+        (None, None),
+    ],
+)
+def test_concatenate_column_with_literal(value, answer):
+    df = DataFrame(a=Array[DataType.String](value))
+    actual = df.transmute(c="a + ' world'")
+    expected = DataFrame(c=Array[DataType.String](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("value", "answer"),
+    [
+        ("world", "hello world"),
+        ("", "hello "),
+        (None, None),
+    ],
+)
+def test_concatenate_literal_with_column(value, answer):
+    df = DataFrame(a=Array[DataType.String](value))
+    actual = df.transmute(c="'hello ' + a")
+    expected = DataFrame(c=Array[DataType.String](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("string_value", "answer"),
+    [
+        ("x", None),
+        (None, None),
+    ],
+)
+def test_concatenate_string_with_nothing(string_value, answer):
+    df = DataFrame(a=Array[DataType.String](string_value), b=Array[DataType.Nothing](None))
+    actual = df.transmute(c="a + b")
+    expected = DataFrame(c=Array[DataType.Nothing](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("string_value", "answer"),
+    [
+        ("x", None),
+        (None, None),
+    ],
+)
+def test_concatenate_nothing_with_string(string_value, answer):
+    df = DataFrame(a=Array[DataType.Nothing](None), b=Array[DataType.String](string_value))
+    actual = df.transmute(c="a + b")
+    expected = DataFrame(c=Array[DataType.Nothing](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("left_values", "right_values", "left_type", "right_type"),
+    [
+        ([1, 2, 3], [True, False, True], DataType.Integer64, DataType.Boolean),
+        ([1, 2, 3], ["a", "b", "c"], DataType.Integer64, DataType.String),
+        (["a", "b", "c"], [1, 2, 3], DataType.String, DataType.Integer64),
+        (["a", "b", "c"], [True, False, True], DataType.String, DataType.Boolean),
+        ([True, False, True], [True, False, True], DataType.Boolean, DataType.Boolean),
+        ([True, False, True], [1, 2, 3], DataType.Boolean, DataType.Integer64),
+        ([True, False, True], ["a", "b", "c"], DataType.Boolean, DataType.String),
+    ],
+)
+def test_addition_rejects_incompatible_operand(left_values, right_values, left_type, right_type):
+    df = DataFrame(x=left_values, y=right_values)
+
+    with pytest.raises(IncompatibleTypesError) as exc_info:
+        df.mutate(z="x + y")
+
+    assert exc_info.value == IncompatibleTypesError("addition", left_type, right_type)

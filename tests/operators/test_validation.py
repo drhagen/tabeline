@@ -7,7 +7,7 @@ from tabeline.exceptions import IncomparableTypesError, NumericTypeNotSatisfiedE
 @pytest.mark.parametrize(
     ("expression", "operation"),
     [
-        ("x + y", "addition"),
+        # No `x + y` because `+` also does string concatenation
         ("x - y", "subtraction"),
         ("x * y", "multiplication"),
         ("x / y", "division"),

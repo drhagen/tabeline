@@ -115,12 +115,36 @@ impl Expression {
 
             // Arithmetic operators
             Expression::Add { left, right } => {
-                validate_binary_arithmetic(left, right, df_type, "addition", |l, r, et| {
-                    TypedExpression::Add {
-                        left: Arc::new(l),
-                        right: Arc::new(r),
-                        expression_type: et,
-                    }
+                let typed_left = left.validate(df_type)?;
+                let typed_right = right.validate(df_type)?;
+                let left_type = typed_left.expression_type();
+                let right_type = typed_right.expression_type();
+                let left_dt = left_type.data_type();
+                let right_dt = right_type.data_type();
+
+                let is_addition = left_dt.is_numeric() && right_dt.is_numeric();
+                let is_concatenation = matches!(
+                    (left_dt, right_dt),
+                    (
+                        DataType::String | DataType::Nothing,
+                        DataType::String | DataType::Nothing
+                    )
+                );
+
+                if !is_addition && !is_concatenation {
+                    return Err(ValidationError::IncompatibleTypes {
+                        operation: "addition".to_string(),
+                        left_type: left_dt,
+                        right_type: right_dt,
+                    });
+                }
+
+                let result_type = promote_expression_types(left_type, right_type, "addition")?;
+                let result_dt = result_type.data_type();
+                Ok(TypedExpression::Add {
+                    left: Arc::new(typed_left.cast_if_needed(result_dt)),
+                    right: Arc::new(typed_right.cast_if_needed(result_dt)),
+                    expression_type: result_type,
                 })
             }
 
