@@ -175,16 +175,49 @@ def test_concatenate_literal_with_column(value, answer):
 
 
 @pytest.mark.parametrize(
-    ("values", "right_type"),
+    ("string_value", "answer"),
     [
-        ([True, False, True], DataType.Boolean),
-        (["a", "b", "c"], DataType.String),
+        ("x", None),
+        (None, None),
     ],
 )
-def test_addition_rejects_incompatible_operand(values, right_type):
-    df = DataFrame(x=[1, 2, 3], y=values)
+def test_concatenate_string_with_nothing(string_value, answer):
+    df = DataFrame(a=Array[DataType.String](string_value), b=Array[DataType.Nothing](None))
+    actual = df.transmute(c="a + b")
+    expected = DataFrame(c=Array[DataType.Nothing](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("string_value", "answer"),
+    [
+        ("x", None),
+        (None, None),
+    ],
+)
+def test_concatenate_nothing_with_string(string_value, answer):
+    df = DataFrame(a=Array[DataType.Nothing](None), b=Array[DataType.String](string_value))
+    actual = df.transmute(c="a + b")
+    expected = DataFrame(c=Array[DataType.Nothing](answer))
+    assert_data_frames_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("left_values", "right_values", "left_type", "right_type"),
+    [
+        ([1, 2, 3], [True, False, True], DataType.Integer64, DataType.Boolean),
+        ([1, 2, 3], ["a", "b", "c"], DataType.Integer64, DataType.String),
+        (["a", "b", "c"], [1, 2, 3], DataType.String, DataType.Integer64),
+        (["a", "b", "c"], [True, False, True], DataType.String, DataType.Boolean),
+        ([True, False, True], [True, False, True], DataType.Boolean, DataType.Boolean),
+        ([True, False, True], [1, 2, 3], DataType.Boolean, DataType.Integer64),
+        ([True, False, True], ["a", "b", "c"], DataType.Boolean, DataType.String),
+    ],
+)
+def test_addition_rejects_incompatible_operand(left_values, right_values, left_type, right_type):
+    df = DataFrame(x=left_values, y=right_values)
 
     with pytest.raises(IncompatibleTypesError) as exc_info:
         df.mutate(z="x + y")
 
-    assert exc_info.value == IncompatibleTypesError("addition", DataType.Integer64, right_type)
+    assert exc_info.value == IncompatibleTypesError("addition", left_type, right_type)

@@ -134,10 +134,9 @@ impl Expression {
                     (DataType::String, DataType::String)
                     | (DataType::Nothing, DataType::String)
                     | (DataType::String, DataType::Nothing) => {
-                        let result_dt = if left_dt == right_dt {
-                            DataType::String
-                        } else {
-                            DataType::Nothing
+                        let result_dt = match (left_dt, right_dt) {
+                            (DataType::String, DataType::String) => DataType::String,
+                            _ => DataType::Nothing,
                         };
                         match (left_type, right_type) {
                             (ExpressionType::Array(_), _) | (_, ExpressionType::Array(_)) => {
