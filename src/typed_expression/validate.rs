@@ -122,38 +122,24 @@ impl Expression {
                 let left_dt = left_type.data_type();
                 let right_dt = right_type.data_type();
 
-                let result_type = match (left_dt, right_dt) {
-                    // Numeric + Numeric -> Numeric
-                    // Nothing + Numeric or Numeric + Nothing -> Nothing
-                    // This also handles Nothing + Nothing -> Nothing
-                    (l, r) if l.is_numeric() && r.is_numeric() => {
-                        promote_expression_types(left_type, right_type, "addition")?
-                    }
-                    // String + String -> String
-                    // Nothing + String or String + Nothing -> Nothing
-                    (DataType::String, DataType::String)
-                    | (DataType::Nothing, DataType::String)
-                    | (DataType::String, DataType::Nothing) => {
-                        let result_dt = match (left_dt, right_dt) {
-                            (DataType::String, DataType::String) => DataType::String,
-                            _ => DataType::Nothing,
-                        };
-                        match (left_type, right_type) {
-                            (ExpressionType::Array(_), _) | (_, ExpressionType::Array(_)) => {
-                                ExpressionType::Array(result_dt)
-                            }
-                            _ => ExpressionType::Scalar(result_dt),
-                        }
-                    }
-                    (l, r) => {
-                        return Err(ValidationError::IncompatibleTypes {
-                            operation: "addition".to_string(),
-                            left_type: l,
-                            right_type: r,
-                        })
-                    }
-                };
+                let is_addition = left_dt.is_numeric() && right_dt.is_numeric();
+                let is_concatenation = matches!(
+                    (left_dt, right_dt),
+                    (
+                        DataType::String | DataType::Nothing,
+                        DataType::String | DataType::Nothing
+                    )
+                );
 
+                if !is_addition && !is_concatenation {
+                    return Err(ValidationError::IncompatibleTypes {
+                        operation: "addition".to_string(),
+                        left_type: left_dt,
+                        right_type: right_dt,
+                    });
+                }
+
+                let result_type = promote_expression_types(left_type, right_type, "addition")?;
                 let result_dt = result_type.data_type();
                 Ok(TypedExpression::Add {
                     left: Arc::new(typed_left.cast_if_needed(result_dt)),
