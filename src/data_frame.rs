@@ -770,7 +770,7 @@ impl PyDataFrame {
             .clone()
             .lazy()
             .unpivot(UnpivotArgsDSL {
-                index: cols(unpivot_columns),
+                index: cols(unpivot_columns.clone()),
                 on: Some(cols(consumed_column_names)),
                 variable_name: Some(key.clone().into()),
                 value_name: Some(value.into()),
@@ -778,12 +778,19 @@ impl PyDataFrame {
             .collect()
             .unwrap();
 
-        let mut new_group_levels = self.group_levels.clone();
-        new_group_levels.push(vec![key]);
+        let existing_group_columns: HashSet<&str> = self.iter_group_names().collect();
+        let new_group_level: Vec<String> = unpivot_columns
+            .iter()
+            .copied()
+            .filter(|&col| !existing_group_columns.contains(col))
+            .map(|s| s.to_string())
+            .collect();
+        let mut group_levels = self.group_levels.clone();
+        group_levels.push(new_group_level);
 
         Ok(PyDataFrame {
             polars_data_frame: unpivot_df,
-            group_levels: new_group_levels,
+            group_levels,
         })
     }
 
