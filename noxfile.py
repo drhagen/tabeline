@@ -17,7 +17,13 @@ def _run_tests(s: Session, test_name: str, *pytest_args: str):
     # files to its expected target dir.
     # This command spits out shell commmands to set variables, so they must be
     # parsed, somewhat fragilly.
-    cov_env_output = subprocess.check_output(["cargo", "llvm-cov", "show-env"], text=True)
+    # --remap-path-prefix injects rustc's --remap-path-prefix=$workspace= flag
+    # into the build, so SF: paths in the resulting lcov are repo-relative and
+    # therefore portable across OS runners. The matching flag is also passed
+    # to `cargo llvm-cov report` below.
+    cov_env_output = subprocess.check_output(
+        ["cargo", "llvm-cov", "show-env", "--remap-path-prefix"], text=True
+    )
     for line in cov_env_output.splitlines():
         key, _, value = line.partition("=")
         s.env[key] = value.strip().strip("'")
@@ -58,13 +64,22 @@ def _run_tests(s: Session, test_name: str, *pytest_args: str):
     # Run the tests with coverage
     s.run("coverage", "run", "--data-file", coverage_data, "-m", "pytest", *pytest_args)
 
+    # Combine the data file into itself to apply [tool.coverage.paths] aliasing,
+    # which remaps the nox-installed site-packages location back to the source
+    # tree (e.g. .nox/.../site-packages/tabeline/ -> python/tabeline/). Without
+    # this step `coverage lcov` would emit the literal recorded path, which
+    # varies per OS and Python version and breaks cross-runner combining.
+    combined_data = f"{coverage_data}.combined"
+    s.run("coverage", "combine", "--data-file", combined_data, coverage_data)
+
     # Convert the Python coverage data to the common lcov format
-    s.run("coverage", "lcov", "--data-file", coverage_data, "-o", f"python.{test_name}.lcov")
-    Path(coverage_data).unlink()
+    s.run("coverage", "lcov", "--data-file", combined_data, "-o", f"python.{test_name}.lcov")
+    Path(combined_data).unlink()
 
     # Convert the Rust coverage data to the common lcov format
     # This must be done here because the cargo-llvm-cov data is not portable
-    # (unlike the Python data)
+    # (unlike the Python data). --remap-path-prefix strips the workspace root
+    # from SF: paths so the lcov is portable across OS runners.
     s.run(
         "cargo",
         "llvm-cov",
@@ -74,6 +89,7 @@ def _run_tests(s: Session, test_name: str, *pytest_args: str):
         f"rust.{test_name}.lcov",
         "--ignore-filename-regex",
         r"/\.cargo/|/rustc/",
+        "--remap-path-prefix",
         external=True,
     )
 
