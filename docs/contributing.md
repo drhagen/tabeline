@@ -20,11 +20,28 @@ git clone https://github.com/drhagen/tabeline.git
 
 ## Installing from source
 
-Tabeline uses uv as its packaging and dependency manager. In whatever Python environment you prefer, [install uv](https://docs.astral.sh/uv/getting-started/installation/) and then use uv to install Tabeline and its dependencies:
+Building Tabeline requires that a Rust compiler be available.
+In your environment, install [rustup](https://rustup.rs/) and then use it to install the appropriate rust version and rust-related tools:
 
 ```shell
-pip install uv
+rustup show
+```
+
+Tabeline uses uv as its Python packaging and dependency manager.
+In Python environment you prefer, [install uv](https://docs.astral.sh/uv/getting-started/installation/) and then use uv to install Tabeline and its dependencies:
+
+```shell
 uv sync
+```
+
+Combining code coverage and generating a coverage report requires that `lcov` be installed.
+It is not available via rustup, cargo, or uv, so you'll have to install it from somewhere else:
+
+```shell
+pixi global install lcov
+sudo apt install lcov
+brew install lcov
+choco install lcov
 ```
 
 ## Testing
@@ -42,6 +59,13 @@ uv run nox -s test-3.13 test_pandas-3.13
 ```
 
 It is good to run the tests locally before making a PR, but it is not necessary to have all Python versions run. It is rare for a failure to appear in a single version, and the CI will catch it anyway.
+
+The tests generate code coverage data.
+To merge the coverage data and generate an HTML report at `htmlcov/`, run:
+
+```shell
+uv run nox -s coverage
+```
 
 ## Code quality
 

@@ -30,12 +30,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Build wheel
-        uses: PyO3/maturin-action@v1
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          command: build
-          args: -o dist/ -i python${{ matrix.python }}
-          sccache: true
+          rustflags: ""
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -45,20 +43,18 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --only-group nox
       - name: Test
-        run: |
-          uv run --no-sync nox -s test-${{ matrix.python }} -- --use-dist
+        run: uv run --no-sync nox -s test-${{ matrix.python }}
       - name: Test Polars
-        run: |
-          uv run --no-sync nox -s test_polars-${{ matrix.python }} -- --use-dist
+        run: uv run --no-sync nox -s test_polars-${{ matrix.python }}
       - name: Test Pandas
-        run: |
-          uv run --no-sync nox -s test_pandas-${{ matrix.python }} -- --use-dist
+        run: uv run --no-sync nox -s test_pandas-${{ matrix.python }}
       - name: Store coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.platform }}-${{ matrix.python }}
-          path: .coverage.*
-          include-hidden-files: true
+          path: |
+            python.*.lcov
+            rust.*.lcov
           if-no-files-found: error
 
   coverage:
@@ -67,6 +63,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+      - name: Install lcov
+        run: sudo apt-get update && sudo apt-get install -y lcov
       - name: Fetch coverage
         uses: actions/download-artifact@v4
         with:
@@ -80,12 +78,13 @@ jobs:
           cache-suffix: coverage
       - name: Install dependencies
         run: uv sync --locked --only-group nox
-      - name: Combine coverage and generate report
+      - name: Combine coverage
         run: uv run --no-sync nox -s coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: combined.lcov
           fail_ci_if_error: true
 
   lint:
@@ -93,8 +92,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@65101d47ea8028ed0c98a1cdea8dd9182e9b5133
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache-key: lint
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:

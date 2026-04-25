@@ -56,6 +56,7 @@ nox = [
 ]
 
 test = [
+    "maturin == 1.*",
     "pytest == 9.*",
     "coverage",
 ]
