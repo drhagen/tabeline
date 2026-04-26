@@ -80,17 +80,30 @@ def _run_tests(s: Session, test_name: str, *pytest_args: str):
     # This must be done here because the cargo-llvm-cov data is not portable
     # (unlike the Python data). --remap-path-prefix strips the workspace root
     # from SF: paths so the lcov is portable across OS runners.
+    rust_lcov = Path(f"rust.{test_name}.lcov")
     s.run(
         "cargo",
         "llvm-cov",
         "report",
         "--lcov",
         "--output-path",
-        f"rust.{test_name}.lcov",
+        str(rust_lcov),
         "--ignore-filename-regex",
         r"/\.cargo/|/rustc/",
         "--remap-path-prefix",
         external=True,
+    )
+
+    # On Windows, cargo-llvm-cov writes SF: paths with backslashes, which break
+    # genhtml when the lcov is later merged on Linux (backslashes get treated
+    # as literal filename characters). Neither cargo-llvm-cov nor llvm-cov has
+    # a flag to force forward slashes, so rewrite SF: lines in place.
+    rust_lcov.write_text(
+        "\n".join(
+            "SF:" + line[3:].replace("\\", "/") if line.startswith("SF:") else line
+            for line in rust_lcov.read_text().splitlines()
+        )
+        + "\n"
     )
 
 
