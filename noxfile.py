@@ -9,6 +9,20 @@ options.default_venv_backend = "uv"
 options.sessions = ["test", "test_polars", "test_pandas", "coverage", "lint"]
 
 
+def _normalize_lcov_separators(lcov: Path) -> None:
+    # On Windows, both coverage.py and cargo-llvm-cov write SF: paths with
+    # backslashes, which break genhtml when the lcov is later merged on Linux
+    # (backslashes get treated as literal filename characters). Neither tool
+    # has a flag to force forward slashes, so rewrite SF: lines in place.
+    lcov.write_text(
+        "\n".join(
+            "SF:" + line[3:].replace("\\", "/") if line.startswith("SF:") else line
+            for line in lcov.read_text().splitlines()
+        )
+        + "\n"
+    )
+
+
 def _run_tests(s: Session, test_name: str, *pytest_args: str):
     # Almost all of this code is here to provide code coverage for the Rust
     # code, which requires instrumentation and post-processing
@@ -73,8 +87,10 @@ def _run_tests(s: Session, test_name: str, *pytest_args: str):
     s.run("coverage", "combine", "--data-file", combined_data, coverage_data)
 
     # Convert the Python coverage data to the common lcov format
-    s.run("coverage", "lcov", "--data-file", combined_data, "-o", f"python.{test_name}.lcov")
+    python_lcov = Path(f"python.{test_name}.lcov")
+    s.run("coverage", "lcov", "--data-file", combined_data, "-o", str(python_lcov))
     Path(combined_data).unlink()
+    _normalize_lcov_separators(python_lcov)
 
     # Convert the Rust coverage data to the common lcov format
     # This must be done here because the cargo-llvm-cov data is not portable
@@ -94,17 +110,7 @@ def _run_tests(s: Session, test_name: str, *pytest_args: str):
         external=True,
     )
 
-    # On Windows, cargo-llvm-cov writes SF: paths with backslashes, which break
-    # genhtml when the lcov is later merged on Linux (backslashes get treated
-    # as literal filename characters). Neither cargo-llvm-cov nor llvm-cov has
-    # a flag to force forward slashes, so rewrite SF: lines in place.
-    rust_lcov.write_text(
-        "\n".join(
-            "SF:" + line[3:].replace("\\", "/") if line.startswith("SF:") else line
-            for line in rust_lcov.read_text().splitlines()
-        )
-        + "\n"
-    )
+    _normalize_lcov_separators(rust_lcov)
 
 
 @session(
