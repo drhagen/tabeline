@@ -56,6 +56,7 @@ nox = [
 ]
 
 test = [
+    "maturin == 1.*",
     "pytest == 9.*",
     "coverage",
 ]
@@ -85,6 +86,10 @@ filterwarnings = ["error"]
 [tool.coverage.run]
 branch = true
 source = ["tabeline"]
+# Record relative paths so coverage data combines cleanly across OS runners
+# and so [tool.coverage.paths] aliasing maps the nox-installed site-packages
+# location back to the source tree.
+relative_files = true
 
 [tool.coverage.report]
 exclude_lines = [
