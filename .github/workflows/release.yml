@@ -20,15 +20,15 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - name: Build wheels
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@v1.51.0
         with:
           command: build
           args: -o dist/ --release -i python3.11 -i python3.12 -i python3.13 -i python3.14 -i python3.15
           sccache: true
       - name: Store wheels
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dist-wheels-${{ matrix.platform }}
           path: dist
@@ -38,15 +38,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
       - name: Build sdist
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@v1.51.0
         with:
           command: sdist
           args: -o dist/
           sccache: true
       - name: Store sdist
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: dist-sdist
           path: dist
@@ -59,7 +59,7 @@ jobs:
       id-token: write
     steps:
       - name: Fetch dist artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: dist-*
           path: dist
