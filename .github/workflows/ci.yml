@@ -7,7 +7,7 @@ on:
       - master
 
 env:
-  uv-version: "0.11.3"
+  uv-version: "0.13.9"
 
 jobs:
   test:
@@ -21,23 +21,23 @@ jobs:
           - macos-15
           - windows-2025
         python:
-          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
+          - "3.15"
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
       - name: Build wheel
-        uses: PyO3/maturin-action@v1
+        uses: PyO3/maturin-action@v1.51.0
         with:
           command: build
           args: -o dist/ -i python${{ matrix.python }}
           sccache: true
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           version: ${{ env.uv-version }}
           enable-cache: true
@@ -54,7 +54,7 @@ jobs:
         run: |
           uv run --no-sync nox -s test_pandas-${{ matrix.python }} -- --use-dist
       - name: Store coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: coverage-${{ matrix.platform }}-${{ matrix.python }}
           path: .coverage.*
@@ -66,14 +66,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
       - name: Fetch coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: coverage-*
           merge-multiple: true
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           version: ${{ env.uv-version }}
           enable-cache: true
@@ -83,7 +83,7 @@ jobs:
       - name: Combine coverage and generate report
         run: uv run --no-sync nox -s coverage
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
@@ -92,11 +92,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@65101d47ea8028ed0c98a1cdea8dd9182e9b5133
+        uses: mozilla-actions/sccache-action@v0.0.11
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           version: ${{ env.uv-version }}
           enable-cache: true
@@ -105,3 +105,15 @@ jobs:
         run: uv sync --locked --only-group nox
       - name: Run code quality checks
         run: uv run --no-sync nox -s lint
+
+  actions-lock:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7.0.1
+      - name: Verify GitHub Actions lockfile
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh extension install github/gh-actions-lock --pin v0.5.1
+          gh actions-lock --verify

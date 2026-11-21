@@ -18,7 +18,7 @@ from .._types import numeric_types
 def test_same(values):
     df = DataFrame(x=values)
     actual = df.mutate(x="same(x)")
-    assert actual == actual
+    assert actual == actual  # noqa: PLR0124
 
 
 @pytest.mark.parametrize(

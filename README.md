@@ -22,7 +22,7 @@ pip install tabeline
 from tabeline import DataFrame
 
 # Construct a data frame using clean syntax
-# from_csv, from_pandas, and from_polars are also available 
+# from_csv, from_pandas, and from_polars are also available
 df = DataFrame(
     id=[0, 0, 0, 0, 1, 1, 1, 1, 1],
     t=[0, 6, 12, 24, 0, 6, 12, 24, 48],

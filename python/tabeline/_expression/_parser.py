@@ -1,7 +1,7 @@
 __all__ = ["parse_expression"]
 
 from functools import reduce
-from typing import Literal, Union
+from typing import Literal
 
 from parsita import Failure, ParserContext, Success, lit, opt, pred, reg, rep, rep1sep, repsep
 from parsita.util import constant, splat
@@ -12,7 +12,7 @@ from .ast import Expression
 reserved_names = {"None", "True", "False", "inf", "nan"}
 
 
-def make_exponent(first: Expression, maybe_second: Union[tuple[()], tuple[Expression]]):
+def make_exponent(first: Expression, maybe_second: tuple[()] | tuple[Expression]):
     if len(maybe_second) == 0:
         return first
     else:
@@ -50,7 +50,7 @@ def make_numeric_expression(
 
 
 def make_comparison_expression(
-    first: Expression, maybe_second: Union[tuple[()], tuple[Expression]]
+    first: Expression, maybe_second: tuple[()] | tuple[Expression]
 ) -> Expression:
     if len(maybe_second) == 0:
         return first

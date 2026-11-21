@@ -328,36 +328,10 @@ impl TypedExpression {
             }
             TypedExpression::Call { call } => call.to_polars(),
             TypedExpression::Equal { left, right, .. } => {
-                // WORKAROUND: eq_missing on DataType::Null (Nothing) columns returns null
-                // instead of respecting eq_missing semantics. Implement manually:
-                // nothing eq_missing x = x.is_null(); nothing eq_missing nothing = true
-                let left_is_nothing = left.is_nothing_origin();
-                let right_is_nothing = right.is_nothing_origin();
-                if left_is_nothing && right_is_nothing {
-                    lit(true)
-                } else if left_is_nothing {
-                    right.to_polars().is_null()
-                } else if right_is_nothing {
-                    left.to_polars().is_null()
-                } else {
-                    left.to_polars().eq_missing(right.to_polars())
-                }
+                left.to_polars().eq_missing(right.to_polars())
             }
             TypedExpression::NotEqual { left, right, .. } => {
-                // WORKAROUND: neq_missing on DataType::Null (Nothing) columns returns null
-                // instead of respecting the neq_missing semantics. Implement manually:
-                // nothing neq_missing x = x.is_not_null(); nothing neq_missing nothing = false
-                let left_is_nothing = left.is_nothing_origin();
-                let right_is_nothing = right.is_nothing_origin();
-                if left_is_nothing && right_is_nothing {
-                    lit(false)
-                } else if left_is_nothing {
-                    right.to_polars().is_not_null()
-                } else if right_is_nothing {
-                    left.to_polars().is_not_null()
-                } else {
-                    left.to_polars().neq_missing(right.to_polars())
-                }
+                left.to_polars().neq_missing(right.to_polars())
             }
             TypedExpression::GreaterThanOrEqual { left, right, .. } => {
                 // WORKAROUND: gt_eq on DataType::Null columns returns a Boolean null column

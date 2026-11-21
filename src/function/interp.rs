@@ -58,7 +58,7 @@ fn interpolate(args: &mut [Column]) -> PolarsResult<Column> {
 
     let mut result = Vec::with_capacity(t.len());
 
-    for maybe_t in t {
+    for maybe_t in t.iter() {
         let Some(t) = maybe_t else {
             result.push(None);
             continue;
