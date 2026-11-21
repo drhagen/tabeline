@@ -9,7 +9,7 @@ authors = [ { name = "David Hagen", email = "david@drhagen.com" } ]
 license = "MIT"
 readme = "README.md"
 keywords = ["dataframe", "datatable", "datagrammar", "dplyr"]
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.11,<4.0"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -18,11 +18,11 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS :: MacOS X",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Rust",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -39,15 +39,14 @@ Repository = "https://github.com/drhagen/tabeline"
 
 [project.optional-dependencies]
 pandas = [
-    # No Pandas 3 for Python 3.10; drop Pandas 2 along with Python 3.10
-    "pandas >=2, <4",
+    "pandas == 3.*",
     "numpy == 2.*",
-    "pyarrow == 23.*",
+    "pyarrow == 26.*",
 ]
 
 polars = [
     "polars == 1.*",
-    "pyarrow == 23.*",
+    "pyarrow == 26.*",
 ]
 
 [dependency-groups]
@@ -107,6 +106,7 @@ line-length = 99
 [tool.ruff.lint]
 extend-select = [
     "I", # isort
+    "UP", # pyupgrade
     "N", # pep8-naming
     "RUF", # ruff
     "B", # flake8-bugbear
@@ -118,8 +118,7 @@ extend-select = [
     "ERA", # flake8-eradicate
 ]
 # F821: undefined-name; Parsita triggers this, but code coverage will catch it
-# B905: zip-without-explicit-strict; strict not available in Python 3.9
-extend-ignore = ["F821", "B905"]
+extend-ignore = ["F821"]
 
 [tool.ruff.lint.per-file-ignores]
 # F401: unused-import; Allow unused imports in __init__.py files

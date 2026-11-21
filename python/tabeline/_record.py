@@ -2,7 +2,8 @@ from __future__ import annotations
 
 __all__ = ["Record"]
 
-from typing import Iterator, overload
+from collections.abc import Iterator
+from typing import overload
 
 
 class Record:
@@ -28,15 +29,15 @@ class Record:
         return self._data
 
     def __eq__(self, other: object) -> bool:
-        # Cannot add `strict=True` to `zip` and still run on Python 3.9
         if isinstance(other, Record):
             return len(self) == len(other) and all(
                 item == other_item
-                for item, other_item in zip(self._data.items(), other._data.items())
+                for item, other_item in zip(self._data.items(), other._data.items(), strict=True)
             )
         elif isinstance(other, dict):
             return len(self) == len(other) and all(
-                item == other_item for item, other_item in zip(self._data.items(), other.items())
+                item == other_item
+                for item, other_item in zip(self._data.items(), other.items(), strict=True)
             )
         return NotImplemented
 
