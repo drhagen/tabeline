@@ -73,4 +73,4 @@ jobs:
           # See if an sdist with that version was built
           test -f "dist/tabeline-${version}.tar.gz"
       - name: Upload distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@v1.14.3
