@@ -1147,63 +1147,53 @@ impl PyDataFrame {
     }
 
     fn impl_slice(&self, indexes: Vec<i64>) -> Result<PyDataFrame, PolarsError> {
-        if indexes.is_empty() {
-            // WORKAROUND: Polars explodes an empty list into a null instead of
-            // no rows. Return no rows instead.
-            // https://github.com/pola-rs/polars/issues/6723
-            Ok(PyDataFrame {
-                polars_data_frame: self.polars_data_frame.head(Some(0)),
+        // There is no easy way to slice by groups in Polars. Using
+        // `gather` on a group causes the sliced columns to be a column of
+        // lists that must be exploded at the end. The exploding results
+        // in clustering, so getting back the original row order requires
+        // tagging each row with an index and sorting the result by that.
+        // https://stackoverflow.com/q/71373783/
+
+        let flattened_groups: Vec<&str> = self.iter_group_names().collect();
+
+        // Get non-group columns
+        let group_set: HashSet<&str> = flattened_groups.iter().copied().collect();
+        let mut non_group_columns: Vec<&str> = self
+            .iter_column_names()
+            .filter(|&col| !group_set.contains(col))
+            .collect();
+        non_group_columns.push("_index");
+
+        let result = self
+            .polars_data_frame
+            .clone()
+            .lazy()
+            .with_column(arange(0.into(), len(), 1, PolarsDataType::Int32).alias("_index"))
+            .group_by_stable(flattened_groups)
+            .agg([all().as_expr().gather(
+                Expr::Literal(LiteralValue::Series(SpecialEq::new(Series::new(
+                    "".into(),
+                    &indexes,
+                )))),
+                false,
+            )])
+            .explode(
+                cols(non_group_columns),
+                ExplodeOptions {
+                    empty_as_null: false,
+                    keep_nulls: false,
+                },
+            )
+            .sort(["_index"], Default::default())
+            .drop(cols(["_index"]))
+            .collect();
+
+        match result {
+            Ok(polars_data_frame) => Ok(PyDataFrame {
+                polars_data_frame,
                 group_levels: self.group_levels.clone(),
-            })
-        } else {
-            // There is no easy way to slice by groups in Polars. Using
-            // `gather` on a group causes the sliced columns to be a column of
-            // lists that must be exploded at the end. The exploding results
-            // in clustering, so getting back the original row order requires
-            // tagging each row with an index and sorting the result by that.
-            // https://stackoverflow.com/q/71373783/
-
-            let flattened_groups: Vec<&str> = self.iter_group_names().collect();
-
-            // Get non-group columns
-            let group_set: HashSet<&str> = flattened_groups.iter().copied().collect();
-            let mut non_group_columns: Vec<&str> = self
-                .iter_column_names()
-                .filter(|&col| !group_set.contains(col))
-                .collect();
-            non_group_columns.push("_index");
-
-            let result = self
-                .polars_data_frame
-                .clone()
-                .lazy()
-                .with_column(arange(0.into(), len(), 1, PolarsDataType::Int32).alias("_index"))
-                .group_by_stable(flattened_groups)
-                .agg([all().as_expr().gather(
-                    Expr::Literal(LiteralValue::Series(SpecialEq::new(Series::new(
-                        "".into(),
-                        &indexes,
-                    )))),
-                    false,
-                )])
-                .explode(
-                    cols(non_group_columns),
-                    ExplodeOptions {
-                        empty_as_null: false,
-                        keep_nulls: false,
-                    },
-                )
-                .sort(["_index"], Default::default())
-                .drop(cols(["_index"]))
-                .collect();
-
-            match result {
-                Ok(polars_data_frame) => Ok(PyDataFrame {
-                    polars_data_frame,
-                    group_levels: self.group_levels.clone(),
-                }),
-                Err(e) => Err(strip_error_context(e)),
-            }
+            }),
+            Err(e) => Err(strip_error_context(e)),
         }
     }
 
