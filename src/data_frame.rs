@@ -16,7 +16,10 @@ use polars::datatypes::DataType as PolarsDataType;
 use polars::error::PolarsError;
 use polars::prelude::*;
 use polars::series::Series;
-use polars::{frame::UniqueKeepStrategy, prelude::DataFrame as PolarsDataFrame};
+use polars::{
+    frame::{PivotColumnNaming, UniqueKeepStrategy},
+    prelude::DataFrame as PolarsDataFrame,
+};
 use polars_arrow::array::StructArray;
 use pyo3::types::{PyDict, PyTuple};
 use pyo3::{prelude::*, IntoPyObjectExt};
@@ -277,7 +280,7 @@ impl PyDataFrame {
         let flattened_groups: Vec<&str> = self.iter_group_names().collect();
 
         let polars_expression = typed_predicate.to_polars();
-        let grouped_expression = polars_expression.over(flattened_groups.as_slice());
+        let grouped_expression = polars_expression.over(flattened_groups.as_slice()).unwrap();
 
         let filtered_df = self
             .polars_data_frame
@@ -353,7 +356,8 @@ impl PyDataFrame {
         let polars_expression = all()
             .as_expr()
             .sort_by(polars_columns, Default::default())
-            .over(flattened_groups.as_slice());
+            .over(flattened_groups.as_slice())
+            .unwrap();
 
         let sorted_df = self
             .polars_data_frame
@@ -387,11 +391,12 @@ impl PyDataFrame {
             .clone()
             .lazy()
             .with_column(arange(0.into(), len(), 1, PolarsDataType::Int32).alias("_index"))
-            .with_column(col("_index").min().over(window_columns))
+            .with_column(col("_index").min().over(window_columns).unwrap())
             .select(&[all()
                 .as_expr()
                 .sort_by([col("_index")], Default::default())
-                .over(flattened_groups.as_slice())])
+                .over(flattened_groups.as_slice())
+                .unwrap()])
             .drop(cols(["_index"]))
             .collect()
             .unwrap();
@@ -535,7 +540,7 @@ impl PyDataFrame {
 
         for (column, typed_expr) in typed_mutators {
             let polars_expression = typed_expr.to_polars();
-            let grouped_expression = polars_expression.over(flattened_groups.as_slice());
+            let grouped_expression = polars_expression.over(flattened_groups.as_slice()).unwrap();
             let named_expression = grouped_expression.alias(&column);
 
             polars_df = polars_df.with_column(named_expression);
@@ -575,7 +580,7 @@ impl PyDataFrame {
 
         for (column, typed_expr) in typed_mutators {
             let polars_expression = typed_expr.to_polars();
-            let grouped_expression = polars_expression.over(flattened_groups.as_slice());
+            let grouped_expression = polars_expression.over(flattened_groups.as_slice()).unwrap();
             let named_expression = grouped_expression.alias(&column);
 
             polars_df = polars_df.with_column(named_expression);
@@ -726,6 +731,7 @@ impl PyDataFrame {
                 element().first(),
                 true,
                 "_".into(),
+                PivotColumnNaming::Auto,
             )
             .collect()
             .unwrap();
@@ -1006,6 +1012,18 @@ impl PyDataFrame {
     }
 }
 
+/// Unwrap the context that Polars adds to errors so that the underlying error
+/// kind can be matched.
+fn strip_error_context(mut error: PolarsError) -> PolarsError {
+    loop {
+        match error {
+            PolarsError::Context { error: inner, .. }
+            | PolarsError::ExprContext { error: inner, .. } => error = *inner,
+            _ => return error,
+        }
+    }
+}
+
 impl PartialEq for PyDataFrame {
     fn eq(&self, other: &Self) -> bool {
         // WORKAROUND: The dummy column is important here because not all
@@ -1155,32 +1173,36 @@ impl PyDataFrame {
                 .collect();
             non_group_columns.push("_index");
 
-            let result =
-                self.polars_data_frame
-                    .clone()
-                    .lazy()
-                    .with_column(arange(0.into(), len(), 1, PolarsDataType::Int32).alias("_index"))
-                    .group_by_stable(flattened_groups)
-                    .agg([all().as_expr().gather(Expr::Literal(LiteralValue::Series(
-                        SpecialEq::new(Series::new("".into(), &indexes)),
-                    )))])
-                    .explode(
-                        cols(non_group_columns),
-                        ExplodeOptions {
-                            empty_as_null: false,
-                            keep_nulls: false,
-                        },
-                    )
-                    .sort(["_index"], Default::default())
-                    .drop(cols(["_index"]))
-                    .collect();
+            let result = self
+                .polars_data_frame
+                .clone()
+                .lazy()
+                .with_column(arange(0.into(), len(), 1, PolarsDataType::Int32).alias("_index"))
+                .group_by_stable(flattened_groups)
+                .agg([all().as_expr().gather(
+                    Expr::Literal(LiteralValue::Series(SpecialEq::new(Series::new(
+                        "".into(),
+                        &indexes,
+                    )))),
+                    false,
+                )])
+                .explode(
+                    cols(non_group_columns),
+                    ExplodeOptions {
+                        empty_as_null: false,
+                        keep_nulls: false,
+                    },
+                )
+                .sort(["_index"], Default::default())
+                .drop(cols(["_index"]))
+                .collect();
 
             match result {
                 Ok(polars_data_frame) => Ok(PyDataFrame {
                     polars_data_frame,
                     group_levels: self.group_levels.clone(),
                 }),
-                Err(e) => Err(e),
+                Err(e) => Err(strip_error_context(e)),
             }
         }
     }

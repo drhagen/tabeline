@@ -17,7 +17,7 @@ def test_data_frames_are_not_equal():
 
 def test_data_frame_equal_to_itself():
     df = DataFrame(x=[1, 2, 3, 4], y=[True, False, True, True], z=[3.5, 2.2, 6.7, 8.9])
-    assert df == df
+    assert df == df  # noqa: PLR0124
 
 
 def test_empty_data_frames_are_equal():
@@ -28,7 +28,7 @@ def test_empty_data_frames_are_equal():
 
 def test_empty_data_frame_equal_to_itself():
     df = DataFrame()
-    assert df == df
+    assert df == df  # noqa: PLR0124
 
 
 def test_rowless_data_frame_equal():
@@ -39,7 +39,7 @@ def test_rowless_data_frame_equal():
 
 def test_rowless_data_frame_equal_to_itself():
     df = DataFrame(x=[], y=[], z=[])
-    assert df == df
+    assert df == df  # noqa: PLR0124
 
 
 def test_columnless_data_frames_are_equal():
@@ -50,7 +50,7 @@ def test_columnless_data_frames_are_equal():
 
 def test_columnless_data_frame_equal_to_itself():
     df = DataFrame.columnless(height=6)
-    assert df == df
+    assert df == df  # noqa: PLR0124
 
 
 def test_reordered_rows_are_not_equal():

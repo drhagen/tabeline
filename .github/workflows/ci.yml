@@ -7,7 +7,7 @@ on:
       - master
 
 env:
-  uv-version: "0.11.3"
+  uv-version: "0.13.9"
 
 jobs:
   test:
@@ -29,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Build wheel
         uses: PyO3/maturin-action@v1
         with:
@@ -37,7 +37,7 @@ jobs:
           args: -o dist/ -i python${{ matrix.python }}
           sccache: true
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10
         with:
           version: ${{ env.uv-version }}
           enable-cache: true
@@ -54,7 +54,7 @@ jobs:
         run: |
           uv run --no-sync nox -s test_pandas-${{ matrix.python }} -- --use-dist
       - name: Store coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.platform }}-${{ matrix.python }}
           path: .coverage.*
@@ -66,14 +66,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Fetch coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: coverage-*
           merge-multiple: true
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10
         with:
           version: ${{ env.uv-version }}
           enable-cache: true
@@ -83,7 +83,7 @@ jobs:
       - name: Combine coverage and generate report
         run: uv run --no-sync nox -s coverage
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
@@ -92,11 +92,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@65101d47ea8028ed0c98a1cdea8dd9182e9b5133
+        uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10
         with:
           version: ${{ env.uv-version }}
           enable-cache: true

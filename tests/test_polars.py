@@ -3,7 +3,7 @@ import pytest
 import tabeline as tb
 
 pl = pytest.importorskip("polars")
-import polars.testing  # noqa: E402
+import polars.testing
 
 
 @pytest.mark.parametrize("elements", [[], [0], [0, 1, 2], [True, False, True], ["a", "b", "c"]])
@@ -38,8 +38,7 @@ def test_polars_conversion(polars_df, df):
 
 
 def test_to_polars_columnless():
-    # Polars has not concept of columnless data frames
     df = tb.DataFrame.columnless(height=6)
     actual = df.to_polars()
-    expected = pl.DataFrame()
+    expected = pl.DataFrame(height=6)
     polars.testing.assert_frame_equal(actual, expected)

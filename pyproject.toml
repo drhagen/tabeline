@@ -45,13 +45,13 @@ pandas = [
 ]
 
 polars = [
-    "polars == 1.*",
+    "polars == 2.*",
     "pyarrow == 26.*",
 ]
 
 [dependency-groups]
 nox = [
-    "nox-uv == 0.7.*",
+    "nox-uv == 0.8.*",
 ]
 
 test = [
@@ -60,7 +60,7 @@ test = [
 ]
 
 lint = [
-    "ruff == 0.15.*",
+    "ruff == 0.17.*",
 ]
 
 docs = [
@@ -103,6 +103,10 @@ source = [
 src = ["python", "tests"]
 line-length = 99
 
+[tool.ruff.format]
+# Keep the hand-formatted code examples in the docs
+exclude = ["*.md"]
+
 [tool.ruff.lint]
 extend-select = [
     "I", # isort
@@ -118,7 +122,8 @@ extend-select = [
     "ERA", # flake8-eradicate
 ]
 # F821: undefined-name; Parsita triggers this, but code coverage will catch it
-extend-ignore = ["F821"]
+# PYI041: redundant-numeric-union; `int | float` is clearer than `float`
+extend-ignore = ["F821", "PYI041"]
 
 [tool.ruff.lint.per-file-ignores]
 # F401: unused-import; Allow unused imports in __init__.py files

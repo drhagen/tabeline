@@ -184,8 +184,8 @@ pub fn diff_py_arrays(
                 .polars_column
                 .f32()
                 .unwrap()
-                .into_iter()
-                .zip(expected.polars_column.f32().unwrap().into_iter())
+                .iter()
+                .zip(expected.polars_column.f32().unwrap().iter())
                 .enumerate()
             {
                 match (actual_value, expected_value) {
@@ -225,8 +225,8 @@ pub fn diff_py_arrays(
                 .polars_column
                 .f64()
                 .unwrap()
-                .into_iter()
-                .zip(expected.polars_column.f64().unwrap().into_iter())
+                .iter()
+                .zip(expected.polars_column.f64().unwrap().iter())
                 .enumerate()
             {
                 match (actual_value, expected_value) {
